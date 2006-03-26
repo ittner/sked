@@ -28,7 +28,7 @@ pygtk.require('2.0')
 import gtk
 from gtk import glade
 
-import anydbm           # Berkeley DB abstractionlayer.
+import anydbm           # Berkeley DB abstraction layer.
 import os               # Operating system stuff
 
 
@@ -41,7 +41,7 @@ class SkedApp:
             alert = gtk.MessageDialog(None,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-                "An initialization error has occurred. Namárie.")
+                "An initialization error has occurred. Namárië.")
             alert.run()
             self.quit()
     

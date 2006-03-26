@@ -41,7 +41,7 @@ class SkedApp:
             alert = gtk.MessageDialog(None,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-                "Initialization error. Namárie.")
+                "An initialization error has occurred. Namárie.")
             alert.run()
             self.quit()
     

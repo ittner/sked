@@ -138,7 +138,7 @@ class SkedApp:
         return self.searchSharedPath(xmlfile + ".glade")
     
     def searchSharedPath(self, fname):
-        prefixes = ['', 'usr/shared/sked/', 'usr/local/shared/sked/']
+        prefixes = ['', 'usr/share/sked/', 'usr/local/share/sked/']
         for prefix in prefixes:
             if os.path.exists(prefix + fname):
                 return prefix + fname;

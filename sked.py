@@ -94,7 +94,7 @@ class SkedApp:
 
     def getDateStr(self):
         year, month, day = self.calendar.get_date()
-        return "%04d%02d%02d" % (year, month, day)
+        return "%04d%02d%02d" % (year, month + 1, day)
 
     def dateChanged(self, widget = None):
         if self.curdate != None:
@@ -110,6 +110,26 @@ class SkedApp:
             self.txBuffer.set_text(self.db[self.curdate])
         else:
             self.txBuffer.set_text("")
+        self.updateCalendar()
+
+    def updateCalendar(self, widget = None):
+        # gtk.Calendar doesn't appears to suport other calendars than the
+        # Gregorian one (no Islamic, Chinese or Jewish calendars supported).
+        # It's a portability bug.
+
+        year, month, day = self.calendar.get_date()
+        if ((year % 4 == 0) and (year % 100 != 0)) \
+        or ((year % 4 == 0) and (year % 100 == 0) and (year % 400 == 0)):
+            mdays = [ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
+        else:
+            mdays = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
+
+        for day in range(1, mdays[month] + 1):
+            key = "%04d%02d%02d" % (year, month + 1, day)
+            if self.db.has_key(key):
+                self.calendar.mark_day(day)
+            else:
+                self.calendar.unmark_day(day)
 
     def getHomeDir(self):
         return os.path.expanduser('~')

@@ -24,10 +24,10 @@ class SkedApp:
                 "Initialization error. Namárie.")
             alert.run()
             self.quit()
-        self.curdate = None
-        self.dateChanged()
     
     def start(self):
+        self.curdate = None
+        self.dateChanged()
         self.mainWindow.show()
         
     def quit(self, widget = None, data = None):

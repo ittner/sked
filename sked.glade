@@ -5,7 +5,7 @@
 
 <widget class="GtkWindow" id="wndMain">
   <property name="border_width">2</property>
-  <property name="width_request">350</property>
+  <property name="width_request">400</property>
   <property name="height_request">250</property>
   <property name="visible">True</property>
   <property name="title" translatable="yes">Sked</property>
@@ -31,6 +31,7 @@
 
       <child>
 	<widget class="GtkScrolledWindow" id="NoteTextWindow">
+	  <property name="border_width">4</property>
 	  <property name="width_request">250</property>
 	  <property name="visible">True</property>
 	  <property name="can_focus">True</property>
@@ -68,7 +69,8 @@
 
       <child>
 	<widget class="GtkVBox" id="vbox1">
-	  <property name="width_request">100</property>
+	  <property name="border_width">4</property>
+	  <property name="width_request">200</property>
 	  <property name="visible">True</property>
 	  <property name="homogeneous">False</property>
 	  <property name="spacing">3</property>

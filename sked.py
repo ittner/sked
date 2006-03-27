@@ -48,10 +48,22 @@ class SkedApp:
     def start(self):
         self.curdate = None
         self.dateChanged()
+        x = self.getIntOpt("window_x", 0)
+        y = self.getIntOpt("window_y", 0)
+        w = self.getIntOpt("window_w", 600)
+        h = self.getIntOpt("window_h", 280)
+        self.mainWindow.move(x, y)
+        self.mainWindow.resize(w, h)
         self.mainWindow.show()
-        
+
     def quit(self, widget = None, data = None):
         self.dateChanged()
+        x, y = self.mainWindow.get_position()
+        w, h = self.mainWindow.get_size()
+        self.setIntOpt("window_x", x)
+        self.setIntOpt("window_y", y)
+        self.setIntOpt("window_w", w)
+        self.setIntOpt("window_h", h)
         self.mainWindow.destroy()
         gtk.main_quit()
 

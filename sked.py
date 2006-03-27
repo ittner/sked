@@ -131,6 +131,21 @@ class SkedApp:
             else:
                 self.calendar.unmark_day(day)
 
+    def getIntOpt(self, name, default = None):
+        key = "opt_" + name
+        if self.db.has_key(key):
+            return int(self.db[key])
+        return default
+        
+    def setIntOpt(self, name, value):
+        key = "opt_" + name
+        self.db[key] = "%d" % value
+        
+    def delOpt(self, name):
+        key = "opt_" + name
+        if self.db.has_key(key):
+            del self.db[key]
+
     def getHomeDir(self):
         return os.path.expanduser('~')
 

@@ -136,12 +136,11 @@ class SkedApp:
         else:
             mdays = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
 
+        self.calendar.clear_marks()
         for day in range(1, mdays[month] + 1):
             key = "%04d%02d%02d" % (year, month + 1, day)
             if self.db.has_key(key):
                 self.calendar.mark_day(day)
-            else:
-                self.calendar.unmark_day(day)
 
     def getIntOpt(self, name, default = None):
         key = "opt_" + name

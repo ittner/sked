@@ -27,9 +27,11 @@ import pygtk            # GTK+ stuff
 pygtk.require('2.0')
 import gtk
 from gtk import glade
+import pango
 
 import anydbm           # Berkeley DB abstraction layer.
 import os               # Operating system stuff
+import re               # Regular expressions
 
 
 class SkedApp:
@@ -89,6 +91,28 @@ class SkedApp:
         self.btInfo = self.glade.get_widget("btInfo")
         self.btInfo.connect("clicked", self.info)
 
+        self.setTextTags()
+
+    def setTextTags(self):
+        tagdata = {
+            'gray' : { 'foreground' : '#888888' },
+            'bold' : { 'weight' : pango.WEIGHT_BOLD },
+        }
+        for tag in tagdata:
+            self.txBuffer.create_tag(tag, **tagdata[tag])
+
+    def formatText(self):
+        start, end = self.txBuffer.get_bounds()
+        tx = self.txBuffer.get_text(start, end)
+
+        bold_re = ur"(\*)(.+?)(\*)"     # *bold*
+        for mtc in re.finditer(bold_re, tx):
+            start = self.txBuffer.get_iter_at_offset(mtc.start())
+            end = self.txBuffer.get_iter_at_offset(mtc.end() - 1)
+            self.txBuffer.apply_tag_by_name("bold", start, end)
+
+
+
     def openDB(self):
         self.dbFile = self.getHomeDir() + "/.sked.db"
         self.db = anydbm.open(self.dbFile, 'c', 0600)
@@ -123,6 +147,7 @@ class SkedApp:
         else:
             self.txBuffer.set_text("")
         self.updateCalendar()
+        self.formatText()
 
     def updateCalendar(self, widget = None):
         # gtk.Calendar doesn't appears to suport other calendars than the

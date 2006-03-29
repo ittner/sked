@@ -34,10 +34,93 @@ import os               # Operating system stuff
 import re               # Regular expressions
 
 
+
+# Generic functions ------------------------------------------------------
+
+def get_home_dir():
+    return os.path.expanduser('~')
+
+def find_glade_xml(xmlfile):
+    return search_share_path(xmlfile + ".glade")
+    
+def search_share_path(fname):
+    prefixes = ['', 'usr/share/sked/', 'usr/local/share/sked/']
+    for prefix in prefixes:
+        if os.path.exists(prefix + fname):
+            return prefix + fname;
+    for prefix in prefixes:
+        if os.path.exists('/' + prefix + fname):
+            return '/' + prefix + fname;
+    return None
+
+
+
+
+# Database abstraction ---------------------------------------------------
+
+class DatabaseManager:
+    
+    def __init__(self, fname):
+        self._fname = fname
+        self._db = anydbm.open(self._fname, 'c', 0600)
+
+    def has_key(self, key):
+        return self._db.has_key(key)
+
+    def set_key(self, key, value):
+        self._db[key] = value
+        
+    def get_key(self, key, default = None):
+        if self._db.has_key(key):
+            return self._db[key]
+        else:
+            return default
+    
+    def del_key(self, key):
+        if self._db.has_key(key):
+            del self._db[key]
+            
+    def get_filename(self):
+        return self._fname
+
+
+# Option manager ---------------------------------------------------------
+
+class OptionManager:
+    
+    def __init__(self, db):
+        self._db = db
+
+    def get_str(self, key, default = None):
+        keyn = self._key_name(key)
+        return self._db.get_key(keyn, default)
+    
+    def set_str(self, key, value):
+        keyn = self._key_name(key)
+        self._db.set_key(keyn, value)
+
+    def get_int(self, key, default = None):
+        s = self.get_str(key, None)
+        if s != None:
+            return int(s)
+        else:
+            return default
+
+    def set_int(self, key, value):
+        self.set_str(key, "%d" % value)
+
+    def _key_name(self, key):
+        return "opt_" + key
+
+
+
+# Main application class -------------------------------------------------
+
 class SkedApp:
     def __init__(self):
         try:
-            self.openDB()
+            self.db = DatabaseManager(get_home_dir() + "/.sked.db")
+            self.opt = OptionManager(self.db)
             self.loadInterface()
         except Exception:
             alert = gtk.MessageDialog(None,
@@ -50,10 +133,10 @@ class SkedApp:
     def start(self):
         self.curdate = None
         self.dateChanged()
-        x = self.getIntOpt("window_x", 0)
-        y = self.getIntOpt("window_y", 0)
-        w = self.getIntOpt("window_w", 600)
-        h = self.getIntOpt("window_h", 280)
+        x = self.opt.get_int("window_x", 0)
+        y = self.opt.get_int("window_y", 0)
+        w = self.opt.get_int("window_w", 600)
+        h = self.opt.get_int("window_h", 280)
         self.mainWindow.move(x, y)
         self.mainWindow.resize(w, h)
         self.mainWindow.show()
@@ -62,15 +145,15 @@ class SkedApp:
         self.dateChanged()
         x, y = self.mainWindow.get_position()
         w, h = self.mainWindow.get_size()
-        self.setIntOpt("window_x", x)
-        self.setIntOpt("window_y", y)
-        self.setIntOpt("window_w", w)
-        self.setIntOpt("window_h", h)
+        self.opt.set_int("window_x", x)
+        self.opt.set_int("window_y", y)
+        self.opt.set_int("window_w", w)
+        self.opt.set_int("window_h", h)
         self.mainWindow.destroy()
         gtk.main_quit()
 
     def loadInterface(self):
-        self.gladeFile = self.findGladeXML("sked")
+        self.gladeFile = find_glade_xml("sked")
         self.glade = gtk.glade.XML(self.gladeFile, "wndMain")
         
         self.mainWindow = self.glade.get_widget("wndMain")
@@ -111,12 +194,6 @@ class SkedApp:
             end = self.txBuffer.get_iter_at_offset(mtc.end() - 1)
             self.txBuffer.apply_tag_by_name("bold", start, end)
 
-
-
-    def openDB(self):
-        self.dbFile = self.getHomeDir() + "/.sked.db"
-        self.db = anydbm.open(self.dbFile, 'c', 0600)
-
     def info(self, widget = None):
         msg = "Sked version 1.0\n" \
             + "(c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>\n" \
@@ -137,15 +214,11 @@ class SkedApp:
             start, end = self.txBuffer.get_bounds()
             tx = self.txBuffer.get_text(start, end)
             if tx != "":
-                self.db[self.curdate] = tx
+                self.db.set_key(self.curdate, tx)
             else:
-                if self.db.has_key(self.curdate):
-                    del self.db[self.curdate]
+                self.db.del_key(self.curdate)
         self.curdate = self.getDateStr()
-        if self.db.has_key(self.curdate):
-            self.txBuffer.set_text(self.db[self.curdate])
-        else:
-            self.txBuffer.set_text("")
+        self.txBuffer.set_text(self.db.get_key(self.curdate, ""))
         self.updateCalendar()
         self.formatText()
 
@@ -167,36 +240,6 @@ class SkedApp:
             if self.db.has_key(key):
                 self.calendar.mark_day(day)
 
-    def getIntOpt(self, name, default = None):
-        key = "opt_" + name
-        if self.db.has_key(key):
-            return int(self.db[key])
-        return default
-        
-    def setIntOpt(self, name, value):
-        key = "opt_" + name
-        self.db[key] = "%d" % value
-        
-    def delOpt(self, name):
-        key = "opt_" + name
-        if self.db.has_key(key):
-            del self.db[key]
-
-    def getHomeDir(self):
-        return os.path.expanduser('~')
-
-    def findGladeXML(self, xmlfile):
-        return self.searchSharedPath(xmlfile + ".glade")
-    
-    def searchSharedPath(self, fname):
-        prefixes = ['', 'usr/share/sked/', 'usr/local/share/sked/']
-        for prefix in prefixes:
-            if os.path.exists(prefix + fname):
-                return prefix + fname;
-        for prefix in prefixes:
-            if os.path.exists('/' + prefix + fname):
-                return '/' + prefix + fname;
-        return None
 
 
 

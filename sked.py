@@ -208,24 +208,41 @@ class SkedApp:
         self.btInfo.connect("clicked", self.show_about_box)
 
         self.setTextTags()
+        
+    def get_text(self):
+        start, end = self.txBuffer.get_bounds()
+        return unicode(self.txBuffer.get_text(start, end), "utf-8")
 
     def setTextTags(self):
         tagdata = {
-            'gray' : { 'foreground' : '#888888' },
-            'bold' : { 'weight' : pango.WEIGHT_BOLD },
+            'gray'   : { 'foreground' : '#888888' },
+            'bold'   : { 'weight' : pango.WEIGHT_BOLD },
+            'italic' : { 'style'  : pango.STYLE_ITALIC },
         }
         for tag in tagdata:
             self.txBuffer.create_tag(tag, **tagdata[tag])
 
     def formatText(self):
-        start, end = self.txBuffer.get_bounds()
-        tx = self.txBuffer.get_text(start, end)
+        tx = self.get_text()
+        
+        bold_re = ur"(\*+)(.+?)(\*+)"     # *bold*
+        for match in re.finditer(bold_re, tx):
+            self._apply_tag_on_group(match, "gray", 1)
+            self._apply_tag_on_group(match, "bold", 2)
+            self._apply_tag_on_group(match, "gray", 3)
+        
+        italic_re = ur"(_+)(.+?)(_+)"     # _italic_
+        for match in re.finditer(italic_re, tx):
+            self._apply_tag_on_group(match, "gray", 1)
+            self._apply_tag_on_group(match, "italic", 2)
+            self._apply_tag_on_group(match, "gray", 3)
 
-        bold_re = ur"\*+(.+?)\*+"     # *bold*
-        for mtc in re.finditer(bold_re, tx):
-            start = self.txBuffer.get_iter_at_offset(mtc.start())
-            end = self.txBuffer.get_iter_at_offset(mtc.end())
-            self.txBuffer.apply_tag_by_name("bold", start, end)
+
+
+    def _apply_tag_on_group(self, match, tag, group):
+        start = self.txBuffer.get_iter_at_offset(match.start(group))
+        end = self.txBuffer.get_iter_at_offset(match.end(group))
+        self.txBuffer.apply_tag_by_name(tag, start, end)
 
     def show_about_box(self, widget = None):
         bx = AboutBox(self.mainWindow)
@@ -237,8 +254,7 @@ class SkedApp:
 
     def dateChanged(self, widget = None):
         if self.curdate != None:
-            start, end = self.txBuffer.get_bounds()
-            tx = self.txBuffer.get_text(start, end)
+            tx = self.get_text()
             if tx != "":
                 self.db.set_key(self.curdate, tx)
             else:

@@ -117,9 +117,15 @@ class OptionManager:
 # Main application class -------------------------------------------------
 
 class SkedApp:
+    DB_FILENAME = "/.sked.db"
+    DEF_WINDOW_X = 0
+    DEF_WINDOW_Y = 0
+    DEF_WINDOW_W = 600
+    DEF_WINDOW_H = 280
+
     def __init__(self):
         try:
-            self.db = DatabaseManager(get_home_dir() + "/.sked.db")
+            self.db = DatabaseManager(get_home_dir() + SkedApp.DB_FILENAME)
             self.opt = OptionManager(self.db)
             self.loadInterface()
         except Exception:
@@ -132,23 +138,29 @@ class SkedApp:
     
     def start(self):
         self.curdate = None
+        self.restore_window_geometry()
         self.dateChanged()
-        x = self.opt.get_int("window_x", 0)
-        y = self.opt.get_int("window_y", 0)
-        w = self.opt.get_int("window_w", 600)
-        h = self.opt.get_int("window_h", 280)
-        self.mainWindow.move(x, y)
-        self.mainWindow.resize(w, h)
         self.mainWindow.show()
 
-    def quit(self, widget = None, data = None):
-        self.dateChanged()
+    def save_window_geometry(self):
         x, y = self.mainWindow.get_position()
         w, h = self.mainWindow.get_size()
         self.opt.set_int("window_x", x)
         self.opt.set_int("window_y", y)
         self.opt.set_int("window_w", w)
         self.opt.set_int("window_h", h)
+
+    def restore_window_geometry(self):
+        x = self.opt.get_int("window_x", SkedApp.DEF_WINDOW_X)
+        y = self.opt.get_int("window_y", SkedApp.DEF_WINDOW_Y)
+        w = self.opt.get_int("window_w", SkedApp.DEF_WINDOW_W)
+        h = self.opt.get_int("window_h", SkedApp.DEF_WINDOW_H)
+        self.mainWindow.move(x, y)
+        self.mainWindow.resize(w, h)
+
+    def quit(self, widget = None, data = None):
+        self.dateChanged()
+        self.save_window_geometry()
         self.mainWindow.destroy()
         gtk.main_quit()
 

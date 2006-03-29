@@ -221,10 +221,10 @@ class SkedApp:
         start, end = self.txBuffer.get_bounds()
         tx = self.txBuffer.get_text(start, end)
 
-        bold_re = ur"(\*)(.+?)(\*)"     # *bold*
+        bold_re = ur"\*+(.+?)\*+"     # *bold*
         for mtc in re.finditer(bold_re, tx):
             start = self.txBuffer.get_iter_at_offset(mtc.start())
-            end = self.txBuffer.get_iter_at_offset(mtc.end() - 1)
+            end = self.txBuffer.get_iter_at_offset(mtc.end())
             self.txBuffer.apply_tag_by_name("bold", start, end)
 
     def show_about_box(self, widget = None):

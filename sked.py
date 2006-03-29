@@ -113,6 +113,27 @@ class OptionManager:
         return "opt_" + key
 
 
+# About box --------------------------------------------------------------
+
+class AboutBox:
+    # Replace this for a standard Gtk about box.
+    
+    def __init__(self, pattern = None):
+        self._pattern = pattern
+    
+    def show(self):
+        msg = "Sked version 1.0 (devel)\n" \
+            + "(c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>\n" \
+            + "Distributed under the GNU GPL version 2 (or above)\n\n" \
+            + "Revision:\n" + __CVSID__
+        msgbox = gtk.MessageDialog(self._pattern,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_INFO, gtk.BUTTONS_OK, msg)
+        msgbox.run()
+        msgbox.destroy()
+
+
+
 
 # Main application class -------------------------------------------------
 
@@ -184,7 +205,7 @@ class SkedApp:
         self.btSave.connect("clicked", self.dateChanged)
         
         self.btInfo = self.glade.get_widget("btInfo")
-        self.btInfo.connect("clicked", self.info)
+        self.btInfo.connect("clicked", self.show_about_box)
 
         self.setTextTags()
 
@@ -206,16 +227,9 @@ class SkedApp:
             end = self.txBuffer.get_iter_at_offset(mtc.end() - 1)
             self.txBuffer.apply_tag_by_name("bold", start, end)
 
-    def info(self, widget = None):
-        msg = "Sked version 1.0\n" \
-            + "(c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>\n" \
-            + "Distributed under the GNU GPL version 2 (or above)\n\n" \
-            + "Revision:\n" + __CVSID__
-        msgbox = gtk.MessageDialog(self.mainWindow,
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            gtk.MESSAGE_INFO, gtk.BUTTONS_OK, msg)
-        msgbox.run()
-        msgbox.destroy()
+    def show_about_box(self, widget = None):
+        bx = AboutBox(self.mainWindow)
+        bx.show()
 
     def getDateStr(self):
         year, month, day = self.calendar.get_date()

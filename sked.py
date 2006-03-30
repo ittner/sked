@@ -230,23 +230,22 @@ class SkedApp:
     def formatText(self):
         tx = self.get_text()
 
-        h1_re = ur"(===)(.+?)(===)"     # === h1 ===
-        for match in re.finditer(h1_re, tx):
-            self._apply_tag_on_group(match, "gray", 1)
-            self._apply_tag_on_group(match, "h1", 2)
-            self._apply_tag_on_group(match, "gray", 3)
-
-        h2_re = ur"(==)(.+?)(==)"     # == h2 ==
-        for match in re.finditer(h2_re, tx):
-            self._apply_tag_on_group(match, "gray", 1)
-            self._apply_tag_on_group(match, "h2", 2)
-            self._apply_tag_on_group(match, "gray", 3)
-
-        h3_re = ur"(=)(.+?)(=)"     # = h3 =
-        for match in re.finditer(h3_re, tx):
-            self._apply_tag_on_group(match, "gray", 1)
-            self._apply_tag_on_group(match, "h3", 2)
-            self._apply_tag_on_group(match, "gray", 3)
+        h_re = ur"^\s*(=+)(.+?)(=+)\s*$"     # === Headings ===
+        for match in re.finditer(h_re, tx, re.MULTILINE):
+            cntl = len(match.group(1))
+            cntr = len(match.group(3))
+            if cntl == cntr and cntl == 3:
+                h = "h1"
+            elif cntl == cntr and cntl == 2:
+                h = "h2"
+            elif cntl == cntr and cntl == 1:
+                h = "h3"
+            else:
+                h = None
+            if h != None:
+                self._apply_tag_on_group(match, "gray", 1)
+                self._apply_tag_on_group(match, h, 2)
+                self._apply_tag_on_group(match, "gray", 3)
 
         bold_re = ur"(\*+)(.+?)(\*+)"     # *bold*
         for match in re.finditer(bold_re, tx):

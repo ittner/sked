@@ -218,6 +218,8 @@ class SkedApp:
             'gray'   : { 'foreground' : '#888888' },
             'bold'   : { 'weight' : pango.WEIGHT_BOLD },
             'italic' : { 'style'  : pango.STYLE_ITALIC },
+            'link'   : { 'foreground' : '#000088',
+                          'underline' : pango.UNDERLINE_SINGLE }
         }
         for tag in tagdata:
             self.txBuffer.create_tag(tag, **tagdata[tag])
@@ -237,6 +239,11 @@ class SkedApp:
             self._apply_tag_on_group(match, "italic", 2)
             self._apply_tag_on_group(match, "gray", 3)
 
+        link_re = ur"(\[\[ *)(.+?)( *\]\])"     # [[Link]]
+        for match in re.finditer(link_re, tx):
+            self._apply_tag_on_group(match, "gray", 1)
+            self._apply_tag_on_group(match, "link", 2)
+            self._apply_tag_on_group(match, "gray", 3)
 
 
     def _apply_tag_on_group(self, match, tag, group):

@@ -219,14 +219,35 @@ class SkedApp:
             'bold'   : { 'weight' : pango.WEIGHT_BOLD },
             'italic' : { 'style'  : pango.STYLE_ITALIC },
             'link'   : { 'foreground' : '#000088',
-                          'underline' : pango.UNDERLINE_SINGLE }
+                          'underline' : pango.UNDERLINE_SINGLE },
+            'h1'     : { 'scale' : pango.SCALE_XX_LARGE },
+            'h2'     : { 'scale' : pango.SCALE_X_LARGE },
+            'h3'     : { 'scale' : pango.SCALE_LARGE }
         }
         for tag in tagdata:
             self.txBuffer.create_tag(tag, **tagdata[tag])
 
     def formatText(self):
         tx = self.get_text()
-        
+
+        h1_re = ur"(===)(.+?)(===)"     # === h1 ===
+        for match in re.finditer(h1_re, tx):
+            self._apply_tag_on_group(match, "gray", 1)
+            self._apply_tag_on_group(match, "h1", 2)
+            self._apply_tag_on_group(match, "gray", 3)
+
+        h2_re = ur"(==)(.+?)(==)"     # == h2 ==
+        for match in re.finditer(h2_re, tx):
+            self._apply_tag_on_group(match, "gray", 1)
+            self._apply_tag_on_group(match, "h2", 2)
+            self._apply_tag_on_group(match, "gray", 3)
+
+        h3_re = ur"(=)(.+?)(=)"     # = h3 =
+        for match in re.finditer(h3_re, tx):
+            self._apply_tag_on_group(match, "gray", 1)
+            self._apply_tag_on_group(match, "h3", 2)
+            self._apply_tag_on_group(match, "gray", 3)
+
         bold_re = ur"(\*+)(.+?)(\*+)"     # *bold*
         for match in re.finditer(bold_re, tx):
             self._apply_tag_on_group(match, "gray", 1)
@@ -244,6 +265,14 @@ class SkedApp:
             self._apply_tag_on_group(match, "gray", 1)
             self._apply_tag_on_group(match, "link", 2)
             self._apply_tag_on_group(match, "gray", 3)
+
+        link_re = ur"([0-3][0-9])\/([01][0-9])\/([0-9]{4})"
+        for match in re.finditer(link_re, tx):
+            self._apply_tag_on_group(match, "link", 0)
+
+        link_re = ur"([0-9]{4})-([01][0-9])-([0-3][0-9])"
+        for match in re.finditer(link_re, tx):
+            self._apply_tag_on_group(match, "link", 0)
 
 
     def _apply_tag_on_group(self, match, tag, group):

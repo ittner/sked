@@ -141,14 +141,14 @@ class SkedApp:
     DB_FILENAME = "/.sked.db"
     DEF_WINDOW_X = 0
     DEF_WINDOW_Y = 0
-    DEF_WINDOW_W = 600
-    DEF_WINDOW_H = 280
+    DEF_WINDOW_W = 700
+    DEF_WINDOW_H = 400
 
     def __init__(self):
         try:
             self.db = DatabaseManager(get_home_dir() + SkedApp.DB_FILENAME)
             self.opt = OptionManager(self.db)
-            self.loadInterface()
+            self.load_interface()
         except Exception:
             alert = gtk.MessageDialog(None,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -185,35 +185,119 @@ class SkedApp:
         self.mainWindow.destroy()
         gtk.main_quit()
 
-    def loadInterface(self):
+    def load_interface(self):
         self.gladeFile = find_glade_xml("sked")
         self.glade = gtk.glade.XML(self.gladeFile, "wndMain")
-        
-        self.mainWindow = self.glade.get_widget("wndMain")
-        self.mainWindow.connect("delete-event", self.quit)
+        self.glade.signal_autoconnect({
+            'on_cmd_about'      : self._on_cmd_about,
+            'on_cmd_backup'     : self._on_cmd_backup,
+            'on_cmd_bold'       : self._on_cmd_bold,
+            'on_cmd_change_pwd' : self._on_cmd_change_pwd,
+            'on_cmd_code'       : self._on_cmd_code,
+            'on_cmd_copy'       : self._on_cmd_copy,
+            'on_cmd_cut'        : self._on_cmd_cut,
+            'on_cmd_date_change': self._on_cmd_date_change,
+            'on_cmd_delete'     : self._on_cmd_delete,
+            'on_cmd_exit'       : self._on_cmd_exit,
+            'on_cmd_goto'       : self._on_cmd_goto,
+            'on_cmd_header1'    : self._on_cmd_header1,
+            'on_cmd_header2'    : self._on_cmd_header2,
+            'on_cmd_header3'    : self._on_cmd_header3,
+            'on_cmd_home'       : self._on_cmd_home,
+            'on_cmd_italic'     : self._on_cmd_italic,
+            'on_cmd_link'       : self._on_cmd_link,
+            'on_cmd_next'       : self._on_cmd_next,
+            'on_cmd_paste'      : self._on_cmd_paste,
+            'on_cmd_preferences': self._on_cmd_preferences,
+            'on_cmd_previous'   : self._on_cmd_previous,
+            'on_cmd_redo'       : self._on_cmd_redo,
+            'on_cmd_undo'       : self._on_cmd_undo
+        })
 
+        self.mainWindow = self.glade.get_widget("wndMain")
         self.txNote = self.glade.get_widget("NoteText")
         self.txBuffer = self.txNote.get_buffer()
-
         self.calendar = self.glade.get_widget("Calendar")
-        self.calendar.connect("day-selected", self.dateChanged)
-        
-        self.btQuit = self.glade.get_widget("btQuit")
-        self.btQuit.connect("clicked", self.quit)
-        
-        self.btSave = self.glade.get_widget("btSave")
-        self.btSave.connect("clicked", self.dateChanged)
-        
-        self.btInfo = self.glade.get_widget("btInfo")
-        self.btInfo.connect("clicked", self.show_about_box)
+        self.set_text_tags()
 
-        self.setTextTags()
+    def _on_cmd_nothing(self, widget = None, data = None):
+        print("Not implemented yet.")
+
+    def _on_cmd_about(self, widget = None, data = None):
+        bx = AboutBox(self.mainWindow)
+        bx.show()
         
+    def _on_cmd_backup(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_bold(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_change_pwd(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_code(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_copy(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_cut(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_date_change(self, widget = None, data = None):
+        self.dateChanged()
+        
+    def _on_cmd_delete(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_exit(self, widget = None, data = None):
+        self.quit()
+        
+    def _on_cmd_goto(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_header1(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_header2(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_header3(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_home(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_italic(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_link(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_next(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_paste(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_preferences(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_previous(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_redo(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_undo(self, widget = None, data = None):
+        pass
+
     def get_text(self):
         start, end = self.txBuffer.get_bounds()
         return unicode(self.txBuffer.get_text(start, end), "utf-8")
 
-    def setTextTags(self):
+    def set_text_tags(self):
         tagdata = {
             'gray'   : { 'foreground' : '#888888' },
             'bold'   : { 'weight' : pango.WEIGHT_BOLD },
@@ -278,10 +362,6 @@ class SkedApp:
         start = self.txBuffer.get_iter_at_offset(match.start(group))
         end = self.txBuffer.get_iter_at_offset(match.end(group))
         self.txBuffer.apply_tag_by_name(tag, start, end)
-
-    def show_about_box(self, widget = None):
-        bx = AboutBox(self.mainWindow)
-        bx.show()
 
     def getDateStr(self):
         year, month, day = self.calendar.get_date()

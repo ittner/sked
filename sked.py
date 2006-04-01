@@ -211,7 +211,11 @@ class SkedApp:
             'on_cmd_preferences': self._on_cmd_preferences,
             'on_cmd_previous'   : self._on_cmd_previous,
             'on_cmd_redo'       : self._on_cmd_redo,
-            'on_cmd_undo'       : self._on_cmd_undo
+            'on_cmd_restore'    : self._on_cmd_restore,
+            'on_cmd_today'      : self._on_cmd_today,
+            'on_cmd_tomorrow'   : self._on_cmd_tomorrow,
+            'on_cmd_undo'       : self._on_cmd_undo,
+            'on_cmd_yesterday'  : self._on_cmd_yesterday
         })
 
         self.mainWindow = self.glade.get_widget("wndMain")
@@ -290,7 +294,19 @@ class SkedApp:
     def _on_cmd_redo(self, widget = None, data = None):
         pass
         
+    def _on_cmd_restore(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_today(self, widget = None, data = None):
+        pass
+        
+    def _on_cmd_tomorrow(self, widget = None, data = None):
+        pass
+        
     def _on_cmd_undo(self, widget = None, data = None):
+        pass
+
+    def _on_cmd_yesterday(self, widget = None, data = None):
         pass
 
     def get_text(self):

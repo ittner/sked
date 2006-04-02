@@ -124,11 +124,14 @@ class OptionManager:
             self.set_int(key, 0)
             
     def get_color(self, key, default = "#000000"):
-        return gdk.color_parse(self.get_str(key, default))
+        try:
+            c = gdk.color_parse(self.get_str(key, default))
+        except ValueError:
+            c = gdk.color_parse(default)    # for invalid colors.
+        return c
 
     def set_color(self, key, color):
-        print("#%02d%02d%02d" % (color.red, color.green, color.blue))
-        self.set_str(key, "#%02d%02d%02d" % (color.red, color.green, color.blue))
+        self.set_str(key, "#%.2X%2X%.2X" % (color.red/256, color.green/256, color.blue/256))
 
     def _key_name(self, key):
         return "opt_" + key
@@ -137,7 +140,7 @@ class OptionManager:
 # About box --------------------------------------------------------------
 
 class AboutBox:
-    # Replace this for a standard Gtk about box.
+    ##TODO: Replace this for a standard Gtk about box.
     
     def __init__(self, parent = None):
         self._parent = parent
@@ -156,11 +159,12 @@ class AboutBox:
 
 
 # Preferences window -----------------------------------------------------
+
 class PreferencesWindow:
     _wnd = None
 
     def __init__(self, parent):
-        self._parent = parent
+        self.parent = parent
         self.opt = parent.opt
         self._load_interface()
         self._set_widget_values()
@@ -208,6 +212,7 @@ class PreferencesWindow:
         self._save_widget_values()
         self.wnd.destroy()
         PreferencesWindow._wnd = None
+        self.parent.update_options()
         
     def _on_cmd_cancel(self, widget = None, data = None):
         self.wnd.destroy()
@@ -280,6 +285,7 @@ class SkedApp:
         self.curdate = None
         self.restore_window_geometry()
         self.dateChanged()
+        self.update_options()
         self.mainWindow.show()
         
     def set_default_options(self):
@@ -297,7 +303,6 @@ class SkedApp:
         self.opt.set_str("link_color", SkedApp.DEF_LINK_COLOR)
         self.opt.set_str("new_link_color", SkedApp.DEF_NEW_LINK_COLOR)
 
-
     def save_window_geometry(self):
         x, y = self.mainWindow.get_position()
         w, h = self.mainWindow.get_size()
@@ -313,6 +318,9 @@ class SkedApp:
         h = self.opt.get_int("window_h", SkedApp.DEF_WINDOW_H)
         self.mainWindow.move(x, y)
         self.mainWindow.resize(w, h)
+        
+    def update_options(self):
+        self._set_edit_buttons()
 
     def quit(self, widget = None, data = None):
         self.dateChanged()
@@ -357,6 +365,13 @@ class SkedApp:
         self.txNote = self.glade.get_widget("NoteText")
         self.txBuffer = self.txNote.get_buffer()
         self.calendar = self.glade.get_widget("Calendar")
+        self.btSep1 = self.glade.get_widget("btSep1")
+        self.btUndo = self.glade.get_widget("btUndo")
+        self.btRedo = self.glade.get_widget("btRedo")
+        self.btCopy = self.glade.get_widget("btCopy")
+        self.btCut = self.glade.get_widget("btCut")
+        self.btPaste = self.glade.get_widget("btPaste")
+        self.btDelete = self.glade.get_widget("btDelete")
         self.set_text_tags()
 
     def _on_cmd_about(self, widget = None, data = None):
@@ -441,6 +456,16 @@ class SkedApp:
 
     def _on_cmd_yesterday(self, widget = None, data = None):
         pass
+
+    def _set_edit_buttons(self):
+        show = self.opt.get_bool("show_edit_buttons", False)
+        self.btSep1.set_visible_horizontal(show)
+        self.btUndo.set_visible_horizontal(show)
+        self.btRedo.set_visible_horizontal(show)
+        self.btCopy.set_visible_horizontal(show)
+        self.btCut.set_visible_horizontal(show)
+        self.btPaste.set_visible_horizontal(show)
+        self.btDelete.set_visible_horizontal(show)
 
     def get_text(self):
         start, end = self.txBuffer.get_bounds()

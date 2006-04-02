@@ -432,7 +432,10 @@ class SkedApp:
         self.update_calendar()
         
     def _on_cmd_delete(self, widget = None, data = None):
-        pass
+        name = self.curpage
+        self.change_page("index")
+        self.db.del_key(self.page_name(name))
+        self.update_calendar()
         
     def _on_cmd_exit(self, widget = None, data = None):
         self.quit()
@@ -618,7 +621,12 @@ class SkedApp:
         return "%04d-%02d-%02d" % (year, month + 1, day)
 
     def change_page(self, page):
-        self.txPageName.set_text(page)
+        match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})",page)
+        if match != None:
+            d = int(match.group(1))
+            m = int(match.group(2))
+            y = int(match.group(3))
+            page = "%.4d-%.2d-%.2d" % (y, m, d)
         if self.curpage != None:
             tx = self.get_text()
             if tx != "":
@@ -626,6 +634,7 @@ class SkedApp:
             else:
                 self.db.del_key(self.page_name(self.curpage))
         self.curpage = page
+        self.txPageName.set_text(page)
         self.txBuffer.set_text(self.db.get_key(self.page_name(self.curpage), ""))
         self.format_text()
         self.update_calendar()
@@ -646,7 +655,6 @@ class SkedApp:
         # gtk.Calendar doesn't appears to suport other calendars than the
         # Gregorian one (no Islamic, Chinese or Jewish calendars supported).
         # It's a portability bug.
-
         year, month, day = self.calendar.get_date()
         if ((year % 4 == 0) and (year % 100 != 0)) \
         or ((year % 4 == 0) and (year % 100 == 0) and (year % 400 == 0)):

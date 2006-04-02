@@ -325,9 +325,9 @@ class SkedApp:
             self.quit()
     
     def start(self):
-        self.curdate = None
+        self.curpage = None
         self.restore_window_geometry()
-        self.dateChanged()
+        self._on_cmd_date_change()
         self.update_options()
         self.mainWindow.show()
 
@@ -353,7 +353,7 @@ class SkedApp:
         self.format_text()
 
     def quit(self, widget = None, data = None):
-        self.dateChanged()
+        self._on_cmd_date_change()
         self.save_window_geometry()
         self.mainWindow.destroy()
         gtk.main_quit()
@@ -402,6 +402,7 @@ class SkedApp:
         self.btCut = self.glade.get_widget("btCut")
         self.btPaste = self.glade.get_widget("btPaste")
         self.btDelete = self.glade.get_widget("btDelete")
+        self.txPageName = self.glade.get_widget("txPageName")
         self.set_text_tags()
 
     def _on_cmd_about(self, widget = None, data = None):
@@ -427,7 +428,8 @@ class SkedApp:
         pass
         
     def _on_cmd_date_change(self, widget = None, data = None):
-        self.dateChanged()
+        self.change_page(self.get_date_str())
+        self.update_calendar()
         
     def _on_cmd_delete(self, widget = None, data = None):
         pass
@@ -436,7 +438,7 @@ class SkedApp:
         self.quit()
         
     def _on_cmd_goto(self, widget = None, data = None):
-        pass
+        self.change_page(self.txPageName.get_text())
         
     def _on_cmd_header1(self, widget = None, data = None):
         pass
@@ -448,7 +450,7 @@ class SkedApp:
         pass
         
     def _on_cmd_home(self, widget = None, data = None):
-        pass
+        self.change_page("index")
         
     def _on_cmd_italic(self, widget = None, data = None):
         pass
@@ -584,8 +586,12 @@ class SkedApp:
 
         link_re = ur"(\[\[ *)(.+?)( *\]\])" # [[Link]]
         for match in re.finditer(link_re, tx):
+            if self.has_page(match.group(2)):
+                style = "link"
+            else:
+                style = "newlink"
             self._apply_tag_on_group(match, "format", 1)
-            self._apply_tag_on_group(match, "link", 2)
+            self._apply_tag_on_group(match, style, 2)
             self._apply_tag_on_group(match, "format", 3)
 
         code_re = ur"(\|\|\|)(.+?)(\|\|\|)" # |||code|||
@@ -602,29 +608,41 @@ class SkedApp:
         for match in re.finditer(link_re, tx):
             self._apply_tag_on_group(match, "link", 0)
 
-
     def _apply_tag_on_group(self, match, tag, group):
         start = self.txBuffer.get_iter_at_offset(match.start(group))
         end = self.txBuffer.get_iter_at_offset(match.end(group))
         self.txBuffer.apply_tag_by_name(tag, start, end)
 
-    def getDateStr(self):
+    def get_date_str(self):
         year, month, day = self.calendar.get_date()
-        return "%04d%02d%02d" % (year, month + 1, day)
+        return "%04d-%02d-%02d" % (year, month + 1, day)
 
-    def dateChanged(self, widget = None):
-        if self.curdate != None:
+    def change_page(self, page):
+        self.txPageName.set_text(page)
+        if self.curpage != None:
             tx = self.get_text()
             if tx != "":
-                self.db.set_key(self.curdate, tx)
+                self.db.set_key(self.page_name(self.curpage), tx)
             else:
-                self.db.del_key(self.curdate)
-        self.curdate = self.getDateStr()
-        self.txBuffer.set_text(self.db.get_key(self.curdate, ""))
-        self.updateCalendar()
+                self.db.del_key(self.page_name(self.curpage))
+        self.curpage = page
+        self.txBuffer.set_text(self.db.get_key(self.page_name(self.curpage), ""))
         self.format_text()
+        self.update_calendar()
+        
+    def has_page(self, page):
+        return self.db.has_key(self.page_name(page))
+        
+    def page_name(self, page):
+        # Gets an utf-8 encoded string-or-unicode-string and return a the page
+        # name as an utf-8 encoded prefixed string. Sounds confuse for you? :)
+        if isinstance(page, unicode):
+            upage = page.upper()
+        else:
+            upage = unicode(page, "utf-8").upper()
+        return "pag_" + upage.encode("utf-8")
 
-    def updateCalendar(self, widget = None):
+    def update_calendar(self, widget = None):
         # gtk.Calendar doesn't appears to suport other calendars than the
         # Gregorian one (no Islamic, Chinese or Jewish calendars supported).
         # It's a portability bug.
@@ -638,8 +656,8 @@ class SkedApp:
 
         self.calendar.clear_marks()
         for day in range(1, mdays[month] + 1):
-            key = "%04d%02d%02d" % (year, month + 1, day)
-            if self.db.has_key(key):
+            name = "%04d-%02d-%02d" % (year, month + 1, day)
+            if self.has_page(name):
                 self.calendar.mark_day(day)
 
 

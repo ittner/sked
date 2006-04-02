@@ -349,6 +349,8 @@ class SkedApp:
         
     def update_options(self):
         self._set_edit_buttons()
+        self.set_text_tags()
+        self.format_text()
 
     def quit(self, widget = None, data = None):
         self.dateChanged()
@@ -538,13 +540,20 @@ class SkedApp:
             'bold' : { 'weight' : pango.WEIGHT_BOLD },
             'italic' : { 'style' : pango.STYLE_ITALIC }
         }
+        table = self.txBuffer.get_tag_table()
+        for tagname in tagdata:
+            tag = table.lookup(tagname)
+            if tag != None:
+                table.remove(tag)
         for tag in tagdata:
             self.txBuffer.create_tag(tag, **tagdata[tag])
 
     def format_text(self):
         tx = self.get_text()
+        start, end = self.txBuffer.get_bounds() # Apply defaults
+        self.txBuffer.apply_tag_by_name("std", start, end)
 
-        h_re = ur"^\s*(=+)(.+?)(=+)\s*$"     # === Headings ===
+        h_re = ur"^\s*(=+)(.+?)(=+)\s*$"        # === Headings ===
         for match in re.finditer(h_re, tx, re.MULTILINE):
             cntl = len(match.group(1))
             cntr = len(match.group(3))
@@ -561,25 +570,25 @@ class SkedApp:
                 self._apply_tag_on_group(match, h, 2)
                 self._apply_tag_on_group(match, "format", 3)
 
-        bold_re = ur"(\*+)(.+?)(\*+)"     # *bold*
+        bold_re = ur"(\*+)(.+?)(\*+)"       # *bold*
         for match in re.finditer(bold_re, tx):
             self._apply_tag_on_group(match, "format", 1)
             self._apply_tag_on_group(match, "bold", 2)
             self._apply_tag_on_group(match, "format", 3)
         
-        italic_re = ur"(_+)(.+?)(_+)"     # _italic_
+        italic_re = ur"(_+)(.+?)(_+)"       # _italic_
         for match in re.finditer(italic_re, tx):
             self._apply_tag_on_group(match, "format", 1)
             self._apply_tag_on_group(match, "italic", 2)
             self._apply_tag_on_group(match, "format", 3)
 
-        link_re = ur"(\[\[ *)(.+?)( *\]\])"     # [[Link]]
+        link_re = ur"(\[\[ *)(.+?)( *\]\])" # [[Link]]
         for match in re.finditer(link_re, tx):
             self._apply_tag_on_group(match, "format", 1)
             self._apply_tag_on_group(match, "link", 2)
             self._apply_tag_on_group(match, "format", 3)
 
-        code_re = ur"(\|\|\|)(.+?)(\|\|\|)"         # |||code|||
+        code_re = ur"(\|\|\|)(.+?)(\|\|\|)" # |||code|||
         for match in re.finditer(code_re, tx, re.MULTILINE| re.DOTALL):
             self._apply_tag_on_group(match, "format", 1)
             self._apply_tag_on_group(match, "code", 2)

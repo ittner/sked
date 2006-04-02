@@ -421,13 +421,13 @@ class SkedApp:
         pass
         
     def _on_cmd_bold(self, widget = None, data = None):
-        pass
+        self.insert_formatting("*", "*")
         
     def _on_cmd_change_pwd(self, widget = None, data = None):
         pass
         
     def _on_cmd_code(self, widget = None, data = None):
-        pass
+        self.insert_formatting("|||", "|||")
         
     def _on_cmd_copy(self, widget = None, data = None):
         pass
@@ -452,22 +452,22 @@ class SkedApp:
         self.change_page(self.txPageName.get_text())
         
     def _on_cmd_header1(self, widget = None, data = None):
-        pass
+        self.insert_formatting("===", "===")
         
     def _on_cmd_header2(self, widget = None, data = None):
-        pass
+        self.insert_formatting("==", "==")
         
     def _on_cmd_header3(self, widget = None, data = None):
-        pass
+        self.insert_formatting("=", "=")
         
     def _on_cmd_home(self, widget = None, data = None):
         self.change_page("index")
         
     def _on_cmd_italic(self, widget = None, data = None):
-        pass
+        self.insert_formatting("_", "_")
         
     def _on_cmd_link(self, widget = None, data = None):
-        pass
+        self.insert_formatting("[[", "]]")
         
     def _on_cmd_next(self, widget = None, data = None):
         pass
@@ -513,6 +513,28 @@ class SkedApp:
     def get_text(self):
         start, end = self.txBuffer.get_bounds()
         return unicode(self.txBuffer.get_text(start, end), "utf-8")
+
+    def insert_formatting(self, before, after):
+        ##TODO: Fix this confuse code.
+        smark = self.txBuffer.get_selection_bound()
+        imark = self.txBuffer.get_insert()
+        iiter = self.txBuffer.get_iter_at_mark(imark)
+        siter = self.txBuffer.get_iter_at_mark(smark)
+        poff = iiter.compare(siter)     # Catapoff! ;)
+        if poff == 0:   # No selection.
+            self.txBuffer.insert(iiter, before)
+            # Previous iiter was invalidated. We need a new one.
+            iiter = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
+            ioff = iiter.get_offset()   # Cursor will back here.
+            self.txBuffer.insert(self.txBuffer.get_iter_at_mark(smark), after)
+            self.txBuffer.place_cursor(self.txBuffer.get_iter_at_offset(ioff))
+            return
+        if poff > 0:    # Inverse selection? Let's put it in the right order.
+            tmp_mark = smark
+            smark = imark
+            imark = tmp_mark
+        self.txBuffer.insert(self.txBuffer.get_iter_at_mark(imark), before)
+        self.txBuffer.insert(self.txBuffer.get_iter_at_mark(smark), after)
 
     def set_text_tags(self):
         tagdata = {

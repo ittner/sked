@@ -89,33 +89,40 @@ class DatabaseManager:
 
 class OptionManager:
     ##TODO:  Add option caching here.
-    def __init__(self, db):
+    def __init__(self, db, defaults = {}):
         self._db = db
+        self._defs = defaults
 
-    def get_str(self, key, default = None):
+    def set_defaults(self, defaults):
+        self._defs = defaults
+
+    def get_str(self, key):
         keyn = self._key_name(key)
-        return self._db.get_key(keyn, default)
+        return self._db.get_key(keyn, self._defv(key))
     
     def set_str(self, key, value):
         keyn = self._key_name(key)
         self._db.set_key(keyn, value)
 
-    def get_int(self, key, default = None):
-        s = self.get_str(key, None)
+    def get_int(self, key):
+        s = self.get_str(key)
         if s != None:
             return int(s)
         else:
-            return default
+            return self._defv(key)
 
     def set_int(self, key, value):
         self.set_str(key, "%d" % value)
 
-    def get_bool(self, key, default = 0):
-        v = self.get_int(key, default)
-        if v != 0:
-            return True
+    def get_bool(self, key):
+        v = self.get_int(key)
+        if v != None:
+            if v != 0:
+                return True
+            else:
+                return False
         else:
-            return False
+            return self._defv(key)
 
     def set_bool(self, key, value):
         if value == True:
@@ -123,11 +130,11 @@ class OptionManager:
         else:
             self.set_int(key, 0)
             
-    def get_color(self, key, default = "#000000"):
+    def get_color(self, key):
         try:
-            c = gdk.color_parse(self.get_str(key, default))
+            c = gdk.color_parse(self.get_str(key))
         except ValueError:
-            c = gdk.color_parse(default)    # for invalid colors.
+            c = gdk.color_parse(self._defv(key))    # for invalid colors.
         return c
 
     def set_color(self, key, color):
@@ -136,6 +143,11 @@ class OptionManager:
     def _key_name(self, key):
         return "opt_" + key
 
+    def _defv(self, key):
+        if self._defs.has_key(key):
+            return self._defs[key]
+        else:
+            return None
 
 # About box --------------------------------------------------------------
 
@@ -219,28 +231,28 @@ class PreferencesWindow:
         PreferencesWindow._wnd = None
 
     def _set_widget_values(self):
-        self.spFormatTime.set_value(self.opt.get_int("format_time", SkedApp.DEF_FORMAT_TIME))
-        self.spSaveTime.set_value(self.opt.get_int("save_time", SkedApp.DEF_SAVE_TIME))
-        self.spUndoLevels.set_value(self.opt.get_int("undo_levels", SkedApp.DEF_UNDO_LEVELS))
-        self.cbShowEdit.set_active(self.opt.get_bool("show_edit_buttons", SkedApp.DEF_SHOW_EDIT_BUTTONS))
+        self.spFormatTime.set_value(self.opt.get_int("format_time"))
+        self.spSaveTime.set_value(self.opt.get_int("save_time"))
+        self.spUndoLevels.set_value(self.opt.get_int("undo_levels"))
+        self.cbShowEdit.set_active(self.opt.get_bool("show_edit_buttons"))
 
-        self.clbStandard.set_color(self.opt.get_color("std_color", SkedApp.DEF_STD_COLOR))
-        self.clbHeader1.set_color(self.opt.get_color("header1_color", SkedApp.DEF_STD_COLOR))
-        self.clbHeader2.set_color(self.opt.get_color("header2_color", SkedApp.DEF_STD_COLOR))
-        self.clbHeader3.set_color(self.opt.get_color("header3_color", SkedApp.DEF_STD_COLOR))
-        self.clbCode.set_color(self.opt.get_color("code_color", SkedApp.DEF_STD_COLOR))
-        self.clbLink.set_color(self.opt.get_color("link_color", SkedApp.DEF_LINK_COLOR))
-        self.clbNewLink.set_color(self.opt.get_color("new_link_color", SkedApp.DEF_NEW_LINK_COLOR))
-        self.clbFormat.set_color(self.opt.get_color("format_color", SkedApp.DEF_FORMAT_COLOR))
+        self.clbStandard.set_color(self.opt.get_color("std_color"))
+        self.clbHeader1.set_color(self.opt.get_color("header1_color"))
+        self.clbHeader2.set_color(self.opt.get_color("header2_color"))
+        self.clbHeader3.set_color(self.opt.get_color("header3_color"))
+        self.clbCode.set_color(self.opt.get_color("code_color"))
+        self.clbLink.set_color(self.opt.get_color("link_color"))
+        self.clbNewLink.set_color(self.opt.get_color("new_link_color"))
+        self.clbFormat.set_color(self.opt.get_color("format_color"))
 
-        self.fbStandard.set_font_name(self.opt.get_str("std_font", SkedApp.DEF_STD_FONT))
-        self.fbHeader1.set_font_name(self.opt.get_str("header1_font", SkedApp.DEF_HEADER1_FONT))
-        self.fbHeader2.set_font_name(self.opt.get_str("header2_font", SkedApp.DEF_HEADER2_FONT))
-        self.fbHeader3.set_font_name(self.opt.get_str("header3_font", SkedApp.DEF_HEADER3_FONT))
-        self.fbCode.set_font_name(self.opt.get_str("code_font", SkedApp.DEF_CODE_FONT))
-        self.fbLink.set_font_name(self.opt.get_str("link_font", SkedApp.DEF_STD_FONT))
-        self.fbNewLink.set_font_name(self.opt.get_str("new_link_font", SkedApp.DEF_STD_FONT))
-        self.fbFormat.set_font_name(self.opt.get_str("format_font", SkedApp.DEF_STD_FONT))
+        self.fbStandard.set_font_name(self.opt.get_str("std_font"))
+        self.fbHeader1.set_font_name(self.opt.get_str("header1_font"))
+        self.fbHeader2.set_font_name(self.opt.get_str("header2_font"))
+        self.fbHeader3.set_font_name(self.opt.get_str("header3_font"))
+        self.fbCode.set_font_name(self.opt.get_str("code_font"))
+        self.fbLink.set_font_name(self.opt.get_str("link_font"))
+        self.fbNewLink.set_font_name(self.opt.get_str("new_link_font"))
+        self.fbFormat.set_font_name(self.opt.get_str("format_font"))
         
     def _save_widget_values(self):
         self.opt.set_int("format_time", self.spFormatTime.get_value_as_int())
@@ -272,36 +284,43 @@ class PreferencesWindow:
 
 class SkedApp:
     DB_FILENAME = "/.sked.db"
-    DEF_WINDOW_X = 0
-    DEF_WINDOW_Y = 0
-    DEF_WINDOW_W = 700
-    DEF_WINDOW_H = 400
-    DEF_FORMAT_TIME = 3
-    DEF_SAVE_TIME = 15
-    DEF_UNDO_LEVELS = 16
-    DEF_SHOW_EDIT_BUTTONS = True
-    DEF_STD_COLOR = "#000000"   # For text, headers and code
-    DEF_LINK_COLOR = "#0000FF"
-    DEF_NEW_LINK_COLOR = "#FF0000"
-    DEF_FORMAT_COLOR = "#AAAAAA"
-    DEF_STD_FONT = "Sans,Normal 12"
-    DEF_HEADER1_FONT = "Sans,Normal 18"
-    DEF_HEADER2_FONT = "Sans,Normal 16"
-    DEF_HEADER3_FONT = "Sans,Normal 14"
-    DEF_CODE_FONT = "Monospace,Normal 12"
+    DEF_PREFS = {
+        "window_x"  : 0,
+        "window_y"  : 0,
+        "window_w"  : 700,
+        "window_h"  : 400,
+        "format_time"   : 3,
+        "save_time"     : 15,
+        "undo_levels"   : 16,
+        "show_edit_buttons" : True,
+        "std_color"     : "#000000",
+        "header1_color" : "#000000",
+        "header2_color" : "#000000",
+        "header3_color" : "#000000",
+        "code_color"    : "#000000",
+        "format_color"  : "#AAAAAA",
+        "link_color"    : "#0000FF",
+        "new_link_color": "#FF0000",
+        "std_font"      : "Sans 12",
+        "header1_font"  : "Sans 18",
+        "header2_font"  : "Sans 16",
+        "header3_font"  : "Sans 14",
+        "code_font"     : "Monospace 12",
+        "format_font"   : "Sans 12",
+        "link_font"     : "Sans 12",
+        "new_link_font" : "Sans 12"
+    }
 
     def __init__(self):
         try:
             self.db = DatabaseManager(get_home_dir() + SkedApp.DB_FILENAME)
-            self.opt = OptionManager(self.db)
-            if self.opt.get_bool("have_defaults", False) == False:
-                self.set_default_options()
+            self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
             self.load_interface()
         except Exception:
             alert = gtk.MessageDialog(None,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-                "An initialization error has occurred. Namárië.")
+               "An initialization error has occurred. Namárië.")
             alert.run()
             self.quit()
     
@@ -311,29 +330,6 @@ class SkedApp:
         self.dateChanged()
         self.update_options()
         self.mainWindow.show()
-        
-    def set_default_options(self):
-        self.opt.set_bool("have_defaults", True)
-        self.opt.set_int("format_time", SkedApp.DEF_FORMAT_TIME)
-        self.opt.set_int("save_time", SkedApp.DEF_SAVE_TIME)
-        self.opt.set_int("undo_levels", SkedApp.DEF_UNDO_LEVELS)
-        self.opt.set_bool("show_edit_buttons", SkedApp.DEF_SHOW_EDIT_BUTTONS)
-        self.opt.set_str("std_color", SkedApp.DEF_STD_COLOR)
-        self.opt.set_str("header1_color", SkedApp.DEF_STD_COLOR)
-        self.opt.set_str("header2_color", SkedApp.DEF_STD_COLOR)
-        self.opt.set_str("header3_color", SkedApp.DEF_STD_COLOR)
-        self.opt.set_str("code_color", SkedApp.DEF_STD_COLOR)
-        self.opt.set_str("format_color", SkedApp.DEF_FORMAT_COLOR)
-        self.opt.set_str("link_color", SkedApp.DEF_LINK_COLOR)
-        self.opt.set_str("new_link_color", SkedApp.DEF_NEW_LINK_COLOR)
-        self.opt.set_str("std_font", SkedApp.DEF_STD_FONT)
-        self.opt.set_str("header1_font", SkedApp.DEF_HEADER1_FONT)
-        self.opt.set_str("header2_font", SkedApp.DEF_HEADER2_FONT)
-        self.opt.set_str("header3_font", SkedApp.DEF_HEADER3_FONT)
-        self.opt.set_str("code_font", SkedApp.DEF_CODE_FONT)
-        self.opt.set_str("link_font", SkedApp.DEF_STD_FONT)
-        self.opt.set_str("new_link_font", SkedApp.DEF_STD_FONT)
-        self.opt.set_str("format_font", SkedApp.DEF_STD_FONT)
 
     def save_window_geometry(self):
         x, y = self.mainWindow.get_position()
@@ -344,10 +340,10 @@ class SkedApp:
         self.opt.set_int("window_h", h)
 
     def restore_window_geometry(self):
-        x = self.opt.get_int("window_x", SkedApp.DEF_WINDOW_X)
-        y = self.opt.get_int("window_y", SkedApp.DEF_WINDOW_Y)
-        w = self.opt.get_int("window_w", SkedApp.DEF_WINDOW_W)
-        h = self.opt.get_int("window_h", SkedApp.DEF_WINDOW_H)
+        x = self.opt.get_int("window_x")
+        y = self.opt.get_int("window_y")
+        w = self.opt.get_int("window_w")
+        h = self.opt.get_int("window_h")
         self.mainWindow.move(x, y)
         self.mainWindow.resize(w, h)
         
@@ -490,7 +486,7 @@ class SkedApp:
         pass
 
     def _set_edit_buttons(self):
-        show = self.opt.get_bool("show_edit_buttons", False)
+        show = self.opt.get_bool("show_edit_buttons")
         self.btSep1.set_visible_horizontal(show)
         self.btUndo.set_visible_horizontal(show)
         self.btRedo.set_visible_horizontal(show)
@@ -506,38 +502,38 @@ class SkedApp:
     def set_text_tags(self):
         tagdata = {
             'std': {
-                'font' : self.opt.get_str("std_font", SkedApp.DEF_STD_FONT),
-                'foreground' : self.opt.get_str("std_color", SkedApp.DEF_STD_COLOR)
+                'font' : self.opt.get_str("std_font"),
+                'foreground' : self.opt.get_str("std_color")
             },
             'h1': {
-                'font' : self.opt.get_str("header1_font", SkedApp.DEF_HEADER1_FONT),
-                'foreground' : self.opt.get_str("header1_color", SkedApp.DEF_FORMAT_COLOR)
+                'font' : self.opt.get_str("header1_font"),
+                'foreground' : self.opt.get_str("header1_color")
             },
             'h2': {
-                'font' : self.opt.get_str("header2_font", SkedApp.DEF_HEADER2_FONT),
-                'foreground' : self.opt.get_str("header2_color", SkedApp.DEF_FORMAT_COLOR)
+                'font' : self.opt.get_str("header2_font"),
+                'foreground' : self.opt.get_str("header2_color")
             },
             'h3': {
-                'font' : self.opt.get_str("header3_font", SkedApp.DEF_HEADER3_FONT),
-                'foreground' : self.opt.get_str("header3_color", SkedApp.DEF_FORMAT_COLOR)
+                'font' : self.opt.get_str("header3_font"),
+                'foreground' : self.opt.get_str("header3_color")
             },
             'code': {
-                'font' : self.opt.get_str("code_font", SkedApp.DEF_CODE_FONT),
-                'foreground' : self.opt.get_str("code_color", SkedApp.DEF_STD_COLOR)
+                'font' : self.opt.get_str("code_font"),
+                'foreground' : self.opt.get_str("code_color")
             },
             'link': {
-                'font' : self.opt.get_str("link_font", SkedApp.DEF_STD_FONT),
-                'foreground' : self.opt.get_str("link_color", SkedApp.DEF_FORMAT_COLOR),
+                'font' : self.opt.get_str("link_font"),
+                'foreground' : self.opt.get_str("link_color"),
                 'underline' : pango.UNDERLINE_SINGLE
             },
             'newlink': {
-                'font' : self.opt.get_str("new_link_font", SkedApp.DEF_STD_FONT),
-                'foreground' : self.opt.get_str("new_link_color", SkedApp.DEF_FORMAT_COLOR),
+                'font' : self.opt.get_str("new_link_font"),
+                'foreground' : self.opt.get_str("new_link_color"),
                 'underline' : pango.UNDERLINE_SINGLE
             },
             'format': {
-                'font' : self.opt.get_str("format_font", SkedApp.DEF_STD_FONT),
-                'foreground' : self.opt.get_str("format_color", SkedApp.DEF_FORMAT_COLOR)
+                'font' : self.opt.get_str("format_font"),
+                'foreground' : self.opt.get_str("format_color")
             },
             'bold' : { 'weight' : pango.WEIGHT_BOLD },
             'italic' : { 'style' : pango.STYLE_ITALIC }

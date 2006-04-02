@@ -27,7 +27,9 @@ import pygtk            # GTK+ stuff
 pygtk.require('2.0')
 import gtk
 from gtk import glade
+from gtk import gdk
 import pango
+
 
 import anydbm           # Berkeley DB abstraction layer.
 import os               # Operating system stuff
@@ -52,7 +54,6 @@ def search_share_path(fname):
         if os.path.exists('/' + prefix + fname):
             return '/' + prefix + fname;
     return None
-
 
 
 
@@ -87,7 +88,7 @@ class DatabaseManager:
 # Option manager ---------------------------------------------------------
 
 class OptionManager:
-    
+    ##TODO:  Add option caching here.
     def __init__(self, db):
         self._db = db
 
@@ -109,6 +110,26 @@ class OptionManager:
     def set_int(self, key, value):
         self.set_str(key, "%d" % value)
 
+    def get_bool(self, key, default = 0):
+        v = self.get_int(key, default)
+        if v != 0:
+            return True
+        else:
+            return False
+
+    def set_bool(self, key, value):
+        if value == True:
+            self.set_int(key, 1)
+        else:
+            self.set_int(key, 0)
+            
+    def get_color(self, key, default = "#000000"):
+        return gdk.color_parse(self.get_str(key, default))
+
+    def set_color(self, key, color):
+        print("#%02d%02d%02d" % (color.red, color.green, color.blue))
+        self.set_str(key, "#%02d%02d%02d" % (color.red, color.green, color.blue))
+
     def _key_name(self, key):
         return "opt_" + key
 
@@ -118,19 +139,107 @@ class OptionManager:
 class AboutBox:
     # Replace this for a standard Gtk about box.
     
-    def __init__(self, pattern = None):
-        self._pattern = pattern
+    def __init__(self, parent = None):
+        self._parent = parent
     
     def show(self):
         msg = "Sked version 1.0 (devel)\n" \
             + "(c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>\n" \
             + "Distributed under the GNU GPL version 2 (or above)\n\n" \
             + "Revision:\n" + __CVSID__
-        msgbox = gtk.MessageDialog(self._pattern,
+        msgbox = gtk.MessageDialog(self._parent,
             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
             gtk.MESSAGE_INFO, gtk.BUTTONS_OK, msg)
         msgbox.run()
         msgbox.destroy()
+
+
+
+# Preferences window -----------------------------------------------------
+class PreferencesWindow:
+    _wnd = None
+
+    def __init__(self, parent):
+        self._parent = parent
+        self.opt = parent.opt
+        self._load_interface()
+        self._set_widget_values()
+        
+    def show(self):
+        if PreferencesWindow._wnd != None:
+            PreferencesWindow._wnd.set_focus()
+        else:
+            PreferencesWindow._wnd = self.wnd
+            self.wnd.show()
+
+    def _load_interface(self):
+        self.gladeFile = find_glade_xml("sked")
+
+        # Boring code ahead... Is there a better way to do it?
+        self.glade = gtk.glade.XML(self.gladeFile, "wndPreferences")
+        self.wnd = self.glade.get_widget("wndPreferences")
+        self.spFormatTime = self.glade.get_widget("spFormatTime")
+        self.spSaveTime = self.glade.get_widget("spSaveTime")
+        self.spUndoLevels = self.glade.get_widget("spUndoLevels")
+        self.cbShowEdit = self.glade.get_widget("cbShowEdit")
+        self.clbStandard = self.glade.get_widget("clbStandard")
+        self.clbHeader1 = self.glade.get_widget("clbHeader1")
+        self.clbHeader2 = self.glade.get_widget("clbHeader2")
+        self.clbHeader3 = self.glade.get_widget("clbHeader3")
+        self.clbCode = self.glade.get_widget("clbCode")
+        self.clbLink = self.glade.get_widget("clbLink")
+        self.clbNewLink = self.glade.get_widget("clbNewLink")
+        self.clbFormat = self.glade.get_widget("clbFormat")
+        self.fbStandart = self.glade.get_widget("fbStandard")
+        self.fbHeader1 = self.glade.get_widget("fbHeader1")
+        self.fbHeader2 = self.glade.get_widget("fbHeader2")
+        self.fbHeader3 = self.glade.get_widget("fbHeader3")
+        self.fbCode = self.glade.get_widget("fbCode")
+        self.fbLink = self.glade.get_widget("fbLink")
+        self.fbNewLink = self.glade.get_widget("fbNewLink")
+        self.fbFormat = self.glade.get_widget("fbFormat")
+
+        self.glade.signal_autoconnect({
+            'on_cmd_ok'     : self._on_cmd_ok,
+            'on_cmd_cancel' : self._on_cmd_cancel
+        })
+        
+    def _on_cmd_ok(self, widget = None, data = None):
+        self._save_widget_values()
+        self.wnd.destroy()
+        PreferencesWindow._wnd = None
+        
+    def _on_cmd_cancel(self, widget = None, data = None):
+        self.wnd.destroy()
+        PreferencesWindow._wnd = None
+
+    def _set_widget_values(self):
+        self.spFormatTime.set_value(self.opt.get_int("format_time", SkedApp.DEF_FORMAT_TIME))
+        self.spSaveTime.set_value(self.opt.get_int("save_time", SkedApp.DEF_SAVE_TIME))
+        self.spUndoLevels.set_value(self.opt.get_int("undo_levels", SkedApp.DEF_UNDO_LEVELS))
+        self.cbShowEdit.set_active(self.opt.get_bool("show_edit_buttons", SkedApp.DEF_SHOW_EDIT_BUTTONS))
+        self.clbStandard.set_color(self.opt.get_color("std_color", SkedApp.DEF_STD_COLOR))
+        self.clbHeader1.set_color(self.opt.get_color("header1_color", SkedApp.DEF_STD_COLOR))
+        self.clbHeader2.set_color(self.opt.get_color("header2_color", SkedApp.DEF_STD_COLOR))
+        self.clbHeader3.set_color(self.opt.get_color("header3_color", SkedApp.DEF_STD_COLOR))
+        self.clbCode.set_color(self.opt.get_color("code_color", SkedApp.DEF_STD_COLOR))
+        self.clbLink.set_color(self.opt.get_color("link_color", SkedApp.DEF_LINK_COLOR))
+        self.clbNewLink.set_color(self.opt.get_color("new_link_color", SkedApp.DEF_NEW_LINK_COLOR))
+        self.clbFormat.set_color(self.opt.get_color("format_color", SkedApp.DEF_FORMAT_COLOR))
+        
+    def _save_widget_values(self):
+        self.opt.set_int("format_time", self.spFormatTime.get_value_as_int())
+        self.opt.set_int("save_time", self.spSaveTime.get_value_as_int())
+        self.opt.set_int("undo_levels", self.spUndoLevels.get_value_as_int())
+        self.opt.set_bool("show_edit_buttons", self.cbShowEdit.get_active())
+        self.opt.set_color("std_color", self.clbStandard.get_color())
+        self.opt.set_color("header1_color", self.clbHeader1.get_color())
+        self.opt.set_color("header2_color", self.clbHeader2.get_color())
+        self.opt.set_color("header3_color", self.clbHeader3.get_color())
+        self.opt.set_color("code_color", self.clbCode.get_color())
+        self.opt.set_color("link_color", self.clbLink.get_color())
+        self.opt.set_color("new_link_color", self.clbNewLink.get_color())
+        self.opt.set_color("format_color", self.clbFormat.get_color())
 
 
 
@@ -143,11 +252,21 @@ class SkedApp:
     DEF_WINDOW_Y = 0
     DEF_WINDOW_W = 700
     DEF_WINDOW_H = 400
+    DEF_FORMAT_TIME = 3
+    DEF_SAVE_TIME = 15
+    DEF_UNDO_LEVELS = 16
+    DEF_SHOW_EDIT_BUTTONS = True
+    DEF_STD_COLOR = "#000000"   # For text, headers and code
+    DEF_LINK_COLOR = "#0000FF"
+    DEF_NEW_LINK_COLOR = "#FF0000"
+    DEF_FORMAT_COLOR = "#AAAAAA"
 
     def __init__(self):
         try:
             self.db = DatabaseManager(get_home_dir() + SkedApp.DB_FILENAME)
             self.opt = OptionManager(self.db)
+            if self.opt.get_bool("have_defaults", False) == False:
+                self.set_default_options()
             self.load_interface()
         except Exception:
             alert = gtk.MessageDialog(None,
@@ -162,6 +281,22 @@ class SkedApp:
         self.restore_window_geometry()
         self.dateChanged()
         self.mainWindow.show()
+        
+    def set_default_options(self):
+        self.opt.set_bool("have_defaults", True)
+        self.opt.set_int("format_time", SkedApp.DEF_FORMAT_TIME)
+        self.opt.set_int("save_time", SkedApp.DEF_SAVE_TIME)
+        self.opt.set_int("undo_levels", SkedApp.DEF_UNDO_LEVELS)
+        self.opt.set_bool("show_edit_buttons", SkedApp.DEF_SHOW_EDIT_BUTTONS)
+        self.opt.set_str("std_color", SkedApp.DEF_STD_COLOR)
+        self.opt.set_str("header1_color", SkedApp.DEF_STD_COLOR)
+        self.opt.set_str("header2_color", SkedApp.DEF_STD_COLOR)
+        self.opt.set_str("header3_color", SkedApp.DEF_STD_COLOR)
+        self.opt.set_str("code_color", SkedApp.DEF_STD_COLOR)
+        self.opt.set_str("format_color", SkedApp.DEF_FORMAT_COLOR)
+        self.opt.set_str("link_color", SkedApp.DEF_LINK_COLOR)
+        self.opt.set_str("new_link_color", SkedApp.DEF_NEW_LINK_COLOR)
+
 
     def save_window_geometry(self):
         x, y = self.mainWindow.get_position()
@@ -224,9 +359,6 @@ class SkedApp:
         self.calendar = self.glade.get_widget("Calendar")
         self.set_text_tags()
 
-    def _on_cmd_nothing(self, widget = None, data = None):
-        print("Not implemented yet.")
-
     def _on_cmd_about(self, widget = None, data = None):
         bx = AboutBox(self.mainWindow)
         bx.show()
@@ -286,7 +418,8 @@ class SkedApp:
         pass
         
     def _on_cmd_preferences(self, widget = None, data = None):
-        pass
+        wnd = PreferencesWindow(self)
+        wnd.show()
         
     def _on_cmd_previous(self, widget = None, data = None):
         pass

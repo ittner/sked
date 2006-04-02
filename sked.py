@@ -449,7 +449,10 @@ class SkedApp:
         self.quit()
         
     def _on_cmd_goto(self, widget = None, data = None):
-        self.change_page(self.txPageName.get_text())
+        tx = self.txPageName.get_text()
+        if tx == "":
+            tx = "index"
+        self.change_page(tx)
         
     def _on_cmd_header1(self, widget = None, data = None):
         self.insert_formatting("===", "===")

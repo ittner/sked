@@ -206,6 +206,7 @@ class PreferencesWindow:
         self.clbLink = self.glade.get_widget("clbLink")
         self.clbNewLink = self.glade.get_widget("clbNewLink")
         self.clbFormat = self.glade.get_widget("clbFormat")
+        self.clbURL = self.glade.get_widget("clbURL")
         self.fbStandard = self.glade.get_widget("fbStandard")
         self.fbHeader1 = self.glade.get_widget("fbHeader1")
         self.fbHeader2 = self.glade.get_widget("fbHeader2")
@@ -214,6 +215,7 @@ class PreferencesWindow:
         self.fbLink = self.glade.get_widget("fbLink")
         self.fbNewLink = self.glade.get_widget("fbNewLink")
         self.fbFormat = self.glade.get_widget("fbFormat")
+        self.fbURL = self.glade.get_widget("fbURL")
 
         self.glade.signal_autoconnect({
             'on_cmd_ok'     : self._on_cmd_ok,
@@ -244,6 +246,7 @@ class PreferencesWindow:
         self.clbLink.set_color(self.opt.get_color("link_color"))
         self.clbNewLink.set_color(self.opt.get_color("new_link_color"))
         self.clbFormat.set_color(self.opt.get_color("format_color"))
+        self.clbURL.set_color(self.opt.get_color("url_link_color"))
 
         self.fbStandard.set_font_name(self.opt.get_str("std_font"))
         self.fbHeader1.set_font_name(self.opt.get_str("header1_font"))
@@ -253,6 +256,7 @@ class PreferencesWindow:
         self.fbLink.set_font_name(self.opt.get_str("link_font"))
         self.fbNewLink.set_font_name(self.opt.get_str("new_link_font"))
         self.fbFormat.set_font_name(self.opt.get_str("format_font"))
+        self.fbURL.set_font_name(self.opt.get_str("url_link_font"))
         
     def _save_widget_values(self):
         self.opt.set_int("format_time", self.spFormatTime.get_value_as_int())
@@ -268,6 +272,7 @@ class PreferencesWindow:
         self.opt.set_color("link_color", self.clbLink.get_color())
         self.opt.set_color("new_link_color", self.clbNewLink.get_color())
         self.opt.set_color("format_color", self.clbFormat.get_color())
+        self.opt.set_color("url_link_color", self.clbURL.get_color())
 
         self.opt.set_str("std_font", self.fbStandard.get_font_name())
         self.opt.set_str("header1_font", self.fbHeader1.get_font_name())
@@ -277,6 +282,7 @@ class PreferencesWindow:
         self.opt.set_str("link_font", self.fbLink.get_font_name())
         self.opt.set_str("new_link_font", self.fbNewLink.get_font_name())
         self.opt.set_str("format_font", self.fbFormat.get_font_name())
+        self.opt.set_str("url_link_font", self.fbURL.get_font_name())
 
 
 
@@ -301,6 +307,7 @@ class SkedApp:
         "format_color"  : "#AAAAAA",
         "link_color"    : "#0000FF",
         "new_link_color": "#FF0000",
+        "url_link_color": "#0000FF",
         "std_font"      : "Sans 12",
         "header1_font"  : "Sans 18",
         "header2_font"  : "Sans 16",
@@ -308,7 +315,8 @@ class SkedApp:
         "code_font"     : "Monospace 12",
         "format_font"   : "Sans 12",
         "link_font"     : "Sans 12",
-        "new_link_font" : "Sans 12"
+        "new_link_font" : "Sans 12",
+        "url_link_font" : "Sans 12"
     }
 
     def __init__(self):
@@ -538,6 +546,11 @@ class SkedApp:
                 'foreground' : self.opt.get_str("new_link_color"),
                 'underline' : pango.UNDERLINE_SINGLE
             },
+            'url': {
+                'font' : self.opt.get_str("url_link_font"),
+                'foreground' : self.opt.get_str("url_link_color"),
+                'underline' : pango.UNDERLINE_SINGLE
+            },
             'format': {
                 'font' : self.opt.get_str("format_font"),
                 'foreground' : self.opt.get_str("format_color")
@@ -596,6 +609,10 @@ class SkedApp:
             self._apply_tag_on_group(match, "format", 1)
             self._apply_tag_on_group(match, style, 2)
             self._apply_tag_on_group(match, "format", 3)
+
+        url_re = ur"(([a-zA-Z]+://|www\.)[a-zA-Z0-9._/-]+)" # url
+        for match in re.finditer(url_re, tx):
+            self._apply_tag_on_group(match, "url", 1)
 
         code_re = ur"(\|\|\|)(.+?)(\|\|\|)" # |||code|||
         for match in re.finditer(code_re, tx, re.MULTILINE| re.DOTALL):

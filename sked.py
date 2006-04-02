@@ -131,7 +131,7 @@ class OptionManager:
         return c
 
     def set_color(self, key, color):
-        self.set_str(key, "#%.2X%2X%.2X" % (color.red/256, color.green/256, color.blue/256))
+        self.set_str(key, "#%.2X%.2X%.2X" % (color.red/256, color.green/256, color.blue/256))
 
     def _key_name(self, key):
         return "opt_" + key
@@ -194,7 +194,7 @@ class PreferencesWindow:
         self.clbLink = self.glade.get_widget("clbLink")
         self.clbNewLink = self.glade.get_widget("clbNewLink")
         self.clbFormat = self.glade.get_widget("clbFormat")
-        self.fbStandart = self.glade.get_widget("fbStandard")
+        self.fbStandard = self.glade.get_widget("fbStandard")
         self.fbHeader1 = self.glade.get_widget("fbHeader1")
         self.fbHeader2 = self.glade.get_widget("fbHeader2")
         self.fbHeader3 = self.glade.get_widget("fbHeader3")
@@ -223,6 +223,7 @@ class PreferencesWindow:
         self.spSaveTime.set_value(self.opt.get_int("save_time", SkedApp.DEF_SAVE_TIME))
         self.spUndoLevels.set_value(self.opt.get_int("undo_levels", SkedApp.DEF_UNDO_LEVELS))
         self.cbShowEdit.set_active(self.opt.get_bool("show_edit_buttons", SkedApp.DEF_SHOW_EDIT_BUTTONS))
+
         self.clbStandard.set_color(self.opt.get_color("std_color", SkedApp.DEF_STD_COLOR))
         self.clbHeader1.set_color(self.opt.get_color("header1_color", SkedApp.DEF_STD_COLOR))
         self.clbHeader2.set_color(self.opt.get_color("header2_color", SkedApp.DEF_STD_COLOR))
@@ -231,12 +232,22 @@ class PreferencesWindow:
         self.clbLink.set_color(self.opt.get_color("link_color", SkedApp.DEF_LINK_COLOR))
         self.clbNewLink.set_color(self.opt.get_color("new_link_color", SkedApp.DEF_NEW_LINK_COLOR))
         self.clbFormat.set_color(self.opt.get_color("format_color", SkedApp.DEF_FORMAT_COLOR))
+
+        self.fbStandard.set_font_name(self.opt.get_str("std_font", SkedApp.DEF_STD_FONT))
+        self.fbHeader1.set_font_name(self.opt.get_str("header1_font", SkedApp.DEF_HEADER1_FONT))
+        self.fbHeader2.set_font_name(self.opt.get_str("header2_font", SkedApp.DEF_HEADER2_FONT))
+        self.fbHeader3.set_font_name(self.opt.get_str("header3_font", SkedApp.DEF_HEADER3_FONT))
+        self.fbCode.set_font_name(self.opt.get_str("code_font", SkedApp.DEF_CODE_FONT))
+        self.fbLink.set_font_name(self.opt.get_str("link_font", SkedApp.DEF_STD_FONT))
+        self.fbNewLink.set_font_name(self.opt.get_str("new_link_font", SkedApp.DEF_STD_FONT))
+        self.fbFormat.set_font_name(self.opt.get_str("format_font", SkedApp.DEF_STD_FONT))
         
     def _save_widget_values(self):
         self.opt.set_int("format_time", self.spFormatTime.get_value_as_int())
         self.opt.set_int("save_time", self.spSaveTime.get_value_as_int())
         self.opt.set_int("undo_levels", self.spUndoLevels.get_value_as_int())
         self.opt.set_bool("show_edit_buttons", self.cbShowEdit.get_active())
+
         self.opt.set_color("std_color", self.clbStandard.get_color())
         self.opt.set_color("header1_color", self.clbHeader1.get_color())
         self.opt.set_color("header2_color", self.clbHeader2.get_color())
@@ -246,6 +257,14 @@ class PreferencesWindow:
         self.opt.set_color("new_link_color", self.clbNewLink.get_color())
         self.opt.set_color("format_color", self.clbFormat.get_color())
 
+        self.opt.set_str("std_font", self.fbStandard.get_font_name())
+        self.opt.set_str("header1_font", self.fbHeader1.get_font_name())
+        self.opt.set_str("header2_font", self.fbHeader2.get_font_name())
+        self.opt.set_str("header3_font", self.fbHeader3.get_font_name())
+        self.opt.set_str("code_font", self.fbCode.get_font_name())
+        self.opt.set_str("link_font", self.fbLink.get_font_name())
+        self.opt.set_str("new_link_font", self.fbNewLink.get_font_name())
+        self.opt.set_str("format_font", self.fbFormat.get_font_name())
 
 
 
@@ -265,6 +284,11 @@ class SkedApp:
     DEF_LINK_COLOR = "#0000FF"
     DEF_NEW_LINK_COLOR = "#FF0000"
     DEF_FORMAT_COLOR = "#AAAAAA"
+    DEF_STD_FONT = "Sans,Normal 12"
+    DEF_HEADER1_FONT = "Sans,Normal 18"
+    DEF_HEADER2_FONT = "Sans,Normal 16"
+    DEF_HEADER3_FONT = "Sans,Normal 14"
+    DEF_CODE_FONT = "Monospace,Normal 12"
 
     def __init__(self):
         try:
@@ -302,6 +326,14 @@ class SkedApp:
         self.opt.set_str("format_color", SkedApp.DEF_FORMAT_COLOR)
         self.opt.set_str("link_color", SkedApp.DEF_LINK_COLOR)
         self.opt.set_str("new_link_color", SkedApp.DEF_NEW_LINK_COLOR)
+        self.opt.set_str("std_font", SkedApp.DEF_STD_FONT)
+        self.opt.set_str("header1_font", SkedApp.DEF_HEADER1_FONT)
+        self.opt.set_str("header2_font", SkedApp.DEF_HEADER2_FONT)
+        self.opt.set_str("header3_font", SkedApp.DEF_HEADER3_FONT)
+        self.opt.set_str("code_font", SkedApp.DEF_CODE_FONT)
+        self.opt.set_str("link_font", SkedApp.DEF_STD_FONT)
+        self.opt.set_str("new_link_font", SkedApp.DEF_STD_FONT)
+        self.opt.set_str("format_font", SkedApp.DEF_STD_FONT)
 
     def save_window_geometry(self):
         x, y = self.mainWindow.get_position()
@@ -473,19 +505,47 @@ class SkedApp:
 
     def set_text_tags(self):
         tagdata = {
-            'gray'   : { 'foreground' : '#888888' },
-            'bold'   : { 'weight' : pango.WEIGHT_BOLD },
-            'italic' : { 'style'  : pango.STYLE_ITALIC },
-            'link'   : { 'foreground' : '#000088',
-                          'underline' : pango.UNDERLINE_SINGLE },
-            'h1'     : { 'scale' : pango.SCALE_XX_LARGE },
-            'h2'     : { 'scale' : pango.SCALE_X_LARGE },
-            'h3'     : { 'scale' : pango.SCALE_LARGE }
+            'std': {
+                'font' : self.opt.get_str("std_font", SkedApp.DEF_STD_FONT),
+                'foreground' : self.opt.get_str("std_color", SkedApp.DEF_STD_COLOR)
+            },
+            'h1': {
+                'font' : self.opt.get_str("header1_font", SkedApp.DEF_HEADER1_FONT),
+                'foreground' : self.opt.get_str("header1_color", SkedApp.DEF_FORMAT_COLOR)
+            },
+            'h2': {
+                'font' : self.opt.get_str("header2_font", SkedApp.DEF_HEADER2_FONT),
+                'foreground' : self.opt.get_str("header2_color", SkedApp.DEF_FORMAT_COLOR)
+            },
+            'h3': {
+                'font' : self.opt.get_str("header3_font", SkedApp.DEF_HEADER3_FONT),
+                'foreground' : self.opt.get_str("header3_color", SkedApp.DEF_FORMAT_COLOR)
+            },
+            'code': {
+                'font' : self.opt.get_str("code_font", SkedApp.DEF_CODE_FONT),
+                'foreground' : self.opt.get_str("code_color", SkedApp.DEF_STD_COLOR)
+            },
+            'link': {
+                'font' : self.opt.get_str("link_font", SkedApp.DEF_STD_FONT),
+                'foreground' : self.opt.get_str("link_color", SkedApp.DEF_FORMAT_COLOR),
+                'underline' : pango.UNDERLINE_SINGLE
+            },
+            'newlink': {
+                'font' : self.opt.get_str("new_link_font", SkedApp.DEF_STD_FONT),
+                'foreground' : self.opt.get_str("new_link_color", SkedApp.DEF_FORMAT_COLOR),
+                'underline' : pango.UNDERLINE_SINGLE
+            },
+            'format': {
+                'font' : self.opt.get_str("format_font", SkedApp.DEF_STD_FONT),
+                'foreground' : self.opt.get_str("format_color", SkedApp.DEF_FORMAT_COLOR)
+            },
+            'bold' : { 'weight' : pango.WEIGHT_BOLD },
+            'italic' : { 'style' : pango.STYLE_ITALIC }
         }
         for tag in tagdata:
             self.txBuffer.create_tag(tag, **tagdata[tag])
 
-    def formatText(self):
+    def format_text(self):
         tx = self.get_text()
 
         h_re = ur"^\s*(=+)(.+?)(=+)\s*$"     # === Headings ===
@@ -501,27 +561,33 @@ class SkedApp:
             else:
                 h = None
             if h != None:
-                self._apply_tag_on_group(match, "gray", 1)
+                self._apply_tag_on_group(match, "format", 1)
                 self._apply_tag_on_group(match, h, 2)
-                self._apply_tag_on_group(match, "gray", 3)
+                self._apply_tag_on_group(match, "format", 3)
 
         bold_re = ur"(\*+)(.+?)(\*+)"     # *bold*
         for match in re.finditer(bold_re, tx):
-            self._apply_tag_on_group(match, "gray", 1)
+            self._apply_tag_on_group(match, "format", 1)
             self._apply_tag_on_group(match, "bold", 2)
-            self._apply_tag_on_group(match, "gray", 3)
+            self._apply_tag_on_group(match, "format", 3)
         
         italic_re = ur"(_+)(.+?)(_+)"     # _italic_
         for match in re.finditer(italic_re, tx):
-            self._apply_tag_on_group(match, "gray", 1)
+            self._apply_tag_on_group(match, "format", 1)
             self._apply_tag_on_group(match, "italic", 2)
-            self._apply_tag_on_group(match, "gray", 3)
+            self._apply_tag_on_group(match, "format", 3)
 
         link_re = ur"(\[\[ *)(.+?)( *\]\])"     # [[Link]]
         for match in re.finditer(link_re, tx):
-            self._apply_tag_on_group(match, "gray", 1)
+            self._apply_tag_on_group(match, "format", 1)
             self._apply_tag_on_group(match, "link", 2)
-            self._apply_tag_on_group(match, "gray", 3)
+            self._apply_tag_on_group(match, "format", 3)
+
+        code_re = ur"(\|\|\|)(.+?)(\|\|\|)"         # |||code|||
+        for match in re.finditer(code_re, tx, re.MULTILINE| re.DOTALL):
+            self._apply_tag_on_group(match, "format", 1)
+            self._apply_tag_on_group(match, "code", 2)
+            self._apply_tag_on_group(match, "format", 3)
 
         link_re = ur"([0-3][0-9])\/([01][0-9])\/([0-9]{4})"
         for match in re.finditer(link_re, tx):
@@ -551,7 +617,7 @@ class SkedApp:
         self.curdate = self.getDateStr()
         self.txBuffer.set_text(self.db.get_key(self.curdate, ""))
         self.updateCalendar()
-        self.formatText()
+        self.format_text()
 
     def updateCalendar(self, widget = None):
         # gtk.Calendar doesn't appears to suport other calendars than the

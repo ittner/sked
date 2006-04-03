@@ -70,6 +70,7 @@ class DatabaseManager:
 
     def set_key(self, key, value):
         self._db[key] = value
+        self._db.sync()
         
     def get_key(self, key, default = None):
         if self._db.has_key(key):
@@ -80,6 +81,7 @@ class DatabaseManager:
     def del_key(self, key):
         if self._db.has_key(key):
             del self._db[key]
+            self._db.sync()
             
     def get_filename(self):
         return self._fname
@@ -657,7 +659,7 @@ class SkedApp:
         start = self.txBuffer.get_iter_at_offset(match.start(group))
         end = self.txBuffer.get_iter_at_offset(match.end(group))
         self.txBuffer.apply_tag_by_name(tag, start, end)
-
+        
     def get_date_str(self):
         year, month, day = self.calendar.get_date()
         return "%04d-%02d-%02d" % (year, month + 1, day)
@@ -670,7 +672,7 @@ class SkedApp:
             y = int(match.group(3))
             page = "%.4d-%.2d-%.2d" % (y, m, d)
         if self.curpage != None:
-            tx = self.get_text()
+            tx = self.get_text().encode("utf-8")
             if tx != "":
                 self.db.set_key(self.page_name(self.curpage), tx)
             else:

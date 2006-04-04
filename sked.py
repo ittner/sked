@@ -505,6 +505,30 @@ class SkedApp:
     def _on_cmd_yesterday(self, widget = None, data = None):
         pass
 
+    def _on_link(self, tag, widget, event, iter):
+        if tag == None:
+            return False
+        if event.type == gtk.gdk.BUTTON_PRESS:
+            start = iter.copy()
+            # Search for the begining of the tag
+            while not start.begins_tag(tag):
+                start.backward_char()
+            end = iter.copy()
+            # Search for the end of the tag
+            while not end.ends_tag(tag):
+                end.forward_char()
+            link = self.txBuffer.get_text(start, end)
+            if link == None or link == "":
+                return True
+            #link = link.decode("utf-8")
+            if link.startswith("http:") or link.startswith("https:") \
+            or link.startswith("www.") or link.startswith("ftp:"):
+                print("Open then browser")
+            else:
+                self.change_page(link)
+            return True
+        return False
+
     def _set_edit_buttons(self):
         show = self.opt.get_bool("show_edit_buttons")
         self.btSep1.set_visible_horizontal(show)
@@ -592,6 +616,9 @@ class SkedApp:
                 table.remove(tag)
         for tag in tagdata:
             self.txBuffer.create_tag(tag, **tagdata[tag])
+        for tagname in ["link", "newlink", "url"]:
+            tag = table.lookup(tagname)
+            tag.connect("event", self._on_link)
 
     def format_text(self):
         tx = self.get_text()

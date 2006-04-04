@@ -934,6 +934,7 @@
 		  <property name="right_margin">0</property>
 		  <property name="indent">0</property>
 		  <property name="text" translatable="yes"></property>
+		  <signal name="key_press_event" handler="on_text_change" last_modification_time="Tue, 04 Apr 2006 04:04:04 GMT"/>
 		</widget>
 	      </child>
 	    </widget>

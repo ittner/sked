@@ -28,6 +28,7 @@ pygtk.require('2.0')
 import gtk
 from gtk import glade
 from gtk import gdk
+import gobject
 import pango
 
 
@@ -326,6 +327,8 @@ class SkedApp:
             self.db = DatabaseManager(get_home_dir() + SkedApp.DB_FILENAME)
             self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
             self.load_interface()
+            self.formatTimerID = None
+            self.saveTimerID = None
         except Exception:
             alert = gtk.MessageDialog(None,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -358,6 +361,8 @@ class SkedApp:
         self.mainWindow.resize(w, h)
         
     def update_options(self):
+        self.format_time = 1000 * self.opt.get_int("format_time")
+        self.save_time = 1000 * self.opt.get_int("save_time")
         self._set_edit_buttons()
         self.set_text_tags()
         self.format_text()
@@ -398,7 +403,8 @@ class SkedApp:
             'on_cmd_today'      : self._on_cmd_today,
             'on_cmd_tomorrow'   : self._on_cmd_tomorrow,
             'on_cmd_undo'       : self._on_cmd_undo,
-            'on_cmd_yesterday'  : self._on_cmd_yesterday
+            'on_cmd_yesterday'  : self._on_cmd_yesterday,
+            'on_text_change'    : self._on_text_change
         })
 
         self.mainWindow = self.glade.get_widget("wndMain")
@@ -528,6 +534,35 @@ class SkedApp:
                 self.change_page(link)
             return True
         return False
+        
+    def _on_text_change(self, widget = None, data = None):
+        self.reset_timers()
+        self.set_timers()
+        
+    def _on_format_timer(self):
+        self.format_text()
+        gobject.source_remove(self.formatTimerID)
+        self.formatTimerID = None
+        return False    # Stops the timer
+    
+    def _on_save_timer(self):
+        gobject.source_remove(self.saveTimerID)
+        self.saveTimerID = None
+        return False    # Stops the timer
+        
+    def set_timers(self):
+        if not self.format_time:
+            self.format_time = 1000 * self.opt.get_int("format_time")
+        self.formatTimerID = gobject.timeout_add(self.format_time, self._on_format_timer)
+        if not self.save_time:
+            self.save_time = 1000 * self.opt.get_int("save_time")
+        self.saveTimerID = gobject.timeout_add(self.save_time, self._on_save_timer)
+
+    def reset_timers(self):
+        if self.formatTimerID:
+            gobject.source_remove(self.formatTimerID)
+        if self.saveTimerID:
+            gobject.source_remove(self.saveTimerID)
 
     def _set_edit_buttons(self):
         show = self.opt.get_bool("show_edit_buttons")
@@ -692,6 +727,7 @@ class SkedApp:
         return "%04d-%02d-%02d" % (year, month + 1, day)
 
     def change_page(self, page):
+        self.reset_timers()
         match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})",page)
         if match != None:
             d = int(match.group(1))

@@ -531,7 +531,7 @@ class SkedApp:
             or link.startswith("www.") or link.startswith("ftp:"):
                 print("Open then browser")
             else:
-                self.change_page(link)
+                self.change_page_link(link)
             return True
         return False
         
@@ -745,7 +745,20 @@ class SkedApp:
         self.txBuffer.set_text(self.db.get_key(self.page_name(self.curpage), ""))
         self.format_text()
         self.update_calendar()
-        
+
+    def change_page_link(self, page):
+        self.reset_timers()
+        match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})", page)
+        if match != None:
+            d = int(match.group(1))
+            m = int(match.group(2))
+            y = int(match.group(3))
+            page = "%.4d-%.2d-%.2d" % (y, m, d)
+        if self.curpage != None and not self.has_page(page):
+            self.db.set_key(self.page_name(page), \
+                "[[" + self.curpage + "]]\n===" + page + "===\n")
+        self.change_page(page)
+
     def has_page(self, page):
         return self.db.has_key(self.page_name(page))
         

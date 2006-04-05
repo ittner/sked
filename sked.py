@@ -35,6 +35,7 @@ import pango
 import anydbm           # Berkeley DB abstraction layer.
 import os               # Operating system stuff
 import re               # Regular expressions
+import webbrowser       # System web browser
 
 
 
@@ -56,6 +57,16 @@ def search_share_path(fname):
             return '/' + prefix + fname;
     return None
 
+def open_browser(url):
+    try:
+        webbrowser.open(url)
+    except:
+        msgbox = gtk.MessageDialog(None, 
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_INFO, gtk.BUTTONS_OK,
+            "Failed to start the default browser.")
+        msgbox.run()
+        msgbox.destroy()
 
 
 # Database abstraction ---------------------------------------------------
@@ -529,7 +540,7 @@ class SkedApp:
             link = link.decode("utf-8")
             if link.startswith("http:") or link.startswith("https:") \
             or link.startswith("www.") or link.startswith("ftp:"):
-                print("Open then browser")
+                open_browser(link)
             else:
                 self.change_page_link(link)
             return True
@@ -728,12 +739,7 @@ class SkedApp:
 
     def change_page(self, page):
         self.reset_timers()
-        match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})",page)
-        if match != None:
-            d = int(match.group(1))
-            m = int(match.group(2))
-            y = int(match.group(3))
-            page = "%.4d-%.2d-%.2d" % (y, m, d)
+        page = self.normalize_date_page_name(page)
         if self.curpage != None:
             tx = self.get_text().encode("utf-8")
             if tx != "":
@@ -748,16 +754,20 @@ class SkedApp:
 
     def change_page_link(self, page):
         self.reset_timers()
+        page = self.normalize_date_page_name(page)
+        if self.curpage != None and not self.has_page(page):
+            self.db.set_key(self.page_name(page), \
+                "[[" + self.curpage + "]]\n===" + page + "===\n")
+        self.change_page(page)
+    
+    def normalize_date_page_name(self, page):
         match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})", page)
         if match != None:
             d = int(match.group(1))
             m = int(match.group(2))
             y = int(match.group(3))
             page = "%.4d-%.2d-%.2d" % (y, m, d)
-        if self.curpage != None and not self.has_page(page):
-            self.db.set_key(self.page_name(page), \
-                "[[" + self.curpage + "]]\n===" + page + "===\n")
-        self.change_page(page)
+        return page
 
     def has_page(self, page):
         return self.db.has_key(self.page_name(page))

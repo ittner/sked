@@ -340,6 +340,8 @@ class SkedApp:
             self.load_interface()
             self.formatTimerID = None
             self.saveTimerID = None
+            self.backl = []
+            self.forwardl = []
         except Exception:
             alert = gtk.MessageDialog(None,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -353,6 +355,7 @@ class SkedApp:
         self.restore_window_geometry()
         self._on_cmd_date_change()
         self.update_options()
+        self._update_back_forward()
         self.mainWindow.show()
 
     def save_window_geometry(self):
@@ -389,6 +392,7 @@ class SkedApp:
         self.glade = gtk.glade.XML(self.gladeFile, "wndMain")
         self.glade.signal_autoconnect({
             'on_cmd_about'      : self._on_cmd_about,
+            'on_cmd_back'       : self._on_cmd_back,
             'on_cmd_backup'     : self._on_cmd_backup,
             'on_cmd_bold'       : self._on_cmd_bold,
             'on_cmd_change_pwd' : self._on_cmd_change_pwd,
@@ -398,6 +402,7 @@ class SkedApp:
             'on_cmd_date_change': self._on_cmd_date_change,
             'on_cmd_delete'     : self._on_cmd_delete,
             'on_cmd_exit'       : self._on_cmd_exit,
+            'on_cmd_forward'    : self._on_cmd_forward,
             'on_cmd_goto'       : self._on_cmd_goto,
             'on_cmd_header1'    : self._on_cmd_header1,
             'on_cmd_header2'    : self._on_cmd_header2,
@@ -405,10 +410,8 @@ class SkedApp:
             'on_cmd_home'       : self._on_cmd_home,
             'on_cmd_italic'     : self._on_cmd_italic,
             'on_cmd_link'       : self._on_cmd_link,
-            'on_cmd_next'       : self._on_cmd_next,
             'on_cmd_paste'      : self._on_cmd_paste,
             'on_cmd_preferences': self._on_cmd_preferences,
-            'on_cmd_previous'   : self._on_cmd_previous,
             'on_cmd_redo'       : self._on_cmd_redo,
             'on_cmd_restore'    : self._on_cmd_restore,
             'on_cmd_today'      : self._on_cmd_today,
@@ -430,6 +433,10 @@ class SkedApp:
         self.btPaste = self.glade.get_widget("btPaste")
         self.btDelete = self.glade.get_widget("btDelete")
         self.txPageName = self.glade.get_widget("txPageName")
+        self.btBack = self.glade.get_widget("btBack")
+        self.btForward = self.glade.get_widget("btForward")
+        self.mnBack = self.glade.get_widget("mnBack")
+        self.mnForward = self.glade.get_widget("mnForward")
         self.set_text_tags()
 
     def _on_cmd_about(self, widget = None, data = None):
@@ -455,10 +462,17 @@ class SkedApp:
         pass
         
     def _on_cmd_date_change(self, widget = None, data = None):
-        self.change_page(self.get_date_str())
+        self.reset_timers()
+        page = self.get_date_str()
+        if self.curpage != None and self.curpage != page:
+            self.backl.append(self.curpage)
+        self.forwardl = []
+        self.change_page(page)
         self.update_calendar()
+        self._update_back_forward()
         
     def _on_cmd_delete(self, widget = None, data = None):
+        self.reset_timers()
         name = self.curpage
         self.change_page("index")
         self.db.del_key(self.page_name(name))
@@ -468,10 +482,15 @@ class SkedApp:
         self.quit()
         
     def _on_cmd_goto(self, widget = None, data = None):
-        tx = self.txPageName.get_text()
-        if tx == "":
-            tx = "index"
-        self.change_page(tx)
+        self.reset_timers()
+        page = self.txPageName.get_text()
+        if page == "":
+            page = "index"
+        if self.curpage != None and self.curpage != page:
+            self.backl.append(self.curpage)
+        self.forwardl = []
+        self.change_page(page)
+        self._update_back_forward()
         
     def _on_cmd_header1(self, widget = None, data = None):
         self.insert_formatting("===", "===")
@@ -483,16 +502,36 @@ class SkedApp:
         self.insert_formatting("=", "=")
         
     def _on_cmd_home(self, widget = None, data = None):
-        self.change_page("index")
+        self.reset_timers()
+        page = "index"
+        if self.curpage != None and self.curpage != page:
+            self.backl.append(self.curpage)
+        self.forwardl = []
+        self.change_page(page)
+        self._update_back_forward()
         
     def _on_cmd_italic(self, widget = None, data = None):
         self.insert_formatting("_", "_")
         
     def _on_cmd_link(self, widget = None, data = None):
         self.insert_formatting("[[", "]]")
-        
-    def _on_cmd_next(self, widget = None, data = None):
-        pass
+
+    def _on_cmd_back(self, widget = None, data = None):
+        if len(self.backl) > 0:
+            self.reset_timers()
+            page = self.backl.pop()
+            self.forwardl.append(self.curpage)
+            self.change_page(page)
+        self._update_back_forward()
+
+    def _on_cmd_forward(self, widget = None, data = None):
+        if len(self.forwardl) > 0:
+            self.reset_timers()
+            page = self.forwardl.pop()
+            if self.curpage != None:
+                self.backl.append(self.curpage)
+            self.change_page(page)
+        self._update_back_forward()
         
     def _on_cmd_paste(self, widget = None, data = None):
         pass
@@ -500,9 +539,6 @@ class SkedApp:
     def _on_cmd_preferences(self, widget = None, data = None):
         wnd = PreferencesWindow(self)
         wnd.show()
-        
-    def _on_cmd_previous(self, widget = None, data = None):
-        pass
         
     def _on_cmd_redo(self, widget = None, data = None):
         pass
@@ -584,6 +620,19 @@ class SkedApp:
         self.btCut.set_visible_horizontal(show)
         self.btPaste.set_visible_horizontal(show)
         self.btDelete.set_visible_horizontal(show)
+        
+    def _update_back_forward(self):
+        # Updates the forward/back buttons and menus.
+        if len(self.backl) > 20:
+            self.backl = self.backl[20:]
+        if len(self.forwardl) > 20:
+            self.forwardl = self.forwardl[20:]
+        b = len(self.backl) > 0
+        f = len(self.forwardl) > 0
+        self.btForward.set_sensitive(f)
+        self.btBack.set_sensitive(b)
+        self.mnForward.set_sensitive(f)
+        self.mnBack.set_sensitive(b)
 
     def get_text(self):
         start, end = self.txBuffer.get_bounds()
@@ -758,7 +807,11 @@ class SkedApp:
         if self.curpage != None and not self.has_page(page):
             self.db.set_key(self.page_name(page), \
                 "[[" + self.curpage + "]]\n===" + page + "===\n")
+        if self.curpage != None and self.curpage != page:
+            self.backl.append(self.curpage)
+        self.forwardl = []
         self.change_page(page)
+        self._update_back_forward()
     
     def normalize_date_page_name(self, page):
         match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})", page)

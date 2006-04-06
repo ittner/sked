@@ -334,7 +334,7 @@ class SkedApp:
     }
 
     def __init__(self):
-        try:
+        #try:
             self.db = DatabaseManager(get_home_dir() + SkedApp.DB_FILENAME)
             self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
             self.load_interface()
@@ -342,13 +342,13 @@ class SkedApp:
             self.saveTimerID = None
             self.backl = []
             self.forwardl = []
-        except Exception:
-            alert = gtk.MessageDialog(None,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-               "An initialization error has occurred. Namárië.")
-            alert.run()
-            self.quit()
+        #except Exception:
+        #    alert = gtk.MessageDialog(None,
+        #        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+        #        gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+        #       "An initialization error has occurred. Namárië.")
+        #    alert.run()
+        #    self.quit()
     
     def start(self):
         self.curpage = None
@@ -661,59 +661,74 @@ class SkedApp:
         self.txBuffer.insert(self.txBuffer.get_iter_at_mark(smark), after)
 
     def set_text_tags(self):
-        tagdata = {
-            'std': {
+        tagdata = [
+            # Note: Later tags have higher priority.
+            'std', {
                 'font' : self.opt.get_str("std_font"),
                 'foreground' : self.opt.get_str("std_color")
             },
-            'h1': {
-                'font' : self.opt.get_str("header1_font"),
-                'foreground' : self.opt.get_str("header1_color")
+            'italic', {
+                'style' : pango.STYLE_ITALIC
             },
-            'h2': {
-                'font' : self.opt.get_str("header2_font"),
-                'foreground' : self.opt.get_str("header2_color")
+            'bold', {
+                'weight' : pango.WEIGHT_BOLD
             },
-            'h3': {
-                'font' : self.opt.get_str("header3_font"),
-                'foreground' : self.opt.get_str("header3_color")
-            },
-            'code': {
+            'code', {
                 'font' : self.opt.get_str("code_font"),
                 'foreground' : self.opt.get_str("code_color")
             },
-            'link': {
-                'font' : self.opt.get_str("link_font"),
-                'foreground' : self.opt.get_str("link_color"),
-                'underline' : pango.UNDERLINE_SINGLE
-            },
-            'newlink': {
-                'font' : self.opt.get_str("new_link_font"),
-                'foreground' : self.opt.get_str("new_link_color"),
-                'underline' : pango.UNDERLINE_SINGLE
-            },
-            'url': {
+            'url', {
                 'font' : self.opt.get_str("url_link_font"),
                 'foreground' : self.opt.get_str("url_link_color"),
                 'underline' : pango.UNDERLINE_SINGLE
             },
-            'format': {
+            'datelink', {   # Duplicates 'link' tag for better priority handling.
+                'font' : self.opt.get_str("link_font"),
+                'foreground' : self.opt.get_str("link_color"),
+                'underline' : pango.UNDERLINE_SINGLE
+            },
+            'newlink', {
+                'font' : self.opt.get_str("new_link_font"),
+                'foreground' : self.opt.get_str("new_link_color"),
+                'underline' : pango.UNDERLINE_SINGLE
+            },
+            'link', {
+                'font' : self.opt.get_str("link_font"),
+                'foreground' : self.opt.get_str("link_color"),
+                'underline' : pango.UNDERLINE_SINGLE
+            },
+            'h3', {
+                'font' : self.opt.get_str("header3_font"),
+                'foreground' : self.opt.get_str("header3_color")
+            },
+            'h2', {
+                'font' : self.opt.get_str("header2_font"),
+                'foreground' : self.opt.get_str("header2_color")
+            },
+            'h1', {
+                'font' : self.opt.get_str("header1_font"),
+                'foreground' : self.opt.get_str("header1_color")
+            },
+            'format', {
                 'font' : self.opt.get_str("format_font"),
                 'foreground' : self.opt.get_str("format_color")
-            },
-            'bold' : { 'weight' : pango.WEIGHT_BOLD },
-            'italic' : { 'style' : pango.STYLE_ITALIC }
-        }
+            }
+        ]
         table = self.txBuffer.get_tag_table()
-        for tagname in tagdata:
-            tag = table.lookup(tagname)
+        i = 0
+        while i < len(tagdata): # Bad code. Should use iterators.
+            tag = table.lookup(tagdata[i])
             if tag != None:
                 table.remove(tag)
-        for tag in tagdata:
-            self.txBuffer.create_tag(tag, **tagdata[tag])
-        for tagname in ["link", "newlink", "url"]:
-            tag = table.lookup(tagname)
-            tag.connect("event", self._on_link)
+            i += 2
+        evtags = ["link", "newlink", "url", "datelink"]
+        i = 0
+        while i < len(tagdata):
+            tagname = tagdata[i]
+            tag = self.txBuffer.create_tag(tagname, **tagdata[i+1])
+            if tagname in evtags:
+                tag.connect("event", self._on_link)
+            i += 2
 
     def format_text(self):
         tx = self.get_text()

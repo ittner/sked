@@ -334,7 +334,7 @@ class SkedApp:
     }
 
     def __init__(self):
-        #try:
+        try:
             self.db = DatabaseManager(get_home_dir() + SkedApp.DB_FILENAME)
             self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
             self.load_interface()
@@ -342,13 +342,13 @@ class SkedApp:
             self.saveTimerID = None
             self.backl = []
             self.forwardl = []
-        #except Exception:
-        #    alert = gtk.MessageDialog(None,
-        #        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-        #        gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-        #       "An initialization error has occurred. Namárië.")
-        #    alert.run()
-        #    self.quit()
+        except Exception:
+            alert = gtk.MessageDialog(None,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+               "An initialization error has occurred. Namárië.")
+            alert.run()
+            self.quit()
     
     def start(self):
         self.curpage = None
@@ -574,8 +574,8 @@ class SkedApp:
             if link == None or link == "":
                 return True
             link = link.decode("utf-8")
-            if link.startswith("http:") or link.startswith("https:") \
-            or link.startswith("www.") or link.startswith("ftp:"):
+            if isinstance(tag, gtk.TextTag) \
+            and tag.get_property("name") == "url":
                 open_browser(link)
             else:
                 self.change_page_link(link)
@@ -663,76 +663,78 @@ class SkedApp:
     def set_text_tags(self):
         tagdata = [
             # Note: Later tags have higher priority.
-            'std', {
+            ['std', {
                 'font' : self.opt.get_str("std_font"),
                 'foreground' : self.opt.get_str("std_color")
-            },
-            'italic', {
+            }],
+            ['italic', {
                 'style' : pango.STYLE_ITALIC
-            },
-            'bold', {
+            }],
+            ['bold', {
                 'weight' : pango.WEIGHT_BOLD
-            },
-            'code', {
+            }],
+            ['code', {
                 'font' : self.opt.get_str("code_font"),
                 'foreground' : self.opt.get_str("code_color")
-            },
-            'url', {
+            }],
+            ['url', {
                 'font' : self.opt.get_str("url_link_font"),
                 'foreground' : self.opt.get_str("url_link_color"),
                 'underline' : pango.UNDERLINE_SINGLE
-            },
-            'datelink', {   # Duplicates 'link' tag for better priority handling.
-                'font' : self.opt.get_str("link_font"),
-                'foreground' : self.opt.get_str("link_color"),
-                'underline' : pango.UNDERLINE_SINGLE
-            },
-            'newlink', {
+            }],
+            ['newdatelink', {
                 'font' : self.opt.get_str("new_link_font"),
                 'foreground' : self.opt.get_str("new_link_color"),
                 'underline' : pango.UNDERLINE_SINGLE
-            },
-            'link', {
+            }],
+            ['datelink', {   # Duplicates 'link' tag for better priority handling.
                 'font' : self.opt.get_str("link_font"),
                 'foreground' : self.opt.get_str("link_color"),
                 'underline' : pango.UNDERLINE_SINGLE
-            },
-            'h3', {
+            }],
+            ['newlink', {
+                'font' : self.opt.get_str("new_link_font"),
+                'foreground' : self.opt.get_str("new_link_color"),
+                'underline' : pango.UNDERLINE_SINGLE
+            }],
+            ['link', {
+                'font' : self.opt.get_str("link_font"),
+                'foreground' : self.opt.get_str("link_color"),
+                'underline' : pango.UNDERLINE_SINGLE
+            }],
+            ['h3', {
                 'font' : self.opt.get_str("header3_font"),
                 'foreground' : self.opt.get_str("header3_color")
-            },
-            'h2', {
+            }],
+            ['h2', {
                 'font' : self.opt.get_str("header2_font"),
                 'foreground' : self.opt.get_str("header2_color")
-            },
-            'h1', {
+            }],
+            ['h1', {
                 'font' : self.opt.get_str("header1_font"),
                 'foreground' : self.opt.get_str("header1_color")
-            },
-            'format', {
+            }],
+            ['format', {
                 'font' : self.opt.get_str("format_font"),
                 'foreground' : self.opt.get_str("format_color")
-            }
+            }]
         ]
         table = self.txBuffer.get_tag_table()
-        i = 0
-        while i < len(tagdata): # Bad code. Should use iterators.
-            tag = table.lookup(tagdata[i])
+        for pair in tagdata:
+            tag = table.lookup(pair[0])
             if tag != None:
                 table.remove(tag)
-            i += 2
-        evtags = ["link", "newlink", "url", "datelink"]
-        i = 0
-        while i < len(tagdata):
-            tagname = tagdata[i]
-            tag = self.txBuffer.create_tag(tagname, **tagdata[i+1])
+        evtags = ["link", "newlink", "url", "datelink", "newdatelink"]
+        for pair in tagdata:
+            tagname = pair[0]
+            tag = self.txBuffer.create_tag(tagname, **pair[1])
             if tagname in evtags:
                 tag.connect("event", self._on_link)
-            i += 2
 
     def format_text(self):
         tx = self.get_text()
         start, end = self.txBuffer.get_bounds() # Apply defaults
+        self.txBuffer.remove_all_tags(start, end)
         self.txBuffer.apply_tag_by_name("std", start, end)
 
         h_re = ur"^\s*(=+)(.+?)(=+)\s*$"        # === Headings ===
@@ -786,11 +788,17 @@ class SkedApp:
 
         link_re = ur"([0-3][0-9])\/([01][0-9])\/([0-9]{4})"
         for match in re.finditer(link_re, tx):
-            self._apply_tag_on_group(match, "link", 0)
+            if self.has_page(self.normalize_date_page_name(match.group(0))):
+                self._apply_tag_on_group(match, "datelink", 0)
+            else:
+                self._apply_tag_on_group(match, "newdatelink", 0)
 
         link_re = ur"([0-9]{4})-([01][0-9])-([0-3][0-9])"
         for match in re.finditer(link_re, tx):
-            self._apply_tag_on_group(match, "link", 0)
+            if self.has_page(match.group(0)):
+                self._apply_tag_on_group(match, "datelink", 0)
+            else:
+                self._apply_tag_on_group(match, "newdatelink", 0)
 
     def _apply_tag_on_group(self, match, tag, group):
         start = self.txBuffer.get_iter_at_offset(match.start(group))

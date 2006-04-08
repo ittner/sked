@@ -330,7 +330,11 @@ class SkedApp:
         "format_font"   : "Sans 12",
         "link_font"     : "Sans 12",
         "new_link_font" : "Sans 12",
-        "url_link_font" : "Sans 12"
+        "url_link_font" : "Sans 12",
+        "ft_search"     : False,
+        "show_calendar" : True,
+        "show_history"  : True,
+        "show_gsearch"  : False
     }
 
     def __init__(self):
@@ -353,8 +357,8 @@ class SkedApp:
     def start(self):
         self.curpage = None
         self.restore_window_geometry()
-        self._on_cmd_date_change()
         self.update_options()
+        self._on_cmd_date_change()
         self._update_back_forward()
         self.mainWindow.show()
 
@@ -377,9 +381,26 @@ class SkedApp:
     def update_options(self):
         self.format_time = 1000 * self.opt.get_int("format_time")
         self.save_time = 1000 * self.opt.get_int("save_time")
+        self._update_sidebar()
         self._set_edit_buttons()
         self.set_text_tags()
         self.format_text()
+        
+    def _update_sidebar(self):
+        show_calendar = self.opt.get_bool("show_calendar")
+        self.calendar.set_property("visible", show_calendar)
+        self.tgCalendar.set_property("active", show_calendar)
+        
+        show_history = self.opt.get_bool("show_history")
+        self.bxHistory.set_property("visible", show_history)
+        self.tgHistory.set_property("active", show_history)
+
+        show_gsearch = self.opt.get_bool("show_gsearch")
+        self.bxGlobalSearch.set_property("visible", show_gsearch)
+        self.tgGlobalSearch.set_property("active", show_gsearch)
+        
+        ft_search = self.opt.get_bool("ft_search")
+        self.tgFullTextSearch.set_property("active", ft_search)
 
     def quit(self, widget = None, data = None):
         self._on_cmd_date_change()
@@ -391,34 +412,38 @@ class SkedApp:
         self.gladeFile = find_glade_xml("sked")
         self.glade = gtk.glade.XML(self.gladeFile, "wndMain")
         self.glade.signal_autoconnect({
-            'on_cmd_about'      : self._on_cmd_about,
-            'on_cmd_back'       : self._on_cmd_back,
-            'on_cmd_backup'     : self._on_cmd_backup,
-            'on_cmd_bold'       : self._on_cmd_bold,
-            'on_cmd_change_pwd' : self._on_cmd_change_pwd,
-            'on_cmd_code'       : self._on_cmd_code,
-            'on_cmd_copy'       : self._on_cmd_copy,
-            'on_cmd_cut'        : self._on_cmd_cut,
-            'on_cmd_date_change': self._on_cmd_date_change,
-            'on_cmd_delete'     : self._on_cmd_delete,
-            'on_cmd_exit'       : self._on_cmd_exit,
-            'on_cmd_forward'    : self._on_cmd_forward,
-            'on_cmd_goto'       : self._on_cmd_goto,
-            'on_cmd_header1'    : self._on_cmd_header1,
-            'on_cmd_header2'    : self._on_cmd_header2,
-            'on_cmd_header3'    : self._on_cmd_header3,
-            'on_cmd_home'       : self._on_cmd_home,
-            'on_cmd_italic'     : self._on_cmd_italic,
-            'on_cmd_link'       : self._on_cmd_link,
-            'on_cmd_paste'      : self._on_cmd_paste,
-            'on_cmd_preferences': self._on_cmd_preferences,
-            'on_cmd_redo'       : self._on_cmd_redo,
-            'on_cmd_restore'    : self._on_cmd_restore,
-            'on_cmd_today'      : self._on_cmd_today,
-            'on_cmd_tomorrow'   : self._on_cmd_tomorrow,
-            'on_cmd_undo'       : self._on_cmd_undo,
-            'on_cmd_yesterday'  : self._on_cmd_yesterday,
-            'on_text_change'    : self._on_text_change
+            'on_cmd_about'       : self._on_cmd_about,
+            'on_cmd_back'        : self._on_cmd_back,
+            'on_cmd_backup'      : self._on_cmd_backup,
+            'on_cmd_bold'        : self._on_cmd_bold,
+            'on_cmd_calendar_tg' : self._on_cmd_calendar_tg,
+            'on_cmd_change_pwd'  : self._on_cmd_change_pwd,
+            'on_cmd_code'        : self._on_cmd_code,
+            'on_cmd_copy'        : self._on_cmd_copy,
+            'on_cmd_cut'         : self._on_cmd_cut,
+            'on_cmd_date_change' : self._on_cmd_date_change,
+            'on_cmd_delete'      : self._on_cmd_delete,
+            'on_cmd_exit'        : self._on_cmd_exit,
+            'on_cmd_forward'     : self._on_cmd_forward,
+            'on_cmd_ft_search_tg': self._on_cmd_ft_search_tg,
+            'on_cmd_goto'        : self._on_cmd_goto,
+            'on_cmd_gsearch_tg'  : self._on_cmd_gsearch_tg,
+            'on_cmd_header1'     : self._on_cmd_header1,
+            'on_cmd_header2'     : self._on_cmd_header2,
+            'on_cmd_header3'     : self._on_cmd_header3,
+            'on_cmd_history_tg'  : self._on_cmd_history_tg,
+            'on_cmd_home'        : self._on_cmd_home,
+            'on_cmd_italic'      : self._on_cmd_italic,
+            'on_cmd_link'        : self._on_cmd_link,
+            'on_cmd_paste'       : self._on_cmd_paste,
+            'on_cmd_preferences' : self._on_cmd_preferences,
+            'on_cmd_redo'        : self._on_cmd_redo,
+            'on_cmd_restore'     : self._on_cmd_restore,
+            'on_cmd_today'       : self._on_cmd_today,
+            'on_cmd_tomorrow'    : self._on_cmd_tomorrow,
+            'on_cmd_undo'        : self._on_cmd_undo,
+            'on_cmd_yesterday'   : self._on_cmd_yesterday,
+            'on_text_change'     : self._on_text_change
         })
 
         self.mainWindow = self.glade.get_widget("wndMain")
@@ -437,6 +462,12 @@ class SkedApp:
         self.btForward = self.glade.get_widget("btForward")
         self.mnBack = self.glade.get_widget("mnBack")
         self.mnForward = self.glade.get_widget("mnForward")
+        self.bxHistory = self.glade.get_widget("bxHistory")
+        self.bxGlobalSearch = self.glade.get_widget("bxGlobalSearch")
+        self.tgCalendar = self.glade.get_widget("tgCalendar")
+        self.tgHistory = self.glade.get_widget("tgHistory")
+        self.tgGlobalSearch = self.glade.get_widget("tgGlobalSearch")
+        self.tgFullTextSearch = self.glade.get_widget("tgFullTextSearch")
         self.set_text_tags()
 
     def _on_cmd_about(self, widget = None, data = None):
@@ -448,6 +479,11 @@ class SkedApp:
         
     def _on_cmd_bold(self, widget = None, data = None):
         self.insert_formatting("*", "*")
+
+    def _on_cmd_calendar_tg(self, widget = None, data = None):
+        show_calendar = self.tgCalendar.get_active()
+        self.calendar.set_property("visible", show_calendar)
+        self.opt.set_bool("show_calendar", show_calendar)
         
     def _on_cmd_change_pwd(self, widget = None, data = None):
         pass
@@ -480,6 +516,15 @@ class SkedApp:
         
     def _on_cmd_exit(self, widget = None, data = None):
         self.quit()
+
+    def _on_cmd_ft_search_tg(self, widget = None, data = None):
+        ft_search = self.tgFullTextSearch.get_active()
+        self.opt.set_bool("ft_search", ft_search)
+
+    def _on_cmd_gsearch_tg(self, widget = None, data = None):
+        show_gsearch = self.tgGlobalSearch.get_active()
+        self.bxGlobalSearch.set_property("visible", show_gsearch)
+        self.opt.set_bool("show_gsearch", show_gsearch)
         
     def _on_cmd_goto(self, widget = None, data = None):
         self.reset_timers()
@@ -494,13 +539,18 @@ class SkedApp:
         
     def _on_cmd_header1(self, widget = None, data = None):
         self.insert_formatting("===", "===")
-        
+
     def _on_cmd_header2(self, widget = None, data = None):
         self.insert_formatting("==", "==")
         
     def _on_cmd_header3(self, widget = None, data = None):
         self.insert_formatting("=", "=")
         
+    def _on_cmd_history_tg(self, widget = None, data = None):
+        show_history = self.tgHistory.get_active()
+        self.bxHistory.set_property("visible", show_history)
+        self.opt.set_bool("show_history", show_history)
+
     def _on_cmd_home(self, widget = None, data = None):
         self.reset_timers()
         page = "index"

@@ -403,7 +403,7 @@ class SkedApp:
         self.tgFullTextSearch.set_property("active", ft_search)
 
     def quit(self, widget = None, data = None):
-        self._on_cmd_date_change()
+        self.save_current_page()
         self.save_window_geometry()
         self.mainWindow.destroy()
         gtk.main_quit()
@@ -646,6 +646,7 @@ class SkedApp:
         return False    # Stops the timer
     
     def _on_save_timer(self):
+        self.save_current_page()
         gobject.source_remove(self.saveTimerID)
         self.saveTimerID = None
         return False    # Stops the timer
@@ -864,18 +865,21 @@ class SkedApp:
 
     def change_page(self, page):
         self.reset_timers()
+        self.save_current_page()
         page = self.normalize_date_page_name(page)
+        self.curpage = page
+        self.txPageName.set_text(page)
+        self.txBuffer.set_text(self.db.get_key(self.page_name(self.curpage), ""))
+        self.format_text()
+        self.update_calendar()
+        
+    def save_current_page(self):
         if self.curpage != None:
             tx = self.get_text().encode("utf-8")
             if tx != "":
                 self.db.set_key(self.page_name(self.curpage), tx)
             else:
                 self.db.del_key(self.page_name(self.curpage))
-        self.curpage = page
-        self.txPageName.set_text(page)
-        self.txBuffer.set_text(self.db.get_key(self.page_name(self.curpage), ""))
-        self.format_text()
-        self.update_calendar()
 
     def change_page_link(self, page):
         self.reset_timers()

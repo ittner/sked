@@ -584,7 +584,10 @@ class SkedApp:
         
     def _on_text_change(self, widget = None, data = None):
         self.reset_timers()
-        self.set_timers()
+        if not self.format_time or self.format_time == 0:
+            self.format_text()
+        else:
+            self.set_timers()
         
     def _on_format_timer(self):
         self.format_text()

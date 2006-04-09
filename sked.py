@@ -420,7 +420,7 @@ class SkedApp:
         self.tgFullTextSearch.set_property("active", ft_search)
         
     def load_history(self):
-        hstr = self.db.get_key("history", "")
+        hstr = self.db.get_key("history", "index")
         self.history = hstr.split("\n")
         self.history = self.history[-self.max_history:]
         self.history_model.clear()
@@ -511,7 +511,7 @@ class SkedApp:
         self.date_change_sigid = self.calendar.connect("day-selected",
             self._on_cmd_date_change)
             
-        self.hand_cursor = gdk.Cursor(gtk.gdk.HAND1)
+        self.clipboard = gtk.Clipboard()
         self.set_text_tags()
 
     def _on_cmd_about(self, widget = None, data = None):
@@ -536,10 +536,11 @@ class SkedApp:
         self.insert_formatting("|||", "|||")
         
     def _on_cmd_copy(self, widget = None, data = None):
-        pass
+        self.txBuffer.copy_clipboard(self.clipboard)
         
     def _on_cmd_cut(self, widget = None, data = None):
-        pass
+        self.txBuffer.cut_clipboard(self.clipboard,
+            self.txNote.get_editable())
         
     def _on_cmd_date_change(self, widget = None, data = None):
         self.reset_timers()
@@ -636,7 +637,8 @@ class SkedApp:
         self._update_back_forward()
         
     def _on_cmd_paste(self, widget = None, data = None):
-        pass
+        self.txBuffer.paste_clipboard(self.clipboard, None,
+            self.txNote.get_editable())
         
     def _on_cmd_preferences(self, widget = None, data = None):
         wnd = PreferencesWindow(self)

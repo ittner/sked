@@ -721,10 +721,7 @@ class SkedApp:
         if self.last_undo_cnt >= 32:
             self.enqueue_undo()
         self.reset_timers()
-        if not self.format_time or self.format_time == 0:
-            self.format_text()
-        else:
-            self.set_timers()
+        self.set_timers()
 
     def _on_text_delete(self, widget = None, s = None, e = None, dt = None):
         # big amount of text being deleted? Prepare for undo!

@@ -358,6 +358,9 @@ class SkedApp:
             self.saveTimerID = None
             self.backl = []
             self.forwardl = []
+            self.undol = []
+            self.redol = []
+            self.last_undo_cnt = 0;
             self.history = ["index"]
             self.history_model = gtk.ListStore(gobject.TYPE_STRING)
             self.load_interface()
@@ -376,6 +379,7 @@ class SkedApp:
         self.load_history()
         self._on_cmd_date_change()
         self._update_back_forward()
+        self._update_undo_redo()
         self.mainWindow.show()
 
     def save_window_geometry(self):
@@ -398,6 +402,7 @@ class SkedApp:
         self.format_time = 1000 * self.opt.get_int("format_time")
         self.save_time = 1000 * self.opt.get_int("save_time")
         self.max_history = self.opt.get_int("max_history")
+        self.undo_levels = self.opt.get_int("undo_levels")
         self._update_sidebar()
         self._set_edit_buttons()
         self.set_text_tags()
@@ -472,8 +477,7 @@ class SkedApp:
             'on_cmd_today'       : self._on_cmd_today,
             'on_cmd_tomorrow'    : self._on_cmd_tomorrow,
             'on_cmd_undo'        : self._on_cmd_undo,
-            'on_cmd_yesterday'   : self._on_cmd_yesterday,
-            'on_text_change'     : self._on_text_change
+            'on_cmd_yesterday'   : self._on_cmd_yesterday
         })
 
         self.mainWindow = self.glade.get_widget("wndMain")
@@ -492,6 +496,8 @@ class SkedApp:
         self.btForward = self.glade.get_widget("btForward")
         self.mnBack = self.glade.get_widget("mnBack")
         self.mnForward = self.glade.get_widget("mnForward")
+        self.mnUndo = self.glade.get_widget("mnUndo")
+        self.mnRedo = self.glade.get_widget("mnRedo")
         self.bxHistory = self.glade.get_widget("bxHistory")
         self.bxGlobalSearch = self.glade.get_widget("bxGlobalSearch")
         self.tgCalendar = self.glade.get_widget("tgCalendar")
@@ -506,11 +512,18 @@ class SkedApp:
         self.history_renderer = gtk.CellRendererText()
         self.history_column.pack_start(self.history_renderer, True)
         self.history_column.add_attribute(self.history_renderer, "text", 0)
-
+    
         # We need this signal ID to block the signal on date setting.
         self.date_change_sigid = self.calendar.connect("day-selected",
             self._on_cmd_date_change)
-            
+    
+        # Also, we need to prevent the text buffer from dispatching signals
+        # during some operations.
+        self.text_change_sigid = self.txBuffer.connect("changed",
+            self._on_text_change)
+        self.text_delete_sigid = self.txBuffer.connect("delete-range",
+            self._on_text_delete)
+    
         self.clipboard = gtk.Clipboard()
         self.set_text_tags()
 
@@ -563,6 +576,7 @@ class SkedApp:
         bt = confirm.run()
         confirm.destroy()
         if bt == gtk.RESPONSE_YES:
+            self.enqueue_undo()
             if len(self.backl) > 0:
                 lastpage = self.backl.pop()
             else:
@@ -645,8 +659,13 @@ class SkedApp:
         wnd.show()
         
     def _on_cmd_redo(self, widget = None, data = None):
-        pass
-        
+        if len(self.redol) > 0:
+            ls = self.redol.pop()
+            self.enqueue_undo()
+            self.hl_change_page(ls[0])
+            self.set_text(ls[1])
+        self.format_text()
+
     def _on_cmd_restore(self, widget = None, data = None):
         pass
         
@@ -659,7 +678,12 @@ class SkedApp:
         self.hl_change_page("%04d-%02d-%02d" % (dt.year, dt.month, dt.day))
         
     def _on_cmd_undo(self, widget = None, data = None):
-        pass
+        if len(self.undol) > 0:
+            ls = self.undol.pop()
+            self.enqueue_redo()
+            self.hl_change_page(ls[0])
+            self.set_text(ls[1])
+        self.format_text()
 
     def _on_cmd_yesterday(self, widget = None, data = None):
         dt = datetime.datetime.today() - datetime.timedelta(1)
@@ -692,11 +716,20 @@ class SkedApp:
         return False
         
     def _on_text_change(self, widget = None, data = None):
+        # Add an undo-point if the text was changed 32 times.
+        self.last_undo_cnt += 1
+        if self.last_undo_cnt >= 32:
+            self.enqueue_undo()
         self.reset_timers()
         if not self.format_time or self.format_time == 0:
             self.format_text()
         else:
             self.set_timers()
+
+    def _on_text_delete(self, widget = None, s = None, e = None, dt = None):
+        # big amount of text being deleted? Prepare for undo!
+        if abs(s.get_offset() - e.get_offset()) > 32:
+            self.enqueue_undo()
         
     def _on_format_timer(self):
         self.format_text()
@@ -757,9 +790,49 @@ class SkedApp:
                 for item in self.history:
                     self.history_model.prepend([item])
 
+    def _update_undo_redo(self):
+        u = len(self.undol) > 0
+        r = len(self.redol) > 0
+        self.btUndo.set_sensitive(u)
+        self.btRedo.set_sensitive(r)
+        self.mnUndo.set_sensitive(u)
+        self.mnRedo.set_sensitive(r)
+
+    def enqueue_undo(self):
+        self.last_undo_cnt = 0
+        ls = [ self.curpage, self.get_text() ]
+        if len(self.undol) > 0:
+            ols = self.undol[-1]
+            if ols[0] != ls[0] or ols[1] != ls[1]:
+                self.undol.append(ls)
+        else:
+            self.undol.append(ls)
+        if len(self.undol) > self.undo_levels:
+            self.undol = self.undol[-self.undo_levels:]
+        self._update_undo_redo()
+        
+    def enqueue_redo(self):
+        ls = [ self.curpage, self.get_text() ]
+        if len(self.redol) > 0:
+            ols = self.redol[-1]
+            if ols[0] != ls[0] or ols[1] != ls[1]:
+                self.redol.append(ls)
+        else:
+            self.redol.append(ls)
+        if len(self.redol) > self.undo_levels:
+            self.redol = self.redol[-self.undo_levels:]
+        self._update_undo_redo()
+
     def get_text(self):
         start, end = self.txBuffer.get_bounds()
         return unicode(self.txBuffer.get_text(start, end), "utf-8")
+
+    def set_text(self, text):
+        self.txBuffer.handler_block(self.text_change_sigid)
+        self.txBuffer.handler_block(self.text_delete_sigid)
+        self.txBuffer.set_text(text)
+        self.txBuffer.handler_unblock(self.text_change_sigid)
+        self.txBuffer.handler_unblock(self.text_delete_sigid)
 
     def insert_formatting(self, before, after):
         ##TODO: Fix this confuse code.
@@ -951,11 +1024,12 @@ class SkedApp:
         page = self.normalize_date_page_name(page)
         self.curpage = page
         self.txPageName.set_text(page)
-        self.txBuffer.set_text(self.db.get_key(self.page_name(self.curpage), ""))
+        self.set_text(self.db.get_key(self.page_name(self.curpage), ""))
         self.format_text()
         
     def save_current_page(self):
         if self.curpage != None:
+            #self.enqueue_undo()  ## Buggy ##
             tx = self.get_text().encode("utf-8")
             if tx != "":
                 self.db.set_key(self.page_name(self.curpage), tx)

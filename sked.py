@@ -36,7 +36,7 @@ import anydbm           # Berkeley DB abstraction layer.
 import os               # Operating system stuff
 import re               # Regular expressions
 import webbrowser       # System web browser
-from datetime import datetime   # for date validation.
+import datetime         # Date validation
 
 
 # Generic functions ------------------------------------------------------
@@ -531,16 +531,7 @@ class SkedApp:
         self.opt.set_bool("show_gsearch", show_gsearch)
         
     def _on_cmd_goto(self, widget = None, data = None):
-        self.reset_timers()
-        page = self.txPageName.get_text()
-        if page == "":
-            page = "index"
-        if self.curpage != None and self.curpage != page:
-            self.backl.append(self.curpage)
-        self.forwardl = []
-        self.change_page(page)
-        self._update_back_forward()
-        self.mark_page_on_calendar()
+        self.hl_change_page(self.txPageName.get_text())
         
     def _on_cmd_header1(self, widget = None, data = None):
         self.insert_formatting("===", "===")
@@ -557,14 +548,7 @@ class SkedApp:
         self.opt.set_bool("show_history", show_history)
 
     def _on_cmd_home(self, widget = None, data = None):
-        self.reset_timers()
-        page = "index"
-        if self.curpage != None and self.curpage != page:
-            self.backl.append(self.curpage)
-        self.forwardl = []
-        self.change_page(page)
-        self._update_back_forward()
-        self.mark_page_on_calendar()
+        self.hl_change_page("index")
         
     def _on_cmd_italic(self, widget = None, data = None):
         self.insert_formatting("_", "_")
@@ -605,16 +589,19 @@ class SkedApp:
         pass
         
     def _on_cmd_today(self, widget = None, data = None):
-        pass
+        dt = datetime.datetime.today()
+        self.hl_change_page("%04d-%02d-%02d" % (dt.year, dt.month, dt.day))
         
     def _on_cmd_tomorrow(self, widget = None, data = None):
-        pass
+        dt = datetime.datetime.today() + datetime.timedelta(1)
+        self.hl_change_page("%04d-%02d-%02d" % (dt.year, dt.month, dt.day))
         
     def _on_cmd_undo(self, widget = None, data = None):
         pass
 
     def _on_cmd_yesterday(self, widget = None, data = None):
-        pass
+        dt = datetime.datetime.today() - datetime.timedelta(1)
+        self.hl_change_page("%04d-%02d-%02d" % (dt.year, dt.month, dt.day))
 
     def _on_link(self, tag, widget, event, iter):
         if tag == None:
@@ -871,6 +858,18 @@ class SkedApp:
         year, month, day = self.calendar.get_date()
         return "%04d-%02d-%02d" % (year, month + 1, day)
 
+    def hl_change_page(self, page):
+        # Higher level page changer. Handles calendar, back/fwd buttons, etc.
+        self.reset_timers()
+        if page == "":
+            page = "index"
+        if self.curpage != None and self.curpage != page:
+            self.backl.append(self.curpage)
+        self.forwardl = []
+        self.change_page(page)
+        self._update_back_forward()
+        self.mark_page_on_calendar()
+
     def change_page(self, page):
         self.reset_timers()
         self.save_current_page()
@@ -894,12 +893,7 @@ class SkedApp:
         if self.curpage != None and not self.has_page(page):
             self.db.set_key(self.page_name(page), \
                 "[[" + self.curpage + "]]\n===" + page + "===\n")
-        if self.curpage != None and self.curpage != page:
-            self.backl.append(self.curpage)
-        self.forwardl = []
-        self.change_page(page)
-        self._update_back_forward()
-        self.mark_page_on_calendar()
+        self.hl_change_page(page)
     
     def normalize_date_page_name(self, page):
         match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{1,4})", page)
@@ -940,7 +934,8 @@ class SkedApp:
                     d = int(match.group(3))
                     m = int(match.group(2))
                     y = int(match.group(1))
-                    datetime(y, m, d)   # Throws an ValueError for bad dates.
+                    # Throws an ValueError for bad dates.
+                    datetime.datetime(y, m, d)
                     self.calendar.select_month(m-1, y)
                     self.calendar.select_day(d)
                     self.update_calendar()

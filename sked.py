@@ -848,14 +848,14 @@ class SkedApp:
             self._apply_tag_on_group(match, "code", 2)
             self._apply_tag_on_group(match, "format", 3)
 
-        link_re = ur"([0-3][0-9])\/([01][0-9])\/([0-9]{4})"
+        link_re = ur"([0-3]?[0-9])\/([01]?[0-9])\/([0-9]{1,4})"
         for match in re.finditer(link_re, tx):
             if self.has_page(self.normalize_date_page_name(match.group(0))):
                 self._apply_tag_on_group(match, "datelink", 0)
             else:
                 self._apply_tag_on_group(match, "newdatelink", 0)
 
-        link_re = ur"([0-9]{4})-([01][0-9])-([0-3][0-9])"
+        link_re = ur"([0-9]{1,4})-([01]?[0-9])-([0-3]?[0-9])"
         for match in re.finditer(link_re, tx):
             if self.has_page(match.group(0)):
                 self._apply_tag_on_group(match, "datelink", 0)
@@ -907,7 +907,13 @@ class SkedApp:
             d = int(match.group(1))
             m = int(match.group(2))
             y = int(match.group(3))
-            page = "%.4d-%.2d-%.2d" % (y, m, d)
+            return "%04d-%02d-%02d" % (y, m, d)
+        match = re.search("([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})", page)
+        if match != None:
+            y = int(match.group(1))
+            m = int(match.group(2))
+            d = int(match.group(3))
+            return "%04d-%02d-%02d" % (y, m, d)
         return page
 
     def has_page(self, page):

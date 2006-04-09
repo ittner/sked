@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Sked - a toy scheduler with Python, PyGTK and Berkeley DB
+Sked - a wikish scheduler with Python, PyGTK and Berkeley DB
 (c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>
 
 This program is free software; you can redistribute it and/or modify
@@ -511,6 +511,7 @@ class SkedApp:
         self.date_change_sigid = self.calendar.connect("day-selected",
             self._on_cmd_date_change)
             
+        self.hand_cursor = gdk.Cursor(gtk.gdk.HAND1)
         self.set_text_tags()
 
     def _on_cmd_about(self, widget = None, data = None):
@@ -666,6 +667,8 @@ class SkedApp:
         if tag == None:
             return False
         if event.type == gtk.gdk.BUTTON_PRESS:
+            if event.button != 1:
+                return False    # Not the left button.
             start = iter.copy()
             # Search for the begining of the tag
             while not start.begins_tag(tag):
@@ -894,7 +897,7 @@ class SkedApp:
             self._apply_tag_on_group(match, style, 2)
             self._apply_tag_on_group(match, "format", 3)
 
-        url_re = ur"(([a-zA-Z]+://|www\.)[a-zA-Z0-9._/%#&?~-]+)" # url
+        url_re = ur"(([a-zA-Z]+://|www\.)[a-zA-Z0-9._/%#&?~=-]+)" # url
         for match in re.finditer(url_re, tx):
             self._apply_tag_on_group(match, "url", 1)
 

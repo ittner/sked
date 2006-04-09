@@ -211,6 +211,7 @@ class PreferencesWindow:
         self.spFormatTime = self.glade.get_widget("spFormatTime")
         self.spSaveTime = self.glade.get_widget("spSaveTime")
         self.spUndoLevels = self.glade.get_widget("spUndoLevels")
+        self.spHistorySize = self.glade.get_widget("spHistorySize")
         self.cbShowEdit = self.glade.get_widget("cbShowEdit")
         self.cbShowCalendar = self.glade.get_widget("cbShowCalendar")
         self.cbShowHistory = self.glade.get_widget("cbShowHistory")
@@ -253,6 +254,7 @@ class PreferencesWindow:
         self.spFormatTime.set_value(self.opt.get_int("format_time"))
         self.spSaveTime.set_value(self.opt.get_int("save_time"))
         self.spUndoLevels.set_value(self.opt.get_int("undo_levels"))
+        self.spHistorySize.set_value(self.opt.get_int("max_history"))
         self.cbShowEdit.set_active(self.opt.get_bool("show_edit_buttons"))
         self.cbShowCalendar.set_active(self.opt.get_bool("show_calendar"))
         self.cbShowHistory.set_active(self.opt.get_bool("show_history"))
@@ -282,6 +284,7 @@ class PreferencesWindow:
         self.opt.set_int("format_time", self.spFormatTime.get_value_as_int())
         self.opt.set_int("save_time", self.spSaveTime.get_value_as_int())
         self.opt.set_int("undo_levels", self.spUndoLevels.get_value_as_int())
+        self.opt.set_int("max_history", self.spHistorySize.get_value_as_int())
         self.opt.set_bool("show_edit_buttons", self.cbShowEdit.get_active())
         self.opt.set_bool("show_calendar", self.cbShowCalendar.get_active())
         self.opt.set_bool("show_history", self.cbShowHistory.get_active())
@@ -343,18 +346,21 @@ class SkedApp:
         "ft_search"     : False,
         "show_calendar" : True,
         "show_history"  : True,
-        "show_gsearch"  : False
+        "show_gsearch"  : False,
+        "max_history"   : 50
     }
 
     def __init__(self):
         try:
             self.db = DatabaseManager(get_home_dir() + SkedApp.DB_FILENAME)
             self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
-            self.load_interface()
             self.formatTimerID = None
             self.saveTimerID = None
             self.backl = []
             self.forwardl = []
+            self.history = ["index"]
+            self.history_model = gtk.ListStore(gobject.TYPE_STRING)
+            self.load_interface()
         except Exception:
             alert = gtk.MessageDialog(None,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -367,6 +373,7 @@ class SkedApp:
         self.curpage = None
         self.restore_window_geometry()
         self.update_options()
+        self.load_history()
         self._on_cmd_date_change()
         self._update_back_forward()
         self.mainWindow.show()
@@ -390,6 +397,7 @@ class SkedApp:
     def update_options(self):
         self.format_time = 1000 * self.opt.get_int("format_time")
         self.save_time = 1000 * self.opt.get_int("save_time")
+        self.max_history = self.opt.get_int("max_history")
         self._update_sidebar()
         self._set_edit_buttons()
         self.set_text_tags()
@@ -410,9 +418,21 @@ class SkedApp:
         
         ft_search = self.opt.get_bool("ft_search")
         self.tgFullTextSearch.set_property("active", ft_search)
+        
+    def load_history(self):
+        hstr = self.db.get_key("history", "")
+        self.history = hstr.split("\n")
+        self.history = self.history[-self.max_history:]
+        self.history_model.clear()
+        for item in self.history:
+            self.history_model.prepend([item])
+
+    def save_history(self):
+        self.db.set_key("history", "\n".join(self.history))
 
     def quit(self, widget = None, data = None):
         self.save_current_page()
+        self.save_history()
         self.save_window_geometry()
         self.mainWindow.destroy()
         gtk.main_quit()
@@ -439,6 +459,8 @@ class SkedApp:
             'on_cmd_header1'     : self._on_cmd_header1,
             'on_cmd_header2'     : self._on_cmd_header2,
             'on_cmd_header3'     : self._on_cmd_header3,
+            'on_cmd_history_go'  : self._on_cmd_listbox_go,
+            'on_cmd_history_go'  : self._on_cmd_listbox_go,
             'on_cmd_history_tg'  : self._on_cmd_history_tg,
             'on_cmd_home'        : self._on_cmd_home,
             'on_cmd_italic'      : self._on_cmd_italic,
@@ -477,6 +499,14 @@ class SkedApp:
         self.tgGlobalSearch = self.glade.get_widget("tgGlobalSearch")
         self.tgFullTextSearch = self.glade.get_widget("tgFullTextSearch")
         
+        self.lsHistory = self.glade.get_widget("lsHistory")
+        self.lsHistory.set_model(self.history_model)
+        self.history_column = gtk.TreeViewColumn("Page Name")
+        self.lsHistory.append_column(self.history_column)
+        self.history_renderer = gtk.CellRendererText()
+        self.history_column.pack_start(self.history_renderer, True)
+        self.history_column.add_attribute(self.history_renderer, "text", 0)
+
         # We need this signal ID to block the signal on date setting.
         self.date_change_sigid = self.calendar.connect("day-selected",
             self._on_cmd_date_change)
@@ -563,7 +593,14 @@ class SkedApp:
         
     def _on_cmd_header3(self, widget = None, data = None):
         self.insert_formatting("=", "=")
-        
+
+    def _on_cmd_listbox_go(self, widget = None, path = None, column = None):
+        # Should be used for global search too.
+        model, iter = widget.get_selection().get_selected()
+        page = model.get_value(iter, 0)
+        if page != None:
+            self.hl_change_page(page)
+
     def _on_cmd_history_tg(self, widget = None, data = None):
         show_history = self.tgHistory.get_active()
         self.bxHistory.set_property("visible", show_history)
@@ -694,16 +731,26 @@ class SkedApp:
         
     def _update_back_forward(self):
         # Updates the forward/back buttons and menus.
-        if len(self.backl) > 20:
-            self.backl = self.backl[20:]
-        if len(self.forwardl) > 20:
-            self.forwardl = self.forwardl[20:]
+        if len(self.backl) > self.max_history:
+            self.backl = self.backl[-self.max_history:]
+        if len(self.forwardl) > self.max_history:
+            self.forwardl = self.forwardl[-self.max_history:]
         b = len(self.backl) > 0
         f = len(self.forwardl) > 0
         self.btForward.set_sensitive(f)
         self.btBack.set_sensitive(b)
         self.mnForward.set_sensitive(f)
         self.mnBack.set_sensitive(b)
+    
+    def handle_history(self, page = None):
+        if page != None and page not in self.history:
+            self.history.append(page)
+            self.history_model.prepend([page])
+            if len(self.history) > self.max_history:
+                self.history = self.history[-self.max_history:]
+                self.history_model.clear()
+                for item in self.history:
+                    self.history_model.prepend([item])
 
     def get_text(self):
         start, end = self.txBuffer.get_bounds()
@@ -875,7 +922,7 @@ class SkedApp:
         start = self.txBuffer.get_iter_at_offset(match.start(group))
         end = self.txBuffer.get_iter_at_offset(match.end(group))
         self.txBuffer.apply_tag_by_name(tag, start, end)
-        
+
     def get_date_str(self):
         year, month, day = self.calendar.get_date()
         return "%04d-%02d-%02d" % (year, month + 1, day)
@@ -895,6 +942,7 @@ class SkedApp:
     def change_page(self, page):
         self.reset_timers()
         self.save_current_page()
+        self.handle_history(page)
         page = self.normalize_date_page_name(page)
         self.curpage = page
         self.txPageName.set_text(page)
@@ -980,8 +1028,6 @@ class SkedApp:
             if self.has_page(name):
                 self.calendar.mark_day(day)
         self.calendar.thaw()
-
-
 
 
 # Initialization.

@@ -522,10 +522,23 @@ class SkedApp:
         
     def _on_cmd_delete(self, widget = None, data = None):
         self.reset_timers()
-        name = self.curpage
-        self.change_page("index")
-        self.db.del_key(self.page_name(name))
-        self.mark_page_on_calendar()
+        page = self.curpage
+        if page == None: return
+        confirm = gtk.MessageDialog(self.mainWindow,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
+            "Delete the page \"" + page + "\" forever?")
+        bt = confirm.run()
+        confirm.destroy()
+        if bt == gtk.RESPONSE_YES:
+            if len(self.backl) > 0:
+                lastpage = self.backl.pop()
+            else:
+                lastpage = "index"
+            self.hl_change_page(lastpage)
+            self.db.del_key(self.page_name(page))
+            if page == lastpage:
+                self.set_text("")
         
     def _on_cmd_exit(self, widget = None, data = None):
         self.quit()

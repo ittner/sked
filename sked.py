@@ -36,7 +36,7 @@ import anydbm           # Berkeley DB abstraction layer.
 import os               # Operating system stuff
 import re               # Regular expressions
 import webbrowser       # System web browser
-
+from datetime import datetime   # for date validation.
 
 
 # Generic functions ------------------------------------------------------
@@ -421,7 +421,6 @@ class SkedApp:
             'on_cmd_code'        : self._on_cmd_code,
             'on_cmd_copy'        : self._on_cmd_copy,
             'on_cmd_cut'         : self._on_cmd_cut,
-            'on_cmd_date_change' : self._on_cmd_date_change,
             'on_cmd_delete'      : self._on_cmd_delete,
             'on_cmd_exit'        : self._on_cmd_exit,
             'on_cmd_forward'     : self._on_cmd_forward,
@@ -468,6 +467,11 @@ class SkedApp:
         self.tgHistory = self.glade.get_widget("tgHistory")
         self.tgGlobalSearch = self.glade.get_widget("tgGlobalSearch")
         self.tgFullTextSearch = self.glade.get_widget("tgFullTextSearch")
+        
+        # We need this signal ID to block the signal on date setting.
+        self.date_change_sigid = self.calendar.connect("day-selected",
+            self._on_cmd_date_change)
+            
         self.set_text_tags()
 
     def _on_cmd_about(self, widget = None, data = None):
@@ -512,7 +516,7 @@ class SkedApp:
         name = self.curpage
         self.change_page("index")
         self.db.del_key(self.page_name(name))
-        self.update_calendar()
+        self.mark_page_on_calendar()
         
     def _on_cmd_exit(self, widget = None, data = None):
         self.quit()
@@ -536,6 +540,7 @@ class SkedApp:
         self.forwardl = []
         self.change_page(page)
         self._update_back_forward()
+        self.mark_page_on_calendar()
         
     def _on_cmd_header1(self, widget = None, data = None):
         self.insert_formatting("===", "===")
@@ -559,6 +564,7 @@ class SkedApp:
         self.forwardl = []
         self.change_page(page)
         self._update_back_forward()
+        self.mark_page_on_calendar()
         
     def _on_cmd_italic(self, widget = None, data = None):
         self.insert_formatting("_", "_")
@@ -572,6 +578,7 @@ class SkedApp:
             page = self.backl.pop()
             self.forwardl.append(self.curpage)
             self.change_page(page)
+            self.mark_page_on_calendar()
         self._update_back_forward()
 
     def _on_cmd_forward(self, widget = None, data = None):
@@ -581,6 +588,7 @@ class SkedApp:
             if self.curpage != None:
                 self.backl.append(self.curpage)
             self.change_page(page)
+            self.mark_page_on_calendar()
         self._update_back_forward()
         
     def _on_cmd_paste(self, widget = None, data = None):
@@ -871,7 +879,6 @@ class SkedApp:
         self.txPageName.set_text(page)
         self.txBuffer.set_text(self.db.get_key(self.page_name(self.curpage), ""))
         self.format_text()
-        self.update_calendar()
         
     def save_current_page(self):
         if self.curpage != None:
@@ -892,9 +899,10 @@ class SkedApp:
         self.forwardl = []
         self.change_page(page)
         self._update_back_forward()
+        self.mark_page_on_calendar()
     
     def normalize_date_page_name(self, page):
-        match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})", page)
+        match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{1,4})", page)
         if match != None:
             d = int(match.group(1))
             m = int(match.group(2))
@@ -913,11 +921,28 @@ class SkedApp:
         else:
             upage = unicode(page, "utf-8").upper()
         return "pag_" + upage.encode("utf-8")
+        
+    def mark_page_on_calendar(self):
+        if self.curpage != None:
+            page = self.normalize_date_page_name(self.curpage)
+            match = re.search("([0-9]{4})-([01][0-9])-([0-3][0-9])", page)
+            self.calendar.handler_block(self.date_change_sigid)
+            if match == None:
+                self.calendar.select_day(0)
+            else:
+                try:
+                    d = int(match.group(3))
+                    m = int(match.group(2))
+                    y = int(match.group(1))
+                    datetime(y, m, d)   # Throws an ValueError for bad dates.
+                    self.calendar.select_month(m-1, y)
+                    self.calendar.select_day(d)
+                    self.update_calendar()
+                except ValueError:      # Bad date?
+                    self.calendar.select_day(0)
+            self.calendar.handler_unblock(self.date_change_sigid)
 
     def update_calendar(self, widget = None):
-        # gtk.Calendar doesn't appears to suport other calendars than the
-        # Gregorian one (no Islamic, Chinese or Jewish calendars supported).
-        # It's a portability bug.
         year, month, day = self.calendar.get_date()
         if ((year % 4 == 0) and (year % 100 != 0)) \
         or ((year % 4 == 0) and (year % 100 == 0) and (year % 400 == 0)):
@@ -925,11 +950,13 @@ class SkedApp:
         else:
             mdays = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
 
+        self.calendar.freeze()
         self.calendar.clear_marks()
         for day in range(1, mdays[month] + 1):
             name = "%04d-%02d-%02d" % (year, month + 1, day)
             if self.has_page(name):
                 self.calendar.mark_day(day)
+        self.calendar.thaw()
 
 
 

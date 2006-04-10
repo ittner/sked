@@ -906,7 +906,6 @@
 		  <property name="tooltip" translatable="yes">Select a date for see/edit the notes</property>
 		  <property name="can_focus">True</property>
 		  <property name="display_options">GTK_CALENDAR_SHOW_HEADING|GTK_CALENDAR_SHOW_DAY_NAMES</property>
-		  <signal name="day_selected" handler="on_cmd_date_change" last_modification_time="Fri, 31 Mar 2006 02:33:16 GMT"/>
 		</widget>
 		<packing>
 		  <property name="padding">0</property>
@@ -1015,16 +1014,25 @@
 		      </child>
 
 		      <child>
-			<widget class="GtkToggleButton" id="tgFullTextSearch">
+			<widget class="GtkButton" id="btSearchOptions">
 			  <property name="visible">True</property>
+			  <property name="tooltip" translatable="yes">Search options</property>
 			  <property name="can_focus">True</property>
-			  <property name="label" translatable="yes">F_ull Text</property>
-			  <property name="use_underline">True</property>
 			  <property name="relief">GTK_RELIEF_NORMAL</property>
 			  <property name="focus_on_click">True</property>
-			  <property name="active">False</property>
-			  <property name="inconsistent">False</property>
-			  <signal name="toggled" handler="on_cmd_ft_search_tg" last_modification_time="Sat, 08 Apr 2006 22:15:53 GMT"/>
+			  <signal name="clicked" handler="on_cmd_search_menu" last_modification_time="Sun, 09 Apr 2006 23:42:02 GMT"/>
+
+			  <child>
+			    <widget class="GtkImage" id="image557">
+			      <property name="visible">True</property>
+			      <property name="stock">gtk-properties</property>
+			      <property name="icon_size">4</property>
+			      <property name="xalign">0.5</property>
+			      <property name="yalign">0.5</property>
+			      <property name="xpad">0</property>
+			      <property name="ypad">0</property>
+			    </widget>
+			  </child>
 			</widget>
 			<packing>
 			  <property name="padding">0</property>
@@ -1036,71 +1044,20 @@
 		      <child>
 			<widget class="GtkButton" id="btSearch">
 			  <property name="visible">True</property>
+			  <property name="tooltip" translatable="yes">Search</property>
 			  <property name="can_focus">True</property>
 			  <property name="relief">GTK_RELIEF_NORMAL</property>
 			  <property name="focus_on_click">True</property>
 
 			  <child>
-			    <widget class="GtkAlignment" id="alignment1">
+			    <widget class="GtkImage" id="image558">
 			      <property name="visible">True</property>
+			      <property name="stock">gtk-find</property>
+			      <property name="icon_size">4</property>
 			      <property name="xalign">0.5</property>
 			      <property name="yalign">0.5</property>
-			      <property name="xscale">0</property>
-			      <property name="yscale">0</property>
-			      <property name="top_padding">0</property>
-			      <property name="bottom_padding">0</property>
-			      <property name="left_padding">0</property>
-			      <property name="right_padding">0</property>
-
-			      <child>
-				<widget class="GtkHBox" id="hbox4">
-				  <property name="visible">True</property>
-				  <property name="homogeneous">False</property>
-				  <property name="spacing">2</property>
-
-				  <child>
-				    <widget class="GtkImage" id="image459">
-				      <property name="visible">True</property>
-				      <property name="stock">gtk-find</property>
-				      <property name="icon_size">4</property>
-				      <property name="xalign">0.5</property>
-				      <property name="yalign">0.5</property>
-				      <property name="xpad">0</property>
-				      <property name="ypad">0</property>
-				    </widget>
-				    <packing>
-				      <property name="padding">0</property>
-				      <property name="expand">False</property>
-				      <property name="fill">False</property>
-				    </packing>
-				  </child>
-
-				  <child>
-				    <widget class="GtkLabel" id="label20">
-				      <property name="visible">True</property>
-				      <property name="label" translatable="yes">Se_arch</property>
-				      <property name="use_underline">True</property>
-				      <property name="use_markup">False</property>
-				      <property name="justify">GTK_JUSTIFY_LEFT</property>
-				      <property name="wrap">False</property>
-				      <property name="selectable">False</property>
-				      <property name="xalign">0.5</property>
-				      <property name="yalign">0.5</property>
-				      <property name="xpad">0</property>
-				      <property name="ypad">0</property>
-				      <property name="ellipsize">PANGO_ELLIPSIZE_NONE</property>
-				      <property name="width_chars">-1</property>
-				      <property name="single_line_mode">False</property>
-				      <property name="angle">0</property>
-				    </widget>
-				    <packing>
-				      <property name="padding">0</property>
-				      <property name="expand">False</property>
-				      <property name="fill">False</property>
-				    </packing>
-				  </child>
-				</widget>
-			      </child>
+			      <property name="xpad">0</property>
+			      <property name="ypad">0</property>
 			    </widget>
 			  </child>
 			</widget>
@@ -1190,7 +1147,6 @@
 		  <property name="right_margin">0</property>
 		  <property name="indent">0</property>
 		  <property name="text" translatable="yes"></property>
-		  <signal name="key_press_event" handler="on_text_change" last_modification_time="Tue, 04 Apr 2006 04:04:04 GMT"/>
 		</widget>
 	      </child>
 	    </widget>
@@ -2284,6 +2240,57 @@
 	  <property name="fill">True</property>
 	</packing>
       </child>
+    </widget>
+  </child>
+</widget>
+
+<widget class="GtkMenu" id="mnSearchOptions">
+
+  <child>
+    <widget class="GtkCheckMenuItem" id="mnFullTextSearch">
+      <property name="visible">True</property>
+      <property name="label" translatable="yes">_Full text search</property>
+      <property name="use_underline">True</property>
+      <property name="active">False</property>
+      <signal name="activate" handler="on_cmd_ft_search" last_modification_time="Sun, 09 Apr 2006 23:28:24 GMT"/>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkSeparatorMenuItem" id="separador1">
+      <property name="visible">True</property>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkRadioMenuItem" id="mnAnyWordSearch">
+      <property name="visible">True</property>
+      <property name="label" translatable="yes">A_ny word</property>
+      <property name="use_underline">True</property>
+      <property name="active">False</property>
+      <signal name="activate" handler="on_cmd_search_mode" last_modification_time="Sun, 09 Apr 2006 23:28:24 GMT"/>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkRadioMenuItem" id="mnAllWordsSearch">
+      <property name="visible">True</property>
+      <property name="label" translatable="yes">_All words</property>
+      <property name="use_underline">True</property>
+      <property name="active">False</property>
+      <property name="group">mnAnyWordSearch</property>
+      <signal name="activate" handler="on_cmd_search_mode" last_modification_time="Sun, 09 Apr 2006 23:28:24 GMT"/>
+    </widget>
+  </child>
+
+  <child>
+    <widget class="GtkRadioMenuItem" id="mnExactPhraseSearch">
+      <property name="visible">True</property>
+      <property name="label" translatable="yes">_Exact phrase</property>
+      <property name="use_underline">True</property>
+      <property name="active">True</property>
+      <property name="group">mnAnyWordSearch</property>
+      <signal name="activate" handler="on_cmd_search_mode" last_modification_time="Sun, 09 Apr 2006 23:37:37 GMT"/>
     </widget>
   </child>
 </widget>

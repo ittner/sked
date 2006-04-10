@@ -316,6 +316,9 @@ class PreferencesWindow:
 
 class SkedApp:
     DB_FILENAME = "/.sked.db"
+    ANY_WORD = 1    # Search modes
+    ALL_WORDS = 2
+    EXACT_PHRASE = 3
     DEF_PREFS = {
         "window_x"  : 0,
         "window_y"  : 0,
@@ -344,6 +347,7 @@ class SkedApp:
         "new_link_font" : "Sans 12",
         "url_link_font" : "Sans 12",
         "ft_search"     : False,
+        "search_mode"   : ALL_WORDS,
         "show_calendar" : True,
         "show_history"  : True,
         "show_gsearch"  : False,
@@ -422,7 +426,14 @@ class SkedApp:
         self.tgGlobalSearch.set_property("active", show_gsearch)
         
         ft_search = self.opt.get_bool("ft_search")
-        self.tgFullTextSearch.set_property("active", ft_search)
+        self.mnFullText.set_property("active", ft_search)
+        search_mode = self.opt.get_int("search_mode")
+        if search_mode == SkedApp.ANY_WORD:
+            self.mnAnyWord.set_property("active", True)
+        elif search_mode == SkedApp.EXACT_PHRASE:
+            self.mnExactPhrase.set_property("active", True)
+        else:   # Default. Also, any invalid option will get here.
+            self.mnAllWords.set_property("active", True)
         
     def load_history(self):
         hstr = self.db.get_key("history", "index")
@@ -444,7 +455,7 @@ class SkedApp:
 
     def load_interface(self):
         self.gladeFile = find_glade_xml("sked")
-        self.glade = gtk.glade.XML(self.gladeFile, "wndMain")
+        self.glade = gtk.glade.XML(self.gladeFile)
         self.glade.signal_autoconnect({
             'on_cmd_about'       : self._on_cmd_about,
             'on_cmd_back'        : self._on_cmd_back,
@@ -458,7 +469,7 @@ class SkedApp:
             'on_cmd_delete'      : self._on_cmd_delete,
             'on_cmd_exit'        : self._on_cmd_exit,
             'on_cmd_forward'     : self._on_cmd_forward,
-            'on_cmd_ft_search_tg': self._on_cmd_ft_search_tg,
+            'on_cmd_ft_search'   : self._on_cmd_ft_search,
             'on_cmd_goto'        : self._on_cmd_goto,
             'on_cmd_gsearch_tg'  : self._on_cmd_gsearch_tg,
             'on_cmd_header1'     : self._on_cmd_header1,
@@ -474,6 +485,8 @@ class SkedApp:
             'on_cmd_preferences' : self._on_cmd_preferences,
             'on_cmd_redo'        : self._on_cmd_redo,
             'on_cmd_restore'     : self._on_cmd_restore,
+            'on_cmd_search_menu' : self._on_cmd_search_menu,
+            'on_cmd_search_mode' : self._on_cmd_search_mode,
             'on_cmd_today'       : self._on_cmd_today,
             'on_cmd_tomorrow'    : self._on_cmd_tomorrow,
             'on_cmd_undo'        : self._on_cmd_undo,
@@ -503,7 +516,13 @@ class SkedApp:
         self.tgCalendar = self.glade.get_widget("tgCalendar")
         self.tgHistory = self.glade.get_widget("tgHistory")
         self.tgGlobalSearch = self.glade.get_widget("tgGlobalSearch")
-        self.tgFullTextSearch = self.glade.get_widget("tgFullTextSearch")
+
+        self.btSearchOptions = self.glade.get_widget("btSearchOptions")
+        self.mnSearchOptions = self.glade.get_widget("mnSearchOptions")
+        self.mnFullText = self.glade.get_widget("mnFullTextSearch")
+        self.mnAnyWord = self.glade.get_widget("mnAnyWordSearch")
+        self.mnAllWords = self.glade.get_widget("mnAllWordsSearch")
+        self.mnExactPhrase = self.glade.get_widget("mnExactPhraseSearch")
         
         self.lsHistory = self.glade.get_widget("lsHistory")
         self.lsHistory.set_model(self.history_model)
@@ -589,9 +608,19 @@ class SkedApp:
     def _on_cmd_exit(self, widget = None, data = None):
         self.quit()
 
-    def _on_cmd_ft_search_tg(self, widget = None, data = None):
-        ft_search = self.tgFullTextSearch.get_active()
+    def _on_cmd_ft_search(self, widget = None, data = None):
+        ft_search = self.mnFullText.get_active()
         self.opt.set_bool("ft_search", ft_search)
+        
+    def _on_cmd_search_mode(self, widget = None, data = None):
+        mode = SkedApp.ALL_WORDS    # default.
+        if self.mnAnyWord.get_property("active") == True:
+            mode = SkedApp.ANY_WORD
+        elif self.mnAllWords.get_property("active") == True:
+            mode = SkedApp.ALL_WORDS
+        elif self.mnExactPhrase.get_property("active") == True:
+            mode = SkedApp.EXACT_PHRASE
+        self.opt.set_int("search_mode", mode)
 
     def _on_cmd_gsearch_tg(self, widget = None, data = None):
         show_gsearch = self.tgGlobalSearch.get_active()
@@ -668,7 +697,10 @@ class SkedApp:
 
     def _on_cmd_restore(self, widget = None, data = None):
         pass
-        
+
+    def _on_cmd_search_menu(self, widget = None, event = None):
+        self.mnSearchOptions.popup(None, None, None, 0, 0)
+
     def _on_cmd_today(self, widget = None, data = None):
         dt = datetime.datetime.today()
         self.hl_change_page("%04d-%02d-%02d" % (dt.year, dt.month, dt.day))

@@ -197,7 +197,7 @@ class PreferencesWindow:
         
     def show(self):
         if PreferencesWindow._wnd != None:
-            PreferencesWindow._wnd.set_focus()
+            PreferencesWindow._wnd.show()
         else:
             PreferencesWindow._wnd = self.wnd
             self.wnd.show()

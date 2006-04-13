@@ -894,7 +894,13 @@ class SkedApp:
         self.mnBack.set_sensitive(b)
     
     def handle_history(self, page = None):
-        if page != None and page not in self.history:
+        if page == None:
+            return
+        if isinstance(page, unicode):
+            page = page.upper()
+        else:
+            page = unicode(page, "utf-8").upper()
+        if page not in self.history:
             self.history.append(page)
             self.history_model.prepend([page])
             if len(self.history) > self.max_history:

@@ -657,10 +657,10 @@ class SkedApp:
             return
         if self.mnAnyWord.get_property("active") == True:
             mode = SkedApp.ANY_WORD
-            slist = re.split('\W+', text)
+            slist = re.split('\s', text)
         elif self.mnAllWords.get_property("active") == True:
             mode = SkedApp.ALL_WORDS
-            slist = re.split('\W+', text)
+            slist = re.split('\s', text)
         elif self.mnExactPhrase.get_property("active") == True:
             mode = SkedApp.EXACT_PHRASE
             slist = [ text ]

@@ -98,6 +98,10 @@ class DatabaseManager:
     def get_filename(self):
         return self._fname
 
+    def keys(self):
+        for k in self._db:
+            yield k
+
 
 # Option manager ---------------------------------------------------------
 
@@ -367,6 +371,7 @@ class SkedApp:
             self.last_undo_cnt = 0;
             self.history = ["index"]
             self.history_model = gtk.ListStore(gobject.TYPE_STRING)
+            self.gsearch_model = gtk.ListStore(gobject.TYPE_STRING)
             self.load_interface()
         except Exception:
             alert = gtk.MessageDialog(None,
@@ -471,6 +476,7 @@ class SkedApp:
             'on_cmd_forward'     : self._on_cmd_forward,
             'on_cmd_ft_search'   : self._on_cmd_ft_search,
             'on_cmd_goto'        : self._on_cmd_goto,
+            'on_cmd_gsearch'     : self._on_cmd_gsearch,
             'on_cmd_gsearch_tg'  : self._on_cmd_gsearch_tg,
             'on_cmd_header1'     : self._on_cmd_header1,
             'on_cmd_header2'     : self._on_cmd_header2,
@@ -516,6 +522,7 @@ class SkedApp:
         self.tgCalendar = self.glade.get_widget("tgCalendar")
         self.tgHistory = self.glade.get_widget("tgHistory")
         self.tgGlobalSearch = self.glade.get_widget("tgGlobalSearch")
+        self.txGlobalSearch = self.glade.get_widget("txGlobalSearch")
 
         self.btSearchOptions = self.glade.get_widget("btSearchOptions")
         self.mnSearchOptions = self.glade.get_widget("mnSearchOptions")
@@ -523,7 +530,7 @@ class SkedApp:
         self.mnAnyWord = self.glade.get_widget("mnAnyWordSearch")
         self.mnAllWords = self.glade.get_widget("mnAllWordsSearch")
         self.mnExactPhrase = self.glade.get_widget("mnExactPhraseSearch")
-        
+
         self.lsHistory = self.glade.get_widget("lsHistory")
         self.lsHistory.set_model(self.history_model)
         self.history_column = gtk.TreeViewColumn("Page Name")
@@ -531,6 +538,14 @@ class SkedApp:
         self.history_renderer = gtk.CellRendererText()
         self.history_column.pack_start(self.history_renderer, True)
         self.history_column.add_attribute(self.history_renderer, "text", 0)
+        
+        self.lsGlobalSearch = self.glade.get_widget("lsGlobalSearch")
+        self.lsGlobalSearch.set_model(self.gsearch_model)
+        self.gsearch_column = gtk.TreeViewColumn("Page Name")
+        self.lsGlobalSearch.append_column(self.gsearch_column)
+        self.gsearch_renderer = gtk.CellRendererText()
+        self.gsearch_column.pack_start(self.gsearch_renderer, True)
+        self.gsearch_column.add_attribute(self.gsearch_renderer, "text", 0)
     
         # We need this signal ID to block the signal on date setting.
         self.date_change_sigid = self.calendar.connect("day-selected",
@@ -627,6 +642,75 @@ class SkedApp:
         self.bxGlobalSearch.set_property("visible", show_gsearch)
         self.opt.set_bool("show_gsearch", show_gsearch)
         
+    def _on_cmd_gsearch(self, widget = None, data = None):
+        ## Big, ugly and sloooooooow! Optimization needed!!
+        mode = None
+        slist = None
+        text = unicode(self.txGlobalSearch.get_text(), "utf-8").upper()
+        if text == "":
+            alert = gtk.MessageDialog(self.mainWindow,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                "You must supply a search string.")
+            alert.run()
+            alert.destroy()
+            return
+        if self.mnAnyWord.get_property("active") == True:
+            mode = SkedApp.ANY_WORD
+            slist = re.split('\W+', text)
+        elif self.mnAllWords.get_property("active") == True:
+            mode = SkedApp.ALL_WORDS
+            slist = re.split('\W+', text)
+        elif self.mnExactPhrase.get_property("active") == True:
+            mode = SkedApp.EXACT_PHRASE
+            slist = [ text ]
+        else:
+            alert = gtk.MessageDialog(self.mainWindow,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                "You must supply a search mode.")
+            alert.run()
+            alert.destroy()
+            return
+        fts = self.mnFullText.get_active()
+        self.gsearch_model.clear()
+        for key in self.db.keys():
+            if not key.startswith("pag_"):
+                continue
+            page = unicode(key[4:], "utf-8").upper()
+            if mode == SkedApp.ANY_WORD:
+                for word in slist:
+                    if page.find(word) != -1:
+                        self.gsearch_model.append([page])
+                        break
+                    if fts:
+                        data = unicode(self.db.get_key(key), "utf-8").upper()
+                        if data.find(word) != -1:
+                            self.gsearch_model.append([page])
+                            break
+            elif mode == SkedApp.ALL_WORDS:
+                has = True
+                for word in slist:
+                    if page.find(word) == -1:
+                        if fts:
+                            data = unicode(self.db.get_key(key), "utf-8").upper()
+                            if data.find(word) == -1:
+                                has = False
+                                break
+                        else:
+                            has = False
+                            break
+                if has:
+                    self.gsearch_model.append([page])
+            else:
+                if page.find(slist[0]) != -1:
+                    self.gsearch_model.append([page])
+                elif fts:
+                    data = unicode(self.db.get_key(key), "utf-8").upper()
+                    if data.find(slist[0]) != -1:
+                        self.gsearch_model.append([page])
+    
+    
     def _on_cmd_goto(self, widget = None, data = None):
         self.hl_change_page(self.txPageName.get_text())
         

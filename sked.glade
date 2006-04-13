@@ -995,7 +995,7 @@
 		      <property name="spacing">3</property>
 
 		      <child>
-			<widget class="GtkEntry" id="txSearch">
+			<widget class="GtkEntry" id="txGlobalSearch">
 			  <property name="visible">True</property>
 			  <property name="can_focus">True</property>
 			  <property name="editable">True</property>
@@ -1005,6 +1005,7 @@
 			  <property name="has_frame">True</property>
 			  <property name="invisible_char">*</property>
 			  <property name="activates_default">False</property>
+			  <signal name="activate" handler="on_cmd_gsearch" last_modification_time="Thu, 13 Apr 2006 03:07:36 GMT"/>
 			</widget>
 			<packing>
 			  <property name="padding">0</property>
@@ -1048,6 +1049,7 @@
 			  <property name="can_focus">True</property>
 			  <property name="relief">GTK_RELIEF_NORMAL</property>
 			  <property name="focus_on_click">True</property>
+			  <signal name="clicked" handler="on_cmd_gsearch" last_modification_time="Thu, 13 Apr 2006 03:06:43 GMT"/>
 
 			  <child>
 			    <widget class="GtkImage" id="image558">
@@ -1085,7 +1087,7 @@
 		      <property name="window_placement">GTK_CORNER_TOP_LEFT</property>
 
 		      <child>
-			<widget class="GtkTreeView" id="treeview3">
+			<widget class="GtkTreeView" id="lsGlobalSearch">
 			  <property name="visible">True</property>
 			  <property name="can_focus">True</property>
 			  <property name="headers_visible">False</property>
@@ -1095,6 +1097,7 @@
 			  <property name="fixed_height_mode">False</property>
 			  <property name="hover_selection">False</property>
 			  <property name="hover_expand">False</property>
+			  <signal name="row_activated" handler="on_cmd_history_go" last_modification_time="Thu, 13 Apr 2006 03:07:16 GMT"/>
 			</widget>
 		      </child>
 		    </widget>

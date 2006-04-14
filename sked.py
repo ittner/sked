@@ -328,6 +328,7 @@ class SkedApp:
         "window_y"  : 0,
         "window_w"  : 700,
         "window_h"  : 400,
+        "window_state" : 0, # can be gdk.WINDOW_STATE_MAXIMIZED | ICONIFIED
         "format_time"   : 3,
         "save_time"     : 15,
         "undo_levels"   : 16,
@@ -370,6 +371,7 @@ class SkedApp:
             self.redol = []
             self.last_undo_cnt = 0;
             self.history = ["index"]
+            self.window_state = 0
             self.history_model = gtk.ListStore(gobject.TYPE_STRING)
             self.gsearch_model = gtk.ListStore(gobject.TYPE_STRING)
             self.load_interface()
@@ -392,26 +394,33 @@ class SkedApp:
         self.mainWindow.show()
 
     def save_window_geometry(self):
-        x, y = self.mainWindow.get_position()
-        w, h = self.mainWindow.get_size()
-        self.opt.set_int("window_x", x)
-        self.opt.set_int("window_y", y)
-        self.opt.set_int("window_w", w)
-        self.opt.set_int("window_h", h)
+        self.opt.set_int("window_state", self.window_state)
+        if self.window_state == 0:
+            x, y = self.mainWindow.get_position()
+            w, h = self.mainWindow.get_size()
+            self.opt.set_int("window_x", x)
+            self.opt.set_int("window_y", y)
+            self.opt.set_int("window_w", w)
+            self.opt.set_int("window_h", h)
 
     def restore_window_geometry(self):
-        x = self.opt.get_int("window_x")
-        y = self.opt.get_int("window_y")
-        w = self.opt.get_int("window_w")
-        h = self.opt.get_int("window_h")
-        self.mainWindow.move(x, y)
-        self.mainWindow.resize(w, h)
-        
+        self.window_state = self.opt.get_int("window_state")
+        if self.window_state& gdk.WINDOW_STATE_MAXIMIZED:
+            self.mainWindow.maximize()
+        elif self.window_state & gdk.WINDOW_STATE_ICONIFIED:
+            self.mainWindow.iconify()
+        else:
+            x = self.opt.get_int("window_x")
+            y = self.opt.get_int("window_y")
+            w = self.opt.get_int("window_w")
+            h = self.opt.get_int("window_h")
+            self.mainWindow.move(x, y)
+            self.mainWindow.resize(w, h)
+    
     def update_options(self):
         self.format_time = 1000 * self.opt.get_int("format_time")
         self.save_time = 1000 * self.opt.get_int("save_time")
         self.max_history = self.opt.get_int("max_history")
-        self.undo_levels = self.opt.get_int("undo_levels")
         self._update_sidebar()
         self._set_edit_buttons()
         self.set_text_tags()
@@ -439,6 +448,11 @@ class SkedApp:
             self.mnExactPhrase.set_property("active", True)
         else:   # Default. Also, any invalid option will get here.
             self.mnAllWords.set_property("active", True)
+            
+    def _on_window_state(self, widget, event, data = None):
+        if widget == self.mainWindow:
+            st = gdk.WINDOW_STATE_MAXIMIZED | gdk.WINDOW_STATE_ICONIFIED
+            self.window_state = event.new_window_state & st
         
     def load_history(self):
         hstr = self.db.get_key("history", "index")
@@ -496,7 +510,8 @@ class SkedApp:
             'on_cmd_today'       : self._on_cmd_today,
             'on_cmd_tomorrow'    : self._on_cmd_tomorrow,
             'on_cmd_undo'        : self._on_cmd_undo,
-            'on_cmd_yesterday'   : self._on_cmd_yesterday
+            'on_cmd_yesterday'   : self._on_cmd_yesterday,
+            'on_window_state'    : self._on_window_state
         })
 
         self.mainWindow = self.glade.get_widget("wndMain")

@@ -405,7 +405,7 @@ class SkedApp:
 
     def restore_window_geometry(self):
         self.window_state = self.opt.get_int("window_state")
-        if self.window_state& gdk.WINDOW_STATE_MAXIMIZED:
+        if self.window_state & gdk.WINDOW_STATE_MAXIMIZED:
             self.mainWindow.maximize()
         elif self.window_state & gdk.WINDOW_STATE_ICONIFIED:
             self.mainWindow.iconify()

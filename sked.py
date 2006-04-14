@@ -256,6 +256,7 @@ class PreferencesDialog:
     def _on_cmd_cancel(self, widget = None, data = None):
         self.dlg.destroy()
         PreferencesDialog._dlg = None
+        return False
 
     def _set_widget_values(self):
         self.spFormatTime.set_value(self.opt.get_int("format_time"))

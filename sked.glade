@@ -1605,6 +1605,7 @@ Public License instead of this License.
   <property name="focus_on_map">True</property>
   <property name="urgency_hint">False</property>
   <property name="has_separator">False</property>
+  <signal name="delete_event" handler="on_cmd_cancel" last_modification_time="Fri, 14 Apr 2006 21:58:26 GMT"/>
 
   <child internal-child="vbox">
     <widget class="GtkVBox" id="dialog-vbox1">

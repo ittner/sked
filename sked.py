@@ -423,6 +423,7 @@ class SkedApp:
         self.format_time = 1000 * self.opt.get_int("format_time")
         self.save_time = 1000 * self.opt.get_int("save_time")
         self.max_history = self.opt.get_int("max_history")
+        self.undo_levels = self.opt.get_int("undo_levels")
         self._update_sidebar()
         self._set_edit_buttons()
         self.set_text_tags()

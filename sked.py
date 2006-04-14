@@ -327,7 +327,7 @@ class SkedApp:
         "window_x"  : 0,
         "window_y"  : 0,
         "window_w"  : 700,
-        "window_h"  : 400,
+        "window_h"  : 500,
         "window_state" : 0, # can be gdk.WINDOW_STATE_MAXIMIZED | ICONIFIED
         "format_time"   : 3,
         "save_time"     : 15,
@@ -405,15 +405,17 @@ class SkedApp:
 
     def restore_window_geometry(self):
         self.window_state = self.opt.get_int("window_state")
+        x = self.opt.get_int("window_x")
+        y = self.opt.get_int("window_y")
+        w = self.opt.get_int("window_w")
+        h = self.opt.get_int("window_h")
         if self.window_state & gdk.WINDOW_STATE_MAXIMIZED:
             self.mainWindow.maximize()
+            self.mainWindow.set_default_size(w, h)
         elif self.window_state & gdk.WINDOW_STATE_ICONIFIED:
             self.mainWindow.iconify()
+            self.mainWindow.set_default_size(w, h)
         else:
-            x = self.opt.get_int("window_x")
-            y = self.opt.get_int("window_y")
-            w = self.opt.get_int("window_w")
-            h = self.opt.get_int("window_h")
             self.mainWindow.move(x, y)
             self.mainWindow.resize(w, h)
     

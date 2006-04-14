@@ -169,22 +169,25 @@ class OptionManager:
 
 # About box --------------------------------------------------------------
 
-class AboutBox:
-    ##TODO: Replace this for a standard Gtk about box.
-    
-    def __init__(self, parent = None):
-        self._parent = parent
-    
+class AboutDialog:
+    _dlg = None
+
+    def __init__(self, parent):
+        self.parent = parent
+        self._load_interface()
+        
     def show(self):
-        msg = "Sked version 1.0 (devel)\n" \
-            + "(c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>\n" \
-            + "Distributed under the GNU GPL version 2 (or above)\n\n" \
-            + "Revision:\n" + __CVSID__
-        msgbox = gtk.MessageDialog(self._parent,
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            gtk.MESSAGE_INFO, gtk.BUTTONS_OK, msg)
-        msgbox.run()
-        msgbox.destroy()
+        if AboutDialog._dlg != None:
+            AboutDialog._dlg.present()
+        else:
+            AboutDialog._dlg = self.dlg
+            self.dlg.set_modal(True)
+            self.dlg.show()
+
+    def _load_interface(self):
+        self.gladeFile = find_glade_xml("sked")
+        self.glade = gtk.glade.XML(self.gladeFile, "dlgAbout")
+        self.dlg = self.glade.get_widget("dlgAbout")
 
 
 
@@ -580,8 +583,8 @@ class SkedApp:
         self.set_text_tags()
 
     def _on_cmd_about(self, widget = None, data = None):
-        bx = AboutBox(self.mainWindow)
-        bx.show()
+        abt = AboutDialog(self.mainWindow)
+        abt.show()
         
     def _on_cmd_backup(self, widget = None, data = None):
         pass

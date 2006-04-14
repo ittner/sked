@@ -193,8 +193,8 @@ class AboutDialog:
 
 # Preferences window -----------------------------------------------------
 
-class PreferencesWindow:
-    _wnd = None
+class PreferencesDialog:
+    _dlg = None
 
     def __init__(self, parent):
         self.parent = parent
@@ -203,18 +203,18 @@ class PreferencesWindow:
         self._set_widget_values()
         
     def show(self):
-        if PreferencesWindow._wnd != None:
-            PreferencesWindow._wnd.present()
+        if PreferencesDialog._dlg != None:
+            PreferencesDialog._dlg.present()
         else:
-            PreferencesWindow._wnd = self.wnd
-            self.wnd.show()
+            PreferencesDialog._dlg = self.dlg
+            self.dlg.show()
 
     def _load_interface(self):
         self.gladeFile = find_glade_xml("sked")
 
         # Boring code ahead... Is there a better way to do it?
-        self.glade = gtk.glade.XML(self.gladeFile, "wndPreferences")
-        self.wnd = self.glade.get_widget("wndPreferences")
+        self.glade = gtk.glade.XML(self.gladeFile, "dlgPreferences")
+        self.dlg = self.glade.get_widget("dlgPreferences")
         self.spFormatTime = self.glade.get_widget("spFormatTime")
         self.spSaveTime = self.glade.get_widget("spSaveTime")
         self.spUndoLevels = self.glade.get_widget("spUndoLevels")
@@ -249,13 +249,13 @@ class PreferencesWindow:
         
     def _on_cmd_ok(self, widget = None, data = None):
         self._save_widget_values()
-        self.wnd.destroy()
-        PreferencesWindow._wnd = None
+        self.dlg.destroy()
+        PreferencesDialog._dlg = None
         self.parent.update_options()
         
     def _on_cmd_cancel(self, widget = None, data = None):
-        self.wnd.destroy()
-        PreferencesWindow._wnd = None
+        self.dlg.destroy()
+        PreferencesDialog._dlg = None
 
     def _set_widget_values(self):
         self.spFormatTime.set_value(self.opt.get_int("format_time"))
@@ -787,7 +787,7 @@ class SkedApp:
             self.txNote.get_editable())
         
     def _on_cmd_preferences(self, widget = None, data = None):
-        wnd = PreferencesWindow(self)
+        wnd = PreferencesDialog(self)
         wnd.show()
         
     def _on_cmd_redo(self, widget = None, data = None):

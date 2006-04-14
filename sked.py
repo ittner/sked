@@ -644,23 +644,14 @@ class SkedApp:
         
     def _on_cmd_gsearch(self, widget = None, data = None):
         ## Big, ugly and sloooooooow! Optimization needed!!
-        mode = None
-        slist = None
-        text = unicode(self.txGlobalSearch.get_text(), "utf-8").upper()
-        if text == "":
-            alert = gtk.MessageDialog(self.mainWindow,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-                "You must supply a search string.")
-            alert.run()
-            alert.destroy()
-            return
+        text = unicode(self.txGlobalSearch.get_text(), "utf-8")
+        text = text.strip().upper()
         if self.mnAnyWord.get_property("active") == True:
             mode = SkedApp.ANY_WORD
-            slist = re.split('\s', text)
+            slist = re.split('\s+', text)
         elif self.mnAllWords.get_property("active") == True:
             mode = SkedApp.ALL_WORDS
-            slist = re.split('\s', text)
+            slist = re.split('\s+', text)
         elif self.mnExactPhrase.get_property("active") == True:
             mode = SkedApp.EXACT_PHRASE
             slist = [ text ]
@@ -668,7 +659,15 @@ class SkedApp:
             alert = gtk.MessageDialog(self.mainWindow,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-                "You must supply a search mode.")
+                "You must select a search mode.")
+            alert.run()
+            alert.destroy()
+            return
+        if len(slist) == 0 or slist[0] == "":
+            alert = gtk.MessageDialog(self.mainWindow,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                "You must supply a search string.")
             alert.run()
             alert.destroy()
             return
@@ -678,13 +677,14 @@ class SkedApp:
             if not key.startswith("pag_"):
                 continue
             page = unicode(key[4:], "utf-8").upper()
+            if fts:
+                data = unicode(self.db.get_key(key), "utf-8").upper()
             if mode == SkedApp.ANY_WORD:
                 for word in slist:
                     if page.find(word) != -1:
                         self.gsearch_model.append([page])
                         break
                     if fts:
-                        data = unicode(self.db.get_key(key), "utf-8").upper()
                         if data.find(word) != -1:
                             self.gsearch_model.append([page])
                             break
@@ -693,7 +693,6 @@ class SkedApp:
                 for word in slist:
                     if page.find(word) == -1:
                         if fts:
-                            data = unicode(self.db.get_key(key), "utf-8").upper()
                             if data.find(word) == -1:
                                 has = False
                                 break
@@ -706,7 +705,6 @@ class SkedApp:
                 if page.find(slist[0]) != -1:
                     self.gsearch_model.append([page])
                 elif fts:
-                    data = unicode(self.db.get_key(key), "utf-8").upper()
                     if data.find(slist[0]) != -1:
                         self.gsearch_model.append([page])
     

@@ -1,0 +1,6 @@
+<!ELEMENT skeddata (entry*)>
+<!ATTLIST skeddata version CDATA #REQUIRED>
+
+<!ELEMENT entry (#PCDATA)>
+<!ATTLIST entry name CDATA #REQUIRED>
+

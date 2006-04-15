@@ -508,6 +508,11 @@ class SkedApp:
             'on_cmd_home'        : self._on_cmd_home,
             'on_cmd_italic'      : self._on_cmd_italic,
             'on_cmd_link'        : self._on_cmd_link,
+            'on_cmd_lsearch_next': self._on_cmd_lsearch_next,
+            'on_cmd_lsearch_prev': self._on_cmd_lsearch_prev,
+            'on_cmd_lsearch_show': self._on_cmd_lsearch_show,
+            'on_cmd_lsearch_hide': self._on_cmd_lsearch_hide,
+            'on_cmd_lsearch_tg'  : self._on_cmd_lsearch_tg,
             'on_cmd_paste'       : self._on_cmd_paste,
             'on_cmd_preferences' : self._on_cmd_preferences,
             'on_cmd_redo'        : self._on_cmd_redo,
@@ -518,6 +523,7 @@ class SkedApp:
             'on_cmd_tomorrow'    : self._on_cmd_tomorrow,
             'on_cmd_undo'        : self._on_cmd_undo,
             'on_cmd_yesterday'   : self._on_cmd_yesterday,
+            'on_lsearch_keypress': self._on_lsearch_keypress,
             'on_window_state'    : self._on_window_state
         })
 
@@ -553,6 +559,9 @@ class SkedApp:
         self.mnAllWords = self.glade.get_widget("mnAllWordsSearch")
         self.mnExactPhrase = self.glade.get_widget("mnExactPhraseSearch")
 
+        self.bxLocalSearch = self.glade.get_widget("bxLocalSearch")
+        self.txLocalSearch = self.glade.get_widget("txLocalSearch")
+
         self.lsHistory = self.glade.get_widget("lsHistory")
         self.lsHistory.set_model(self.history_model)
         self.history_column = gtk.TreeViewColumn("Page Name")
@@ -580,7 +589,8 @@ class SkedApp:
         self.text_delete_sigid = self.txBuffer.connect("delete-range",
             self._on_text_delete)
     
-        self.clipboard = gtk.Clipboard()
+        display = gdk.display_manager_get().get_default_display()
+        self.clipboard = gtk.Clipboard(display, "CLIPBOARD")
         self.set_text_tags()
 
     def _on_cmd_about(self, widget = None, data = None):
@@ -644,7 +654,46 @@ class SkedApp:
         
     def _on_cmd_exit(self, widget = None, data = None):
         self.quit()
+        
+    def _on_cmd_lsearch_next(self, widget = None, data = None):
+        tx = self.txLocalSearch.get_text()
+        iiter = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
+        ret = iiter.forward_search(tx, 0)
+        if not ret:
+            siter, eiter = self.txBuffer.get_bounds()
+            ret = siter.forward_search(tx, 0)
+        if ret:
+            self.txBuffer.select_range(ret[1], ret[0])
+            self.txNote.scroll_to_iter(ret[0], 0.0)
 
+    def _on_cmd_lsearch_prev(self, widget = None, data = None):
+        tx = self.txLocalSearch.get_text()
+        iiter = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
+        ret = iiter.backward_search(tx, 0)
+        if not ret:
+            siter, eiter = self.txBuffer.get_bounds()
+            ret = eiter.backward_search(tx, 0)
+        if ret:
+            self.txBuffer.select_range(ret[0], ret[1])
+            self.txNote.scroll_to_iter(ret[0], 0.0)
+        
+    def _on_cmd_lsearch_show(self, widget = None, data = None):
+        self.bxLocalSearch.set_property("visible", True)
+        self.txLocalSearch.grab_focus()
+
+    def _on_cmd_lsearch_hide(self, widget = None, data = None):
+        self.bxLocalSearch.set_property("visible", False)
+        
+    def _on_cmd_lsearch_tg(self, widget = None, data = None):
+        pass
+        
+    def _on_lsearch_keypress(self, widget = None, event = None, data = None):
+        if widget == self.txLocalSearch and event.type == gdk.KEY_PRESS \
+        and event.keyval == gtk.keysyms.Escape:
+            self._on_cmd_lsearch_hide()
+        else:
+            self._on_cmd_lsearch_next()
+        
     def _on_cmd_ft_search(self, widget = None, data = None):
         ft_search = self.mnFullText.get_active()
         self.opt.set_bool("ft_search", ft_search)

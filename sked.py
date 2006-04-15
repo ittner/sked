@@ -691,8 +691,8 @@ class SkedApp:
         if widget == self.txLocalSearch and event.type == gdk.KEY_PRESS \
         and event.keyval == gtk.keysyms.Escape:
             self._on_cmd_lsearch_hide()
-        else:
-            self._on_cmd_lsearch_next()
+            return True
+        return False
         
     def _on_cmd_ft_search(self, widget = None, data = None):
         ft_search = self.mnFullText.get_active()

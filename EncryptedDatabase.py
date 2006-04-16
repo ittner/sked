@@ -24,7 +24,9 @@ Secure database for Sked entries.
 $Id$
 """
 
+import anydbm
 import zlib
+import struct
 from Crypto.Cipher import AES
 from Crypto.Hash import MD5     # Alias for md5.md5
 from Crypto.Util.randpool import RandomPool
@@ -69,6 +71,7 @@ class DatabaseManager:
 
     def __init__(self, fname):
         self._ready = False
+        self._rnd = RandomPool()
         self._db = anydbm.open(fname, 'c')
 
     def is_new(self):
@@ -80,27 +83,30 @@ class DatabaseManager:
     def try_password(self, pwd):
         if self.is_new():
             raise NotReadyError
-        key = self._hash(pwd)
+        key = self._hash(pwd.encode("utf-8"))
         encmass = self._db["mass"]
         masshash = self._db["hash"]
-        mass = self._decrypt(encmass, key)
+        mass = self._decrypt(encmass, masshash, key)
         if masshash == self._hash(mass):
             self._mass = mass
             self._key = key
-            self._dbsalt = self._decrypt(self._db["salt"])
+            saltvec = self._hash(masshash)
+            self._dbsalt = self._decrypt(self._db["salt"], saltvec)
             self._ready = True
             return True
         return False
 
     def set_password(self, pwd):
         if self.is_new():
-            self._key = self._hash(pwd)
+            self._key = self._hash(pwd.encode("utf-8"))
             self._dbsalt = self._rand_str(16)
             self._mass = self._rand_str(128)
+            masshash = self._hash(self._mass)
+            saltvec = self._hash(masshash)
             self._db["version"] = "1"
-            self._db["salt"] = self._encrypt(self._dbsalt)
-            self._db["mass"] = self._encrypt(self._mass)
-            self._db["hash"] = self._hash(self._mass)
+            self._db["salt"] = self._encrypt(self._dbsalt, saltvec)
+            self._db["mass"] = self._encrypt(self._mass, masshash)
+            self._db["hash"] = masshash
             self._ready = True
             self._db.sync()
         else:
@@ -118,10 +124,12 @@ class DatabaseManager:
         if not self._ready:
             raise NotReadyError
         rkey = self._make_db_key(key)
-        keyvalue = self._packstr(key) + self._packstr(value)
+        keyvalue = self._packstr(key.encode("utf-8")) + \
+            self._packstr(value.encode("utf-8"))
         compressed = self._packstr(self._compress(keyvalue))
-        plain = compressed + self._randstr(len(compressed) % 16)
-        encrypted = self._hash(plain) + self._encrypt(plain)
+        plain = compressed + self._rand_str(16 - len(compressed) % 16)
+        hash = self._hash(plain)
+        encrypted = hash + self._encrypt(plain, hash)
         self._db[rkey] = encrypted
 
     def get_key(self, key, default = None):
@@ -145,14 +153,14 @@ class DatabaseManager:
             return None
         encrypted = self._db[rkey]
         hash = encrypted[0:16]
-        plain = self._decrypt(encrypted[16:])
+        plain = self._decrypt(encrypted[16:], hash)
         if self._hash(plain) != hash:
             raise CorruptedDatabaseError  # or wrong password...
         compressed = self._unpackstr(plain)
         keyvalue = self._decompress(compressed)
         keyname = self._unpackstr(keyvalue)
-        value = self._unpackstr(keyvalue[4 + len(keyvalue):])
-        return [keyname, value]
+        value = self._unpackstr(keyvalue[4 + len(keyname):])
+        return [keyname.decode("utf-8"), value.decode("utf-8")]
 
     def _make_db_key(self, key):
         return "_" + self._hash(key.upper().encode("utf-8") + self._dbsalt)
@@ -168,15 +176,17 @@ class DatabaseManager:
     def _decompress(self, data):
         return zlib.decompress(data)
         
-    def _encrypt(self, data, key = None):
+    def _encrypt(self, data, vec, key = None):
         if key == None:
             key = self._key
-        pass
+        enc = AES.new(key, AES.MODE_CBC, vec)
+        return enc.encrypt(data)
         
-    def _decrypt(self, data, key = None):
+    def _decrypt(self, data, vec, key = None):
         if key == None:
             key = self._key
-        pass
+        enc = AES.new(key, AES.MODE_CBC, vec)
+        return enc.decrypt(data)
 
     def _packstr(self, data):
         # <32 bit little endian unsigned int><data>
@@ -187,6 +197,35 @@ class DatabaseManager:
         [len] = struct.unpack("<I", data[0:4])
         return data[4:len+4]
 
-    def _randstr(self, bytes = 16):
-        pass
+    def _rand_str(self, bytes = 16):
+        return self._rnd.get_bytes(bytes)
 
+
+def test():
+    pwd = u"test42"
+    db = DatabaseManager("test.db")
+    if db.is_new():
+        db.set_password(pwd)
+    else:
+        if not db.try_password(u"wrong"):
+            print("Wrong password (as expected)")
+        else:
+            print("Error! Wrong password expected!!")
+        if db.try_password(pwd):
+            print("Good password (as expected)")
+        else:
+            print("Error! Good password expected!!")
+    if not db.is_ready():
+        print("Database not ready (error)")
+        return
+    db.set_key(u"question", u"What's the ultimate answer for the Life, the "
+        "Universe and everything?")
+    db.set_key(u"answer", u"R. 42")
+    db.set_key(u"theysaid", u"Ni! " * 1024)
+    print(db.get_key("theysaid"))    
+    print(db.get_key("question"))
+    print(db.get_key("answer"))
+
+
+if __name__ == "__main__":
+    test()

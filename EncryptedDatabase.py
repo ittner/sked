@@ -20,7 +20,7 @@
 #
 
 """
-Secure database for Sked entries.
+Secure (but slow) database for Sked entries.
 $Id$
 """
 
@@ -133,13 +133,24 @@ class DatabaseManager:
         self._db[rkey] = encrypted
 
     def get_key(self, key, default = None):
+        ret = self.get_pair(key, None)
+        if ret == None:
+            return default
+        return ret[1]
+
+    def get_pair(self, key, default = None):
         if not self._ready:
             raise NotReadyError
         ret = self._get_pair(self._make_db_key(key))
         if ret == None:
             return default
-        return ret[1]
+        return ret
         
+    def del_key(self, key):
+        rkey = self._make_db_key(key)
+        if self._db.has_key(rkey):
+            del self._db[rkey]
+
     def iterate(self):
         if not self._ready:
             raise NotReadyError
@@ -201,6 +212,7 @@ class DatabaseManager:
         return self._rnd.get_bytes(bytes)
 
 
+# ---------------------------------------------------------------------------
 def test():
     pwd = u"test42"
     db = DatabaseManager("test.db")
@@ -218,14 +230,21 @@ def test():
     if not db.is_ready():
         print("Database not ready (error)")
         return
-    db.set_key(u"question", u"What's the ultimate answer for the Life, the "
-        "Universe and everything?")
+    db.set_key(u"question", u"What's the answer for ultimate question about "
+        "the Life, the Universe and everything?")
     db.set_key(u"answer", u"R. 42")
-    db.set_key(u"theysaid", u"Ni! " * 1024)
-    print(db.get_key("theysaid"))    
-    print(db.get_key("question"))
-    print(db.get_key("answer"))
-
+    if not db.has_key("theysaid"):
+        db.set_key(u"theysaid", u"Ni! " * 10240)
+    if db.has_key(u"theysaid"):
+        db.del_key(u"TheySaid")
+        print("Deleted.")
+    print(db.get_key(u"Question"))
+    print(db.get_pair(u"AnSwEr"))
+    for i in range(0, 100):
+        ist = str(i)
+        db.set_key(u"say" + ist, u"The Knight number " + ist + u" says 'Ni!'")
+    for key, value in db.iterate():
+        print("Iterating: ", key, value)
 
 if __name__ == "__main__":
     test()

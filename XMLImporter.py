@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # Sked - a wikish scheduler with Python, PyGTK and Berkeley DB
 # (c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>
 # 

@@ -29,6 +29,12 @@ from Crypto.Cipher import AES
 from Crypto.Hash import MD5     # Alias for md5.md5
 from Crypto.Util.randpool import RandomPool
 
+class CorruptedDatabaseError(Exception):
+    pass
+
+class NotReadyError(Exception):
+    pass
+
 
 class DatabaseManager:
     """ Standard secure database manager for Sked.
@@ -59,7 +65,6 @@ class DatabaseManager:
             while not db.try_password(pwd):
                 pwd = ask_pwd()
         # ready to use.
-    
     """
 
     def __init__(self, fname):
@@ -68,6 +73,9 @@ class DatabaseManager:
 
     def is_new(self):
         return not self._db.has_key("version")
+        
+    def is_ready(self):
+        return self._ready
 
     def try_password(self, pwd):
         if self.is_new():
@@ -139,7 +147,7 @@ class DatabaseManager:
         hash = encrypted[0:16]
         plain = self._decrypt(encrypted[16:])
         if self._hash(plain) != hash:
-            raise DatabaseCorruptionError  # or wrong password...
+            raise CorruptedDatabaseError  # or wrong password...
         compressed = self._unpackstr(plain)
         keyvalue = self._decompress(compressed)
         keyname = self._unpackstr(keyvalue)
@@ -181,5 +189,4 @@ class DatabaseManager:
 
     def _randstr(self, bytes = 16):
         pass
-        
-    
+

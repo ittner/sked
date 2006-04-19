@@ -215,36 +215,22 @@ class DatabaseManager:
 # ---------------------------------------------------------------------------
 def test():
     pwd = u"test42"
-    db = DatabaseManager("test.db")
+    db = DatabaseManager("to.db")
+    #idb = anydbm.open("from.db", "c")
     if db.is_new():
         db.set_password(pwd)
-    else:
-        if not db.try_password(u"wrong"):
-            print("Wrong password (as expected)")
-        else:
-            print("Error! Wrong password expected!!")
-        if db.try_password(pwd):
-            print("Good password (as expected)")
-        else:
-            print("Error! Good password expected!!")
+    elif not db.try_password(pwd):
+        print("Error! Good password expected!!")
+        return
     if not db.is_ready():
         print("Database not ready (error)")
         return
-    db.set_key(u"question", u"Q: What's the answer for the ultimate question"
-        " about the Life, the Universe and everything?")
-    db.set_key(u"answer", u"A: 42")
-    if not db.has_key("theysaid"):
-        db.set_key(u"theysaid", u"Ni! " * 10240)
-    if db.has_key(u"theysaid"):
-        db.del_key(u"TheySaid")
-        print("Deleted.")
-    print(db.get_key(u"Question"))
-    print(db.get_pair(u"AnSwEr"))
-    for i in range(0, 100):
-        ist = str(i)
-        db.set_key(u"say" + ist, u"The Knight number " + ist + u" says 'Ni!'")
-    for key, value in db.pairs():
-        print("Iterating: ", key, value)
+    #for k in idb:
+    #    db.set_key(unicode(k, "utf-8"), unicode(idb[k], "utf-8"))
+    for k, v in db.pairs():
+        print(k.encode("utf-8"))
+        print(v.encode("utf-8"))
+    
 
 if __name__ == "__main__":
     test()

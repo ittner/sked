@@ -102,6 +102,10 @@ class DatabaseManager:
         for k in self._db:
             yield k
 
+    def pairs(self):
+        for k in self._db:
+            yield k, self._db[k]
+
 
 # Option manager ---------------------------------------------------------
 

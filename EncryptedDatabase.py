@@ -230,9 +230,9 @@ def test():
     if not db.is_ready():
         print("Database not ready (error)")
         return
-    db.set_key(u"question", u"What's the answer for ultimate question about "
-        "the Life, the Universe and everything?")
-    db.set_key(u"answer", u"R. 42")
+    db.set_key(u"question", u"Q: What's the answer for the ultimate question"
+        " about the Life, the Universe and everything?")
+    db.set_key(u"answer", u"A: 42")
     if not db.has_key("theysaid"):
         db.set_key(u"theysaid", u"Ni! " * 10240)
     if db.has_key(u"theysaid"):

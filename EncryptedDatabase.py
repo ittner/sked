@@ -151,7 +151,7 @@ class DatabaseManager:
         if self._db.has_key(rkey):
             del self._db[rkey]
 
-    def iterate(self):
+    def pairs(self):
         if not self._ready:
             raise NotReadyError
         for rkey in self._db:
@@ -171,7 +171,7 @@ class DatabaseManager:
         keyvalue = self._decompress(compressed)
         keyname = self._unpackstr(keyvalue)
         value = self._unpackstr(keyvalue[4 + len(keyname):])
-        return [keyname.decode("utf-8"), value.decode("utf-8")]
+        return [unicode(keyname, "utf-8"), unicode(value, "utf-8")]
 
     def _make_db_key(self, key):
         return "_" + self._hash(key.upper().encode("utf-8") + self._dbsalt)
@@ -243,7 +243,7 @@ def test():
     for i in range(0, 100):
         ist = str(i)
         db.set_key(u"say" + ist, u"The Knight number " + ist + u" says 'Ni!'")
-    for key, value in db.iterate():
+    for key, value in db.pairs():
         print("Iterating: ", key, value)
 
 if __name__ == "__main__":

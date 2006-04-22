@@ -216,7 +216,7 @@ class DatabaseManager:
 def test():
     pwd = u"test42"
     db = DatabaseManager("to.db")
-    #idb = anydbm.open("from.db", "c")
+    idb = anydbm.open("from.db", "c")
     if db.is_new():
         db.set_password(pwd)
     elif not db.try_password(pwd):
@@ -225,8 +225,8 @@ def test():
     if not db.is_ready():
         print("Database not ready (error)")
         return
-    #for k in idb:
-    #    db.set_key(unicode(k, "utf-8"), unicode(idb[k], "utf-8"))
+    for k in idb:
+        db.set_key(unicode(k, "utf-8"), unicode(idb[k], "utf-8"))
     for k, v in db.pairs():
         print(k.encode("utf-8"))
         print(v.encode("utf-8"))

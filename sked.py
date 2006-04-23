@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# 
 # Sked - a wikish scheduler with Python, PyGTK and Berkeley DB
 # (c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>
 # 
@@ -193,7 +192,7 @@ class SkedApp(BaseDialog):
     }
 
     def __init__(self):
-        #try:
+        try:
             self.db = DatabaseManager(utils.get_home_dir() + SkedApp.DB_FILENAME)
             self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
             self.formatTimerID = None
@@ -208,13 +207,13 @@ class SkedApp(BaseDialog):
             self.history_model = gtk.ListStore(gobject.TYPE_STRING)
             self.gsearch_model = gtk.ListStore(gobject.TYPE_STRING)
             self.load_interface()
-        #except Exception:
-        #    alert = gtk.MessageDialog(None,
-        #        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-        #        gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-        #       "An initialization error has occurred. Namárië.")
-        #    alert.run()
-        #    self.quit()
+        except Exception:
+            alert = gtk.MessageDialog(None,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+               "An initialization error has occurred. Namárië.")
+            alert.run()
+            self.quit()
     
     def start(self):
         self.curpage = None

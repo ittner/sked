@@ -1,24 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# 
+# Sked - a wikish scheduler with Python, PyGTK and Berkeley DB
+# (c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+# MA 02111-1307, USA.
+
 """
-Sked - a wikish scheduler with Python, PyGTK and Berkeley DB
-(c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-MA 02111-1307, USA.
+Main application module.
 """
 
 __CVSID__ = "$Id$"
@@ -31,7 +34,6 @@ from gtk import gdk
 import gobject
 import pango
 
-
 import anydbm           # Berkeley DB abstraction layer.
 import os               # Operating system stuff
 import re               # Regular expressions
@@ -39,34 +41,8 @@ import webbrowser       # System web browser
 import datetime         # Date validation
 
 
-# Generic functions ------------------------------------------------------
-
-def get_home_dir():
-    return os.path.expanduser('~')
-
-def find_glade_xml(xmlfile):
-    return search_share_path(xmlfile + ".glade")
-    
-def search_share_path(fname):
-    prefixes = ['', 'usr/share/sked/', 'usr/local/share/sked/']
-    for prefix in prefixes:
-        if os.path.exists(prefix + fname):
-            return prefix + fname;
-    for prefix in prefixes:
-        if os.path.exists('/' + prefix + fname):
-            return '/' + prefix + fname;
-    return None
-
-def open_browser(url):
-    try:
-        webbrowser.open(url)
-    except:
-        msgbox = gtk.MessageDialog(None, 
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            gtk.MESSAGE_INFO, gtk.BUTTONS_OK,
-            "Failed to start the default browser.")
-        msgbox.run()
-        msgbox.destroy()
+import utils
+from interface import *
 
 
 # Database abstraction ---------------------------------------------------
@@ -171,162 +147,11 @@ class OptionManager:
         else:
             return None
 
-# About box --------------------------------------------------------------
-
-class AboutDialog:
-    _dlg = None
-
-    def __init__(self, parent):
-        self.parent = parent
-        self._load_interface()
-        
-    def show(self):
-        if AboutDialog._dlg != None:
-            AboutDialog._dlg.present()
-        else:
-            AboutDialog._dlg = self.dlg
-            self.dlg.set_modal(True)
-            self.dlg.show()
-
-    def _load_interface(self):
-        self.gladeFile = find_glade_xml("sked")
-        self.glade = gtk.glade.XML(self.gladeFile, "dlgAbout")
-        self.dlg = self.glade.get_widget("dlgAbout")
-
-
-
-# Preferences window -----------------------------------------------------
-
-class PreferencesDialog:
-    _dlg = None
-
-    def __init__(self, parent):
-        self.parent = parent
-        self.opt = parent.opt
-        self._load_interface()
-        self._set_widget_values()
-        
-    def show(self):
-        if PreferencesDialog._dlg != None:
-            PreferencesDialog._dlg.present()
-        else:
-            PreferencesDialog._dlg = self.dlg
-            self.dlg.show()
-
-    def _load_interface(self):
-        self.gladeFile = find_glade_xml("sked")
-
-        # Boring code ahead... Is there a better way to do it?
-        self.glade = gtk.glade.XML(self.gladeFile, "dlgPreferences")
-        self.dlg = self.glade.get_widget("dlgPreferences")
-        self.spFormatTime = self.glade.get_widget("spFormatTime")
-        self.spSaveTime = self.glade.get_widget("spSaveTime")
-        self.spUndoLevels = self.glade.get_widget("spUndoLevels")
-        self.spHistorySize = self.glade.get_widget("spHistorySize")
-        self.cbShowEdit = self.glade.get_widget("cbShowEdit")
-        self.cbShowCalendar = self.glade.get_widget("cbShowCalendar")
-        self.cbShowHistory = self.glade.get_widget("cbShowHistory")
-        self.cbShowGlobalSearch = self.glade.get_widget("cbShowGlobalSearch")
-        self.clbStandard = self.glade.get_widget("clbStandard")
-        self.clbHeader1 = self.glade.get_widget("clbHeader1")
-        self.clbHeader2 = self.glade.get_widget("clbHeader2")
-        self.clbHeader3 = self.glade.get_widget("clbHeader3")
-        self.clbCode = self.glade.get_widget("clbCode")
-        self.clbLink = self.glade.get_widget("clbLink")
-        self.clbNewLink = self.glade.get_widget("clbNewLink")
-        self.clbFormat = self.glade.get_widget("clbFormat")
-        self.clbURL = self.glade.get_widget("clbURL")
-        self.fbStandard = self.glade.get_widget("fbStandard")
-        self.fbHeader1 = self.glade.get_widget("fbHeader1")
-        self.fbHeader2 = self.glade.get_widget("fbHeader2")
-        self.fbHeader3 = self.glade.get_widget("fbHeader3")
-        self.fbCode = self.glade.get_widget("fbCode")
-        self.fbLink = self.glade.get_widget("fbLink")
-        self.fbNewLink = self.glade.get_widget("fbNewLink")
-        self.fbFormat = self.glade.get_widget("fbFormat")
-        self.fbURL = self.glade.get_widget("fbURL")
-
-        self.glade.signal_autoconnect({
-            'on_cmd_ok'     : self._on_cmd_ok,
-            'on_cmd_cancel' : self._on_cmd_cancel
-        })
-        
-    def _on_cmd_ok(self, widget = None, data = None):
-        self._save_widget_values()
-        self.dlg.destroy()
-        PreferencesDialog._dlg = None
-        self.parent.update_options()
-        
-    def _on_cmd_cancel(self, widget = None, data = None):
-        self.dlg.destroy()
-        PreferencesDialog._dlg = None
-        return False
-
-    def _set_widget_values(self):
-        self.spFormatTime.set_value(self.opt.get_int("format_time"))
-        self.spSaveTime.set_value(self.opt.get_int("save_time"))
-        self.spUndoLevels.set_value(self.opt.get_int("undo_levels"))
-        self.spHistorySize.set_value(self.opt.get_int("max_history"))
-        self.cbShowEdit.set_active(self.opt.get_bool("show_edit_buttons"))
-        self.cbShowCalendar.set_active(self.opt.get_bool("show_calendar"))
-        self.cbShowHistory.set_active(self.opt.get_bool("show_history"))
-        self.cbShowGlobalSearch.set_active(self.opt.get_bool("show_gsearch"))
-
-        self.clbStandard.set_color(self.opt.get_color("std_color"))
-        self.clbHeader1.set_color(self.opt.get_color("header1_color"))
-        self.clbHeader2.set_color(self.opt.get_color("header2_color"))
-        self.clbHeader3.set_color(self.opt.get_color("header3_color"))
-        self.clbCode.set_color(self.opt.get_color("code_color"))
-        self.clbLink.set_color(self.opt.get_color("link_color"))
-        self.clbNewLink.set_color(self.opt.get_color("new_link_color"))
-        self.clbFormat.set_color(self.opt.get_color("format_color"))
-        self.clbURL.set_color(self.opt.get_color("url_link_color"))
-
-        self.fbStandard.set_font_name(self.opt.get_str("std_font"))
-        self.fbHeader1.set_font_name(self.opt.get_str("header1_font"))
-        self.fbHeader2.set_font_name(self.opt.get_str("header2_font"))
-        self.fbHeader3.set_font_name(self.opt.get_str("header3_font"))
-        self.fbCode.set_font_name(self.opt.get_str("code_font"))
-        self.fbLink.set_font_name(self.opt.get_str("link_font"))
-        self.fbNewLink.set_font_name(self.opt.get_str("new_link_font"))
-        self.fbFormat.set_font_name(self.opt.get_str("format_font"))
-        self.fbURL.set_font_name(self.opt.get_str("url_link_font"))
-        
-    def _save_widget_values(self):
-        self.opt.set_int("format_time", self.spFormatTime.get_value_as_int())
-        self.opt.set_int("save_time", self.spSaveTime.get_value_as_int())
-        self.opt.set_int("undo_levels", self.spUndoLevels.get_value_as_int())
-        self.opt.set_int("max_history", self.spHistorySize.get_value_as_int())
-        self.opt.set_bool("show_edit_buttons", self.cbShowEdit.get_active())
-        self.opt.set_bool("show_calendar", self.cbShowCalendar.get_active())
-        self.opt.set_bool("show_history", self.cbShowHistory.get_active())
-        self.opt.set_bool("show_gsearch", self.cbShowGlobalSearch.get_active())
-
-        self.opt.set_color("std_color", self.clbStandard.get_color())
-        self.opt.set_color("header1_color", self.clbHeader1.get_color())
-        self.opt.set_color("header2_color", self.clbHeader2.get_color())
-        self.opt.set_color("header3_color", self.clbHeader3.get_color())
-        self.opt.set_color("code_color", self.clbCode.get_color())
-        self.opt.set_color("link_color", self.clbLink.get_color())
-        self.opt.set_color("new_link_color", self.clbNewLink.get_color())
-        self.opt.set_color("format_color", self.clbFormat.get_color())
-        self.opt.set_color("url_link_color", self.clbURL.get_color())
-
-        self.opt.set_str("std_font", self.fbStandard.get_font_name())
-        self.opt.set_str("header1_font", self.fbHeader1.get_font_name())
-        self.opt.set_str("header2_font", self.fbHeader2.get_font_name())
-        self.opt.set_str("header3_font", self.fbHeader3.get_font_name())
-        self.opt.set_str("code_font", self.fbCode.get_font_name())
-        self.opt.set_str("link_font", self.fbLink.get_font_name())
-        self.opt.set_str("new_link_font", self.fbNewLink.get_font_name())
-        self.opt.set_str("format_font", self.fbFormat.get_font_name())
-        self.opt.set_str("url_link_font", self.fbURL.get_font_name())
-
 
 
 # Main application class -------------------------------------------------
 
-class SkedApp:
+class SkedApp(BaseDialog):
     DB_FILENAME = "/.sked.db"
     ANY_WORD = 1    # Search modes
     ALL_WORDS = 2
@@ -368,8 +193,8 @@ class SkedApp:
     }
 
     def __init__(self):
-        try:
-            self.db = DatabaseManager(get_home_dir() + SkedApp.DB_FILENAME)
+        #try:
+            self.db = DatabaseManager(utils.get_home_dir() + SkedApp.DB_FILENAME)
             self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
             self.formatTimerID = None
             self.saveTimerID = None
@@ -383,13 +208,13 @@ class SkedApp:
             self.history_model = gtk.ListStore(gobject.TYPE_STRING)
             self.gsearch_model = gtk.ListStore(gobject.TYPE_STRING)
             self.load_interface()
-        except Exception:
-            alert = gtk.MessageDialog(None,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-               "An initialization error has occurred. Namárië.")
-            alert.run()
-            self.quit()
+        #except Exception:
+        #    alert = gtk.MessageDialog(None,
+        #        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+        #        gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+        #       "An initialization error has occurred. Namárië.")
+        #    alert.run()
+        #    self.quit()
     
     def start(self):
         self.curpage = None
@@ -484,8 +309,7 @@ class SkedApp:
         gtk.main_quit()
 
     def load_interface(self):
-        self.gladeFile = find_glade_xml("sked")
-        self.glade = gtk.glade.XML(self.gladeFile)
+        self.glade_init()
         self.glade.signal_autoconnect({
             'on_cmd_about'       : self._on_cmd_about,
             'on_cmd_back'        : self._on_cmd_back,
@@ -898,7 +722,7 @@ class SkedApp:
             link = link.decode("utf-8")
             if isinstance(tag, gtk.TextTag) \
             and tag.get_property("name") == "url":
-                open_browser(link)
+                utils.open_browser(link)
             else:
                 self.change_page_link(link)
             return True

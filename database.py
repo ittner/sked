@@ -20,10 +20,11 @@
 #
 
 """
-Plain database for Sked.
+Databases used by Sked.
 $Id$
 """
 
+import os
 import anydbm
 import zlib
 import struct
@@ -32,6 +33,9 @@ from Crypto.Hash import MD5     # Alias for md5.md5
 from Crypto.Util.randpool import RandomPool
 
 
+class AccessDeniedError(Exception):
+    pass
+
 class CorruptedDatabaseError(Exception):
     pass
 
@@ -39,19 +43,82 @@ class NotReadyError(Exception):
     pass
 
 
-class FileSystemDatabase(
-    """Bare-bones filesystem database implementation."""
+class FileSystemDatabase(object):
+    """Bare-bones, slow, portable, DBM-like, filesystem database.
+    Keys are stored as files. No name validation is done here. This class
+    is only intended to serve higher level classes.
+    """
+
+    VERSION = "1"
+    SUFFIX = ".entry"
+    VERFILE = "version"
     
     def __init__(self, path):
+        self.path = os.path.normpath(path)
+        verfile = os.path.join(self.path, FileSystemDatabase.VERFILE)
+        if os.path.exists(self.path):
+            if not os.path.exists(verfile):
+                raise CorruptedDatabaseError
+            # Add version checking.
+        else:
+            try:
+                os.makedirs(self.path)
+                fp = open(verfile, "w")
+                fp.write(FileSystemDatabase.VERSION)
+                fp.close()
+            except OSError:
+                raise AccessDeniedError
+        if not os.access(self.path, os.R_OK | os.W_OK | os.X_OK):
+            raise AccessDeniedError
+
+    def keys(self):
+        slen = len(FileSystemDatabase.SUFFIX)
+        for entry in os.listdir(self.path):
+            if entry.endswith(FileSystemDatabase.SUFFIX):
+                yield unicode(entry[:-slen])
+
+    def has_key(self, key):
+        path = os.path.join(self.path, key + FileSystemDatabase.SUFFIX)
+        return os.access(self.path, os.F_OK)
+    
+    def get_key(self, key, default = None):
+        path = os.path.join(self.path, key + FileSystemDatabase.SUFFIX)
+        try:
+            fp = open(path, "rb")
+        except IOError:
+            return default
+        data = fp.read()
+        fp.close()
+        return data
+    
+    def set_key(self, key, value):
+        tpath = os.path.join(self.path, key + ".tmp")
+        path = os.path.join(self.path, key + FileSystemDatabase.SUFFIX)
+        try:
+            fp = open(tpath, "wb")
+        except IOError:
+            raise AccessDeniedError
+        fp.write(value)
+        fp.close()
+        # File renaming is atomic on most OSes.
+        try:
+            os.rename(tpath, path)
+        except IOError:
+            raise AccessDeniedError
+
+    def del_key(self, key):
+        path = os.path.join(self.path, key + FileSystemDatabase.SUFFIX)
+        try:
+            if os.access(path, os.F_OK):
+                os.remove(path)
+        except OSError:
+            raise AccessDeniedError
+    
         
 
 
 
-
-
-
-
-class DatabaseManager:
+class EncryptedDatabase:
     """ Standard secure database manager for Sked.
     Features:
         - Database keys and values must be Unicode;
@@ -227,23 +294,14 @@ class DatabaseManager:
 
 # ---------------------------------------------------------------------------
 def test():
-    pwd = u"test42"
-    db = DatabaseManager("to.db")
-    idb = anydbm.open("from.db", "c")
-    if db.is_new():
-        db.set_password(pwd)
-    elif not db.try_password(pwd):
-        print("Error! Good password expected!!")
-        return
-    if not db.is_ready():
-        print("Database not ready (error)")
-        return
-    for k in idb:
-        db.set_key(unicode(k, "utf-8"), unicode(idb[k], "utf-8"))
-    for k, v in db.pairs():
-        print(k.encode("utf-8"))
-        print(v.encode("utf-8"))
-    
+    db = FileSystemDatabase("testdb")
+    db.set_key("test", "42")
+    print(db.get_key("test", "not found"))
+    #db.del_key("test")
+    for i in range(1, 42):
+        db.set_key("test" + str(i), "test")
+    for k in db.keys():
+        print(k)
 
 if __name__ == "__main__":
     test()

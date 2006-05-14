@@ -79,7 +79,7 @@ class FileSystemDatabase(object):
 
     def has_key(self, key):
         path = os.path.join(self.path, key + FileSystemDatabase.SUFFIX)
-        return os.access(self.path, os.F_OK)
+        return os.access(path, os.F_OK)
     
     def get_key(self, key, default = None):
         path = os.path.join(self.path, key + FileSystemDatabase.SUFFIX)
@@ -114,8 +114,6 @@ class FileSystemDatabase(object):
         except OSError:
             raise AccessDeniedError
     
-        
-
 
 
 class EncryptedDatabase:
@@ -139,7 +137,7 @@ class EncryptedDatabase:
         Note: Lengths are 32 bit little-endian unsigned ints.
     
     Usage:
-        db = DatabaseManager("fname")
+        db = EncryptedDatabase("fname")
         if db.is_new():
             db.set_password(ask_pwd())
         else:
@@ -149,13 +147,13 @@ class EncryptedDatabase:
         # ready to use.
     """
 
-    def __init__(self, fname):
+    def __init__(self, path):
         self._ready = False
         self._rnd = RandomPool()
-        self._db = anydbm.open(fname, 'c')
+        self._db = FileSystemDatabase(path)
 
     def is_new(self):
-        return not self._db.has_key("version")
+        return not self._db.has_key("_version")
         
     def is_ready(self):
         return self._ready
@@ -164,14 +162,14 @@ class EncryptedDatabase:
         if self.is_new():
             raise NotReadyError
         key = self._hash(pwd.encode("utf-8"))
-        encmass = self._db["mass"]
-        masshash = self._db["hash"]
+        encmass = self._db.get_key("_mass")
+        masshash = self._db.get_key("_hash")
         mass = self._decrypt(encmass, masshash, key)
         if masshash == self._hash(mass):
             self._mass = mass
             self._key = key
             saltvec = self._hash(masshash)
-            self._dbsalt = self._decrypt(self._db["salt"], saltvec)
+            self._dbsalt = self._decrypt(self._db.get_key("_salt"), saltvec)
             self._ready = True
             return True
         return False
@@ -183,12 +181,11 @@ class EncryptedDatabase:
             self._mass = self._rand_str(128)
             masshash = self._hash(self._mass)
             saltvec = self._hash(masshash)
-            self._db["version"] = "1"
-            self._db["salt"] = self._encrypt(self._dbsalt, saltvec)
-            self._db["mass"] = self._encrypt(self._mass, masshash)
-            self._db["hash"] = masshash
+            self._db.set_key("_version", "1")
+            self._db.set_key("_salt", self._encrypt(self._dbsalt, saltvec))
+            self._db.set_key("_mass", self._encrypt(self._mass, masshash))
+            self._db.set_key("_hash", masshash)
             self._ready = True
-            self._db.sync()
         else:
             if not self._ready:
                 raise NotReadyError
@@ -210,7 +207,7 @@ class EncryptedDatabase:
         plain = compressed + self._rand_str(16 - len(compressed) % 16)
         hash = self._hash(plain)
         encrypted = hash + self._encrypt(plain, hash)
-        self._db[rkey] = encrypted
+        self._db.set_key(rkey, encrypted)
 
     def get_key(self, key, default = None):
         ret = self.get_pair(key, None)
@@ -229,20 +226,20 @@ class EncryptedDatabase:
     def del_key(self, key):
         rkey = self._make_db_key(key)
         if self._db.has_key(rkey):
-            del self._db[rkey]
+            self._db.del_key(rkey)
 
     def pairs(self):
         if not self._ready:
             raise NotReadyError
-        for rkey in self._db:
-            if rkey.startswith("_"):
+        for rkey in self._db.keys():
+            if not rkey.startswith("_"):
                 pair = self._get_pair(rkey)
                 yield pair[0], pair[1]
 
     def _get_pair(self, rkey):
         if not self._db.has_key(rkey):
             return None
-        encrypted = self._db[rkey]
+        encrypted = self._db.get_key(rkey)
         hash = encrypted[0:16]
         plain = self._decrypt(encrypted[16:], hash)
         if self._hash(plain) != hash:
@@ -254,7 +251,9 @@ class EncryptedDatabase:
         return [unicode(keyname, "utf-8"), unicode(value, "utf-8")]
 
     def _make_db_key(self, key):
-        return "_" + self._hash(key.upper().encode("utf-8") + self._dbsalt)
+        hs = MD5.new()
+        hs.update(key.upper().encode("utf-8") + self._dbsalt)
+        return hs.hexdigest()
     
     def _hash(self, data):
         hs = MD5.new()
@@ -293,7 +292,7 @@ class EncryptedDatabase:
 
 
 # ---------------------------------------------------------------------------
-def test():
+def testfs():
     db = FileSystemDatabase("testdb")
     db.set_key("test", "42")
     print(db.get_key("test", "not found"))
@@ -303,5 +302,25 @@ def test():
     for k in db.keys():
         print(k)
 
+
+def testenc():
+    pwd = u"test42"
+    db = EncryptedDatabase("testdb")
+    idb = anydbm.open("from.db", "c")
+    if db.is_new():
+        db.set_password(pwd)
+    elif not db.try_password(pwd):
+        print("Error! Good password expected!!")
+        return
+    if not db.is_ready():
+        print("Database not ready (error)")
+        return
+    for k in idb:
+        db.set_key(unicode(k, "utf-8"), unicode(idb[k], "utf-8"))
+    for k, v in db.pairs():
+        print(k.encode("utf-8"))
+        print(v.encode("utf-8"))
+
+
 if __name__ == "__main__":
-    test()
+    testenc()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Sked - a wikish scheduler with Python, PyGTK and Berkeley DB
+# Sked - a wikish scheduler with Python and PyGTK
 # (c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -25,7 +25,6 @@ $Id$
 """
 
 import os
-import anydbm
 import zlib
 import struct
 from Crypto.Cipher import AES
@@ -116,7 +115,7 @@ class FileSystemDatabase(object):
     
 
 
-class EncryptedDatabase:
+class EncryptedDatabase(object):
     """ Standard secure database manager for Sked.
     Features:
         - Database keys and values must be Unicode;
@@ -132,12 +131,12 @@ class EncryptedDatabase:
         plain = len(compressed) + compressed + padding_string
         encrypted = hash(plain) + encrypt(plain, key)
         index = md5(name + dbsalt)
-        db[index] = cipher_data
+        db.set_key(index, encrypted)
 
         Note: Lengths are 32 bit little-endian unsigned ints.
     
     Usage:
-        db = EncryptedDatabase("fname")
+        db = EncryptedDatabase("path/to/db")
         if db.is_new():
             db.set_password(ask_pwd())
         else:
@@ -162,8 +161,8 @@ class EncryptedDatabase:
         if self.is_new():
             raise NotReadyError
         key = self._hash(pwd.encode("utf-8"))
-        encmass = self._db.get_key("_mass")
-        masshash = self._db.get_key("_hash")
+        encmass = self._db.get_key("_mass", 16 * "0")
+        masshash = self._db.get_key("_hash", 16 * "0")
         mass = self._decrypt(encmass, masshash, key)
         if masshash == self._hash(mass):
             self._mass = mass
@@ -251,10 +250,13 @@ class EncryptedDatabase:
         return [unicode(keyname, "utf-8"), unicode(value, "utf-8")]
 
     def _make_db_key(self, key):
+        return self._hexhash(key.upper().encode("utf-8") + self._dbsalt)
+
+    def _hexhash(self, data):
         hs = MD5.new()
-        hs.update(key.upper().encode("utf-8") + self._dbsalt)
+        hs.update(data)
         return hs.hexdigest()
-    
+
     def _hash(self, data):
         hs = MD5.new()
         hs.update(data)
@@ -303,6 +305,7 @@ def testfs():
         print(k)
 
 
+import anydbm
 def testenc():
     pwd = u"test42"
     db = EncryptedDatabase("testdb")

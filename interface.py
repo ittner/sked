@@ -190,7 +190,7 @@ class PreferencesDialog(BaseDialog):
         self.opt.set_str("url_link_font", self.fbURL.get_font_name())
 
 
-class _BasePasswordDialog(BaseDialog):
+class BasePasswordDialog(BaseDialog):
     """ Commom base for password-related dialog boxes. """
 
     def _load_interface(self):
@@ -229,7 +229,7 @@ class _BasePasswordDialog(BaseDialog):
 
 
 
-class PasswordDialog(_BasePasswordDialog):
+class PasswordDialog(BasePasswordDialog):
     """ Dialog to ask a password to the user. """
     
     def __init__(self, parent = None):
@@ -238,7 +238,7 @@ class PasswordDialog(_BasePasswordDialog):
         self.password = ""
     
     def _load_interface(self):
-        _BasePasswordDialog._load_interface(self)
+        BasePasswordDialog._load_interface(self)
         
         self.set_text("Enter the password")
         self.lbPassword.set_property("visible", True)
@@ -261,7 +261,7 @@ class PasswordDialog(_BasePasswordDialog):
 
 
 
-class NewPasswordDialog(_BasePasswordDialog):
+class NewPasswordDialog(BasePasswordDialog):
     
     def __init__(self, parent = None):
         self.parent = parent
@@ -269,7 +269,7 @@ class NewPasswordDialog(_BasePasswordDialog):
         self.password = ""
     
     def _load_interface(self):
-        _BasePasswordDialog._load_interface(self)
+        BasePasswordDialog._load_interface(self)
         
         self.set_text("Enter a password")
         self.lbPassword.set_property("visible", False)
@@ -306,6 +306,6 @@ class NewPasswordDialog(_BasePasswordDialog):
         # Update password quality meter
 
 
-class ChangePasswordDialog(_BasePasswordDialog):
+class ChangePasswordDialog(BasePasswordDialog):
     pass
 

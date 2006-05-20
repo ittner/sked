@@ -31,7 +31,7 @@ from gtk import glade
 from gtk import gdk
 import gobject
 import pango
-
+import re
 
 import utils
 
@@ -205,9 +205,13 @@ class BasePasswordDialog(BaseDialog):
         self.txNewPassword = self.glade.get_widget("txNewPassword")
         self.txConfirmPassword = self.glade.get_widget("txConfirmPassword")
         self.pgPasswordQuality = self.glade.get_widget("pgPasswordQuality")
+        self.txPassword.set_visibility(False)
+        self.txNewPassword.set_visibility(False)
+        self.txConfirmPassword.set_visibility(False)
         self.glade.signal_autoconnect({
             'on_cmd_ok'     : self._on_cmd_ok,
-            'on_cmd_cancel' : self._on_cmd_cancel
+            'on_cmd_cancel' : self._on_cmd_cancel,
+            'on_pwd_change' : self._update_meter
         })
 
     def show(self):
@@ -218,6 +222,9 @@ class BasePasswordDialog(BaseDialog):
         
     def set_text(self, text):
         self.lbGeneral.set_text(text)
+    
+    def set_title(self, title):
+        self.dlg.set_title(title)
         
     def _on_cmd_ok(self, widget = None, data = None):
         """ To be implemented in the extending class. """
@@ -227,6 +234,45 @@ class BasePasswordDialog(BaseDialog):
         """ To be implemented in the extending class. """
         pass
 
+    def _update_meter(self, widget = None, data = None):
+        # The quality meter reaches the maximum for passwords mixing letters,
+        # numbers and special symbols with, at least, 8 chars.
+        qfact = 0.0
+        qtext = "Bad"
+        pwd = self.txNewPassword.get_text().encode("utf-8")
+        plen = len(pwd)
+        if plen > 0:
+            singlecase = pwd.upper() == pwd or pwd.lower() == pwd
+            if re.search("^[0-9]+$", pwd):
+                # Only numbers. The worst.
+                qfact = 15.0
+            elif re.search("^[a-z0-9]+$", pwd, re.IGNORECASE):
+                # Only letters.
+                if singlecase:
+                    qfact = 30.0
+                else:
+                    qfact = 45.0
+            elif re.search("^[a-z0-9]+$", pwd, re.IGNORECASE):
+                # Numbers and letters. Just bad.
+                if singlecase:
+                    qfact = 45.0
+                else:
+                    qfact = 70.0
+            else:
+                # Numbers, letters and others. Good.
+                if singlecase:
+                    qfact = 80.0
+                else:
+                    qfact = 100.0
+            qfact = qfact * min(8.0, plen) / 8.0
+        if qfact < 50:
+            qtext = "Bad"
+        elif qfact < 75:
+            qtext = "Medium"
+        else:
+            qtext = "Good"
+        self.pgPasswordQuality.set_text(qtext)
+        self.pgPasswordQuality.set_fraction(qfact/100.0)
 
 
 class PasswordDialog(BasePasswordDialog):
@@ -235,7 +281,7 @@ class PasswordDialog(BasePasswordDialog):
     def __init__(self, parent = None):
         self.parent = parent
         self._load_interface()
-        self.password = ""
+        self.password = None
     
     def _load_interface(self):
         BasePasswordDialog._load_interface(self)
@@ -266,7 +312,7 @@ class NewPasswordDialog(BasePasswordDialog):
     def __init__(self, parent = None):
         self.parent = parent
         self._load_interface()
-        self.password = ""
+        self.password = None
     
     def _load_interface(self):
         BasePasswordDialog._load_interface(self)
@@ -300,12 +346,17 @@ class NewPasswordDialog(BasePasswordDialog):
         self.dlg.destroy()
         return False
 
-    def _on_pwd_change(self, widget = None, data = None):
-        new = self.txNewPassword.get_text()
-        conf = self.txConfirmPassword.get_text()
-        # Update password quality meter
-
 
 class ChangePasswordDialog(BasePasswordDialog):
     pass
 
+
+
+
+if __name__ == "__main__":
+    dlg = NewPasswordDialog()
+    dlg.set_text("Enter a password for the new database")
+    dlg.set_title("Password required")
+    dlg.show()
+    gtk.main()
+    

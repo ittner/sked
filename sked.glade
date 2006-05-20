@@ -3122,6 +3122,7 @@ Public License instead of this License.
 	      <property name="has_frame">True</property>
 	      <property name="invisible_char">*</property>
 	      <property name="activates_default">False</property>
+	      <signal name="changed" handler="on_pwd_change" last_modification_time="Sat, 20 May 2006 19:48:29 GMT"/>
 	    </widget>
 	    <packing>
 	      <property name="left_attach">2</property>

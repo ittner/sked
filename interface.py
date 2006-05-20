@@ -210,16 +210,12 @@ class BasePasswordDialog(BaseDialog):
         self.txConfirmPassword.set_visibility(False)
         self.glade.signal_autoconnect({
             'on_cmd_ok'     : self._on_cmd_ok,
-            'on_cmd_cancel' : self._on_cmd_cancel,
-            'on_pwd_change' : self._update_meter
+            'on_cmd_cancel' : self._on_cmd_cancel
         })
 
     def show(self):
         self.dlg.show()
         
-    def get_password(self):
-        return self.password
-
     def set_text(self, text):
         self.lbGeneral.set_text(text)
     
@@ -233,6 +229,84 @@ class BasePasswordDialog(BaseDialog):
     def _on_cmd_cancel(self, widget = None, data = None):
         """ To be implemented in the extending class. """
         pass
+
+
+
+class PasswordDialog(BasePasswordDialog):
+    """ Dialog to ask a password to the user. """
+    
+    def __init__(self, parent = None):
+        self.parent = parent
+        self._load_interface()
+        self.password = None
+
+    def get_password(self):
+        return self.password
+    
+    def _load_interface(self):
+        BasePasswordDialog._load_interface(self)
+        self.set_text("Enter the password")
+        self.lbPassword.set_property("visible", True)
+        self.lbNewPassword.set_property("visible", False)
+        self.lbConfirmPassword.set_property("visible", False)
+        self.lbPasswordQuality.set_property("visible", False)
+        self.txPassword.set_property("visible", True)
+        self.txNewPassword.set_property("visible", False)
+        self.txConfirmPassword.set_property("visible", False)
+        self.pgPasswordQuality.set_property("visible", False)
+
+    def _on_cmd_ok(self, widget = None, data = None):
+        self.password = self.txPassword.get_text().encode("utf-8")
+        self.dlg.destroy()
+        
+    def _on_cmd_cancel(self, widget = None, data = None):
+        self.password = False
+        self.dlg.destroy()
+        return False
+
+
+class BasePasswordChangeDialog(BasePasswordDialog):
+    """ Common base for NewPasswordDialog and ChangePasswordDialog. """
+    
+    def __init__(self, parent = None):
+        self.parent = parent
+        self._load_interface()
+        self.newpassword = None
+
+    def get_new_password(self):
+        return self.newpassword
+    
+    def _load_interface(self):
+        BasePasswordDialog._load_interface(self)
+        self.set_text("Enter a password")
+        self.lbNewPassword.set_property("visible", True)
+        self.lbConfirmPassword.set_property("visible", True)
+        self.lbPasswordQuality.set_property("visible", True)
+        self.txNewPassword.set_property("visible", True)
+        self.txConfirmPassword.set_property("visible", True)
+        self.pgPasswordQuality.set_property("visible", True)
+        self.glade.signal_autoconnect({
+            'on_pwd_change' : self._update_meter
+        })
+
+    def _on_cmd_ok(self, widget = None, data = None):
+        new = self.txNewPassword.get_text().encode("utf-8")
+        conf = self.txConfirmPassword.get_text().encode("utf-8")
+        if new == conf:
+            self.newpassword = new
+            self.dlg.destroy()
+        else:
+            alert = gtk.MessageDialog(self.dlg,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                "The passwords does not match.")
+            alert.run()
+            alert.destroy()
+
+    def _on_cmd_cancel(self, widget = None, data = None):
+        self.newpassword = None
+        self.dlg.destroy()
+        return False
 
     def _update_meter(self, widget = None, data = None):
         # The quality meter reaches the maximum for passwords mixing letters,
@@ -275,130 +349,31 @@ class BasePasswordDialog(BaseDialog):
         self.pgPasswordQuality.set_fraction(qfact/100.0)
 
 
-class PasswordDialog(BasePasswordDialog):
-    """ Dialog to ask a password to the user. """
-    
-    def __init__(self, parent = None):
-        self.parent = parent
-        self._load_interface()
-        self.password = None
+class NewPasswordDialog(BasePasswordChangeDialog):
     
     def _load_interface(self):
-        BasePasswordDialog._load_interface(self)
-        
-        self.set_text("Enter the password")
-        self.lbPassword.set_property("visible", True)
-        self.lbNewPassword.set_property("visible", False)
-        self.lbConfirmPassword.set_property("visible", False)
-        self.lbPasswordQuality.set_property("visible", False)
-        self.txPassword.set_property("visible", True)
-        self.txNewPassword.set_property("visible", False)
-        self.txConfirmPassword.set_property("visible", False)
-        self.pgPasswordQuality.set_property("visible", False)
-
-    def _on_cmd_ok(self, widget = None, data = None):
-        self.password = self.txPassword.get_text().encode("utf-8")
-        self.dlg.destroy()
-        
-    def _on_cmd_cancel(self, widget = None, data = None):
-        self.password = False
-        self.dlg.destroy()
-        return False
-
-
-
-class NewPasswordDialog(BasePasswordDialog):
-    
-    def __init__(self, parent = None):
-        self.parent = parent
-        self._load_interface()
-        self.password = None
-    
-    def _load_interface(self):
-        BasePasswordDialog._load_interface(self)
-        
-        self.set_text("Enter a password")
+        BasePasswordChangeDialog._load_interface(self)
         self.lbPassword.set_property("visible", False)
-        self.lbNewPassword.set_property("visible", True)
-        self.lbConfirmPassword.set_property("visible", True)
-        self.lbPasswordQuality.set_property("visible", True)
         self.txPassword.set_property("visible", False)
-        self.txNewPassword.set_property("visible", True)
-        self.txConfirmPassword.set_property("visible", True)
-        self.pgPasswordQuality.set_property("visible", True)
-
-    def _on_cmd_ok(self, widget = None, data = None):
-        new = self.txNewPassword.get_text().encode("utf-8")
-        conf = self.txConfirmPassword.get_text().encode("utf-8")
-        if new == conf:
-            self.password = new
-            self.dlg.destroy()
-        else:
-            alert = gtk.MessageDialog(self.dlg,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-                "The passwords does not match.")
-            alert.run()
-            alert.destroy()
-
-    def _on_cmd_cancel(self, widget = None, data = None):
-        self.password = None
-        self.dlg.destroy()
-        return False
 
 
-class ChangePasswordDialog(BasePasswordDialog):
+class PasswordChangeDialog(BasePasswordChangeDialog):
     
     def __init__(self, parent = None):
-        self.parent = parent
-        self._load_interface()
+        BasePasswordChangeDialog.__init__(self, parent)
         self.password = None
-        self.newpassword = None
-
-    def get_new_password(self):
-        return self.newpassword
 
     def _load_interface(self):
-        BasePasswordDialog._load_interface(self)
-        
-        self.set_text("Enter a password")
+        BasePasswordChangeDialog._load_interface(self)
         self.lbPassword.set_property("visible", True)
-        self.lbNewPassword.set_property("visible", True)
-        self.lbConfirmPassword.set_property("visible", True)
-        self.lbPasswordQuality.set_property("visible", True)
         self.txPassword.set_property("visible", True)
-        self.txNewPassword.set_property("visible", True)
-        self.txConfirmPassword.set_property("visible", True)
-        self.pgPasswordQuality.set_property("visible", True)
 
     def _on_cmd_ok(self, widget = None, data = None):
-        new = self.txNewPassword.get_text().encode("utf-8")
-        conf = self.txConfirmPassword.get_text().encode("utf-8")
-        if new == conf:
-            self.password = self.txPassword.get_text().encode("utf-8")
-            self.newpassword = new
-            self.dlg.destroy()
-        else:
-            alert = gtk.MessageDialog(self.dlg,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-                "The passwords does not match.")
-            alert.run()
-            alert.destroy()
+        BasePasswordChangeDialog._on_cmd_ok(self)
+        self.password = self.txPassword.get_text().encode("utf-8")
 
     def _on_cmd_cancel(self, widget = None, data = None):
+        BasePasswordChangeDialog._on_cmd_cancel(self)
         self.password = None
-        self.newpassword = None
-        self.dlg.destroy()
         return False
 
-
-
-
-if __name__ == "__main__":
-    dlg = NewPasswordDialog()
-    dlg.set_text("Enter a password for the new database")
-    dlg.set_title("Password required")
-    dlg.show()
-    gtk.main()
-    

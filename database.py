@@ -295,37 +295,3 @@ class EncryptedDatabase(object):
         return self._rnd.get_bytes(bytes)
 
 
-# ---------------------------------------------------------------------------
-def testfs():
-    db = FileSystemDatabase("testdb")
-    db.set_key("test", "42")
-    print(db.get_key("test", "not found"))
-    #db.del_key("test")
-    for i in range(1, 42):
-        db.set_key("test" + str(i), "test")
-    for k in db.keys():
-        print(k)
-
-
-import anydbm
-def testenc():
-    pwd = u"test42"
-    db = EncryptedDatabase("testdb")
-    idb = anydbm.open("from.db", "c")
-    if db.is_new():
-        db.set_password(pwd)
-    elif not db.try_password(pwd):
-        print("Error! Good password expected!!")
-        return
-    if not db.is_ready():
-        print("Database not ready (error)")
-        return
-    for k in idb:
-        db.set_key(unicode(k, "utf-8"), unicode(idb[k], "utf-8"))
-    for k, v in db.pairs():
-        print(k.encode("utf-8"))
-        print(v.encode("utf-8"))
-
-
-if __name__ == "__main__":
-    testenc()

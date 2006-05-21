@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Sked - a wikish scheduler with Python, PyGTK and Berkeley DB
+# Sked - a wikish scheduler with Python and PyGTK
 # (c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -37,7 +37,6 @@ import os               # Operating system stuff
 import re               # Regular expressions
 import webbrowser       # System web browser
 import datetime         # Date validation
-
 
 import utils
 import database
@@ -584,12 +583,13 @@ class SkedApp(interface.BaseDialog):
         for key, data in self.db.pairs():
             if not key.startswith("pag_"):
                 continue
-            page = unicode(key[4:], "utf-8").upper()
+            page = key[4:]
+            upage = page.upper()
             if fts:
                 data = data.upper()
             if mode == SkedApp.ANY_WORD:
                 for word in slist:
-                    if page.find(word) != -1:
+                    if upage.find(word) != -1:
                         self.gsearch_model.append([page])
                         break
                     if fts:
@@ -599,7 +599,7 @@ class SkedApp(interface.BaseDialog):
             elif mode == SkedApp.ALL_WORDS:
                 has = True
                 for word in slist:
-                    if page.find(word) == -1:
+                    if upage.find(word) == -1:
                         if fts:
                             if data.find(word) == -1:
                                 has = False
@@ -610,7 +610,7 @@ class SkedApp(interface.BaseDialog):
                 if has:
                     self.gsearch_model.append([page])
             else:
-                if page.find(slist[0]) != -1:
+                if upage.find(slist[0]) != -1:
                     self.gsearch_model.append([page])
                 elif fts:
                     if data.find(slist[0]) != -1:

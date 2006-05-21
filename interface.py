@@ -213,8 +213,8 @@ class BasePasswordDialog(BaseDialog):
             'on_cmd_cancel' : self._on_cmd_cancel
         })
 
-    def show(self):
-        self.dlg.show()
+    def run(self):
+        return self.dlg.run()
         
     def set_text(self, text):
         self.lbGeneral.set_text(text)
@@ -222,13 +222,16 @@ class BasePasswordDialog(BaseDialog):
     def set_title(self, title):
         self.dlg.set_title(title)
         
+    def destroy(self):
+        self.dlg.destroy()
+        
     def _on_cmd_ok(self, widget = None, data = None):
         """ To be implemented in the extending class. """
-        pass
+        self.dlg.response(True)
     
     def _on_cmd_cancel(self, widget = None, data = None):
         """ To be implemented in the extending class. """
-        pass
+        self.dlg.response(False)
 
 
 
@@ -257,11 +260,11 @@ class PasswordDialog(BasePasswordDialog):
 
     def _on_cmd_ok(self, widget = None, data = None):
         self.password = self.txPassword.get_text().encode("utf-8")
-        self.dlg.destroy()
+        self.dlg.response(True)
         
     def _on_cmd_cancel(self, widget = None, data = None):
         self.password = False
-        self.dlg.destroy()
+        self.dlg.response(False)
         return False
 
 
@@ -294,7 +297,7 @@ class BasePasswordChangeDialog(BasePasswordDialog):
         conf = self.txConfirmPassword.get_text().encode("utf-8")
         if new == conf:
             self.newpassword = new
-            self.dlg.destroy()
+            self.dlg.response(True)
         else:
             alert = gtk.MessageDialog(self.dlg,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -305,7 +308,7 @@ class BasePasswordChangeDialog(BasePasswordDialog):
 
     def _on_cmd_cancel(self, widget = None, data = None):
         self.newpassword = None
-        self.dlg.destroy()
+        self.dlg.response(False)
         return False
 
     def _update_meter(self, widget = None, data = None):
@@ -371,9 +374,11 @@ class PasswordChangeDialog(BasePasswordChangeDialog):
     def _on_cmd_ok(self, widget = None, data = None):
         BasePasswordChangeDialog._on_cmd_ok(self)
         self.password = self.txPassword.get_text().encode("utf-8")
+        self.dlg.response(True)
 
     def _on_cmd_cancel(self, widget = None, data = None):
         BasePasswordChangeDialog._on_cmd_cancel(self)
         self.password = None
+        self.dlg.response(False)
         return False
 

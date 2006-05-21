@@ -146,6 +146,8 @@ class EncryptedDatabase(object):
         # ready to use.
     """
 
+    VERSION = "AES-128-CBC-MD5-GZIP-1"
+
     def __init__(self, path):
         self._ready = False
         self._rnd = RandomPool()
@@ -180,7 +182,7 @@ class EncryptedDatabase(object):
             self._mass = self._rand_str(128)
             masshash = self._hash(self._mass)
             saltvec = self._hash(masshash)
-            self._db.set_key("_version", "1")
+            self._db.set_key("_version", EncryptedDatabase.VERSION)
             self._db.set_key("_salt", self._encrypt(self._dbsalt, saltvec))
             self._db.set_key("_mass", self._encrypt(self._mass, masshash))
             self._db.set_key("_hash", masshash)

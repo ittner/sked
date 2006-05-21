@@ -37,6 +37,7 @@ import os               # Operating system stuff
 import re               # Regular expressions
 import webbrowser       # System web browser
 import datetime         # Date validation
+import pickle           # For options only
 
 import utils
 import database
@@ -51,6 +52,7 @@ class OptionManager:
         self._db = db
         self._opts = {}
         self.set_defaults(defaults)
+        self.load()
 
     def set_defaults(self, defaults):
         self._defs = {}
@@ -58,12 +60,14 @@ class OptionManager:
             self._defs[k] = defaults[k]
             
     def save(self):
-        """ UNIMPLEMENTED """
-        pass
+        # Will pickle cause problems when encoding as utf-8??
+        s = pickle.dumps(self._opts, 0).decode("utf-8")
+        self._db.set_key("options", s)
     
     def load(self):
-        """ UNIMPLEMENTED """
-        pass
+        s = self._db.get_key("options")
+        if s:
+            self._opts = pickle.loads(s.encode("utf-8"))
 
     def get_str(self, key):
         if self._opts.has_key(key):
@@ -313,6 +317,7 @@ class SkedApp(interface.BaseDialog):
         self.save_current_page()
         self.save_history()
         self.save_window_geometry()
+        self.opt.save()
         self.window.destroy()
         gtk.main_quit()
 

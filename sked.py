@@ -33,7 +33,6 @@ from gtk import gdk
 import gobject
 import pango
 
-import anydbm           # Berkeley DB abstraction layer.
 import os               # Operating system stuff
 import re               # Regular expressions
 import webbrowser       # System web browser
@@ -41,72 +40,48 @@ import datetime         # Date validation
 
 
 import utils
-from interface import *
-
-
-# Database abstraction ---------------------------------------------------
-
-class DatabaseManager:
-    
-    def __init__(self, fname):
-        self._fname = fname
-        self._db = anydbm.open(self._fname, 'c', 0600)
-
-    def has_key(self, key):
-        return self._db.has_key(key)
-
-    def set_key(self, key, value):
-        self._db[key] = value
-        self._db.sync()
-        
-    def get_key(self, key, default = None):
-        if self._db.has_key(key):
-            return self._db[key]
-        else:
-            return default
-    
-    def del_key(self, key):
-        if self._db.has_key(key):
-            del self._db[key]
-            self._db.sync()
-            
-    def get_filename(self):
-        return self._fname
-
-    def keys(self):
-        for k in self._db:
-            yield k
-
-    def pairs(self):
-        for k in self._db:
-            yield k, self._db[k]
+import database
+import interface
 
 
 # Option manager ---------------------------------------------------------
 
 class OptionManager:
-    ##TODO:  Add option caching here.
+
     def __init__(self, db, defaults = {}):
         self._db = db
-        self._defs = defaults
+        self._opts = {}
+        self.set_defaults(defaults)
 
     def set_defaults(self, defaults):
-        self._defs = defaults
+        self._defs = {}
+        for k in defaults:
+            self._defs[k] = defaults[k]
+            
+    def save(self):
+        """ UNIMPLEMENTED """
+        pass
+    
+    def load(self):
+        """ UNIMPLEMENTED """
+        pass
 
     def get_str(self, key):
-        keyn = self._key_name(key)
-        return self._db.get_key(keyn, self._defv(key))
+        if self._opts.has_key(key):
+            return self._opts[key]
+        elif self._defs.has_key(key):
+            return self._defs[key]
+        else:
+            return None
     
     def set_str(self, key, value):
-        keyn = self._key_name(key)
-        self._db.set_key(keyn, value)
+        self._opts[key] = value
 
     def get_int(self, key):
         s = self.get_str(key)
         if s != None:
             return int(s)
-        else:
-            return self._defv(key)
+        return None
 
     def set_int(self, key, value):
         self.set_str(key, "%d" % value)
@@ -119,7 +94,7 @@ class OptionManager:
             else:
                 return False
         else:
-            return self._defv(key)
+            return None
 
     def set_bool(self, key, value):
         if value == True:
@@ -131,27 +106,19 @@ class OptionManager:
         try:
             c = gdk.color_parse(self.get_str(key))
         except ValueError:
-            c = gdk.color_parse(self._defv(key))    # for invalid colors.
+            if self._defs.has_key(key):
+                c = gdk.color_parse(self._defs[key])    # for invalid colors.
         return c
 
     def set_color(self, key, color):
-        self.set_str(key, "#%.2X%.2X%.2X" % (color.red/256, color.green/256, color.blue/256))
-
-    def _key_name(self, key):
-        return "opt_" + key
-
-    def _defv(self, key):
-        if self._defs.has_key(key):
-            return self._defs[key]
-        else:
-            return None
+        self.set_str(key, "#%.2X%.2X%.2X" %
+            (color.red/256, color.green/256, color.blue/256))
 
 
 
 # Main application class -------------------------------------------------
 
-class SkedApp(BaseDialog):
-    DB_FILENAME = "/.sked.db"
+class SkedApp(interface.BaseDialog):
     ANY_WORD = 1    # Search modes
     ALL_WORDS = 2
     EXACT_PHRASE = 3
@@ -192,8 +159,8 @@ class SkedApp(BaseDialog):
     }
 
     def __init__(self):
-        try:
-            self.db = DatabaseManager(utils.get_home_dir() + SkedApp.DB_FILENAME)
+        #try:
+            self.start_database()
             self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
             self.formatTimerID = None
             self.saveTimerID = None
@@ -207,12 +174,55 @@ class SkedApp(BaseDialog):
             self.history_model = gtk.ListStore(gobject.TYPE_STRING)
             self.gsearch_model = gtk.ListStore(gobject.TYPE_STRING)
             self.load_interface()
-        except Exception:
-            alert = gtk.MessageDialog(None,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-               "An initialization error has occurred. Namárië.")
+        #except Exception:
+        #    alert = gtk.MessageDialog(None,
+        #        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+        #        gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+        #       "An initialization error has occurred. Namárië.")
+        #    alert.run()
+        #    self.quit()
+            
+    def start_database(self):
+        path = os.path.join(utils.get_home_dir(), ".sked")
+        db = database.EncryptedDatabase(path)
+        if db.is_new():
+            dlg = interface.NewPasswordDialog()
+            dlg.set_title("Sked - New database")
+            dlg.set_text("You are using this program for the first time. "
+                " Must define a password to lock the database")
+            dlg.run()
+            dlg.destroy()
+            pwd = dlg.get_new_password()
+            if pwd:
+                db.set_password(pwd)
+        else:
+            pwd = u""
+            firstime = True
+            while not db.try_password(pwd):
+                if not firstime:
+                    alert = gtk.MessageDialog(None, gtk.DIALOG_MODAL,
+                        gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                        "Wrong password. Please try again.")
+                    alert.run()
+                    alert.destroy()
+                dlg = interface.PasswordDialog()
+                firstime = False
+                dlg.set_title("Sked - Password required")
+                dlg.set_text("The database is locked. Please, enter the password.")
+                dlg.run()
+                dlg.destroy()
+                pwd = dlg.get_password()
+                if not pwd:
+                    break
+        if db.is_ready():
+            self.db = db
+            self.dbpath = path
+        else:
+            alert = gtk.MessageDialog(None, gtk.DIALOG_MODAL,
+                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                "Can't open the database. Namárie.")
             alert.run()
+            alert.destroy()
             self.quit()
     
     def start(self):
@@ -223,13 +233,13 @@ class SkedApp(BaseDialog):
         self._on_cmd_date_change()
         self._update_back_forward()
         self._update_undo_redo()
-        self.mainWindow.show()
+        self.window.show()
 
     def save_window_geometry(self):
         self.opt.set_int("window_state", self.window_state)
         if self.window_state == 0:
-            x, y = self.mainWindow.get_position()
-            w, h = self.mainWindow.get_size()
+            x, y = self.window.get_position()
+            w, h = self.window.get_size()
             self.opt.set_int("window_x", x)
             self.opt.set_int("window_y", y)
             self.opt.set_int("window_w", w)
@@ -242,14 +252,14 @@ class SkedApp(BaseDialog):
         w = self.opt.get_int("window_w")
         h = self.opt.get_int("window_h")
         if self.window_state & gdk.WINDOW_STATE_MAXIMIZED:
-            self.mainWindow.maximize()
-            self.mainWindow.set_default_size(w, h)
+            self.window.maximize()
+            self.window.set_default_size(w, h)
         elif self.window_state & gdk.WINDOW_STATE_ICONIFIED:
-            self.mainWindow.iconify()
-            self.mainWindow.set_default_size(w, h)
+            self.window.iconify()
+            self.window.set_default_size(w, h)
         else:
-            self.mainWindow.move(x, y)
-            self.mainWindow.resize(w, h)
+            self.window.move(x, y)
+            self.window.resize(w, h)
     
     def update_options(self):
         self.format_time = 1000 * self.opt.get_int("format_time")
@@ -285,7 +295,7 @@ class SkedApp(BaseDialog):
             self.mnAllWords.set_property("active", True)
             
     def _on_window_state(self, widget, event, data = None):
-        if widget == self.mainWindow:
+        if widget == self.window:
             st = gdk.WINDOW_STATE_MAXIMIZED | gdk.WINDOW_STATE_ICONIFIED
             self.window_state = event.new_window_state & st
         
@@ -304,7 +314,7 @@ class SkedApp(BaseDialog):
         self.save_current_page()
         self.save_history()
         self.save_window_geometry()
-        self.mainWindow.destroy()
+        self.window.destroy()
         gtk.main_quit()
 
     def load_interface(self):
@@ -354,7 +364,7 @@ class SkedApp(BaseDialog):
             'on_window_state'    : self._on_window_state
         })
 
-        self.mainWindow = self.glade.get_widget("wndMain")
+        self.window = self.glade.get_widget("wndMain")
         self.txNote = self.glade.get_widget("NoteText")
         self.txBuffer = self.txNote.get_buffer()
         self.calendar = self.glade.get_widget("Calendar")
@@ -421,7 +431,7 @@ class SkedApp(BaseDialog):
         self.set_text_tags()
 
     def _on_cmd_about(self, widget = None, data = None):
-        abt = AboutDialog(self.mainWindow)
+        abt = interface.AboutDialog(self.window)
         abt.show()
         
     def _on_cmd_backup(self, widget = None, data = None):
@@ -462,7 +472,7 @@ class SkedApp(BaseDialog):
         self.reset_timers()
         page = self.curpage
         if page == None: return
-        confirm = gtk.MessageDialog(self.mainWindow,
+        confirm = gtk.MessageDialog(self.window,
             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
             gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
             "Delete the page \"" + page + "\" forever?")
@@ -554,7 +564,7 @@ class SkedApp(BaseDialog):
             mode = SkedApp.EXACT_PHRASE
             slist = [ text ]
         else:
-            alert = gtk.MessageDialog(self.mainWindow,
+            alert = gtk.MessageDialog(self.window,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
                 "You must select a search mode.")
@@ -562,7 +572,7 @@ class SkedApp(BaseDialog):
             alert.destroy()
             return
         if len(slist) == 0 or slist[0] == "":
-            alert = gtk.MessageDialog(self.mainWindow,
+            alert = gtk.MessageDialog(self.window,
                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
                 "You must supply a search string.")
@@ -571,12 +581,12 @@ class SkedApp(BaseDialog):
             return
         fts = self.mnFullText.get_active()
         self.gsearch_model.clear()
-        for key in self.db.keys():
+        for key, data in self.db.pairs():
             if not key.startswith("pag_"):
                 continue
             page = unicode(key[4:], "utf-8").upper()
             if fts:
-                data = unicode(self.db.get_key(key), "utf-8").upper()
+                data = data.upper()
             if mode == SkedApp.ANY_WORD:
                 for word in slist:
                     if page.find(word) != -1:
@@ -664,7 +674,7 @@ class SkedApp(BaseDialog):
             self.txNote.get_editable())
         
     def _on_cmd_preferences(self, widget = None, data = None):
-        wnd = PreferencesDialog(self)
+        wnd = interface.PreferencesDialog(self)
         wnd.show()
         
     def _on_cmd_redo(self, widget = None, data = None):

@@ -259,7 +259,7 @@ class PasswordDialog(BasePasswordDialog):
         self.pgPasswordQuality.set_property("visible", False)
 
     def _on_cmd_ok(self, widget = None, data = None):
-        self.password = self.txPassword.get_text().encode("utf-8")
+        self.password = self.txPassword.get_text().decode("utf-8")
         self.dlg.response(True)
         
     def _on_cmd_cancel(self, widget = None, data = None):
@@ -293,8 +293,8 @@ class BasePasswordChangeDialog(BasePasswordDialog):
         })
 
     def _on_cmd_ok(self, widget = None, data = None):
-        new = self.txNewPassword.get_text().encode("utf-8")
-        conf = self.txConfirmPassword.get_text().encode("utf-8")
+        new = self.txNewPassword.get_text().decode("utf-8")
+        conf = self.txConfirmPassword.get_text().decode("utf-8")
         if new == conf:
             self.newpassword = new
             self.dlg.response(True)
@@ -316,7 +316,7 @@ class BasePasswordChangeDialog(BasePasswordDialog):
         # numbers and special symbols with, at least, 8 chars.
         qfact = 0.0
         qtext = "Bad"
-        pwd = self.txNewPassword.get_text().encode("utf-8")
+        pwd = self.txNewPassword.get_text().decode("utf-8")
         plen = len(pwd)
         if plen > 0:
             singlecase = pwd.upper() == pwd or pwd.lower() == pwd
@@ -373,7 +373,7 @@ class PasswordChangeDialog(BasePasswordChangeDialog):
 
     def _on_cmd_ok(self, widget = None, data = None):
         BasePasswordChangeDialog._on_cmd_ok(self)
-        self.password = self.txPassword.get_text().encode("utf-8")
+        self.password = self.txPassword.get_text().decode("utf-8")
         self.dlg.response(True)
 
     def _on_cmd_cancel(self, widget = None, data = None):

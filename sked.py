@@ -207,7 +207,7 @@ class SkedApp(interface.BaseDialog):
                 dlg = interface.PasswordDialog()
                 firstime = False
                 dlg.set_title("Sked - Password required")
-                dlg.set_text("The database is locked. Please, enter the password.")
+                dlg.set_text("The database is locked. Please enter the password.")
                 dlg.run()
                 dlg.destroy()
                 pwd = dlg.get_password()
@@ -460,7 +460,7 @@ class SkedApp(interface.BaseDialog):
     def _on_cmd_date_change(self, widget = None, data = None):
         self.reset_timers()
         page = self.get_date_str()
-        if self.curpage != None and self.curpage != page:
+        if self.curpage != None and self.curpage.upper() != page.upper():
             self.backl.append(self.curpage)
         self.forwardl = []
         self.change_page(page)
@@ -492,7 +492,7 @@ class SkedApp(interface.BaseDialog):
         self.quit()
         
     def _on_cmd_lsearch_next(self, widget = None, data = None):
-        tx = self.txLocalSearch.get_text()
+        tx = self.txLocalSearch.get_text().decode("utf-8")
         iiter = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
         ret = iiter.forward_search(tx, 0)
         if not ret:
@@ -503,7 +503,7 @@ class SkedApp(interface.BaseDialog):
             self.txNote.scroll_to_iter(ret[0], 0.0)
 
     def _on_cmd_lsearch_prev(self, widget = None, data = None):
-        tx = self.txLocalSearch.get_text()
+        tx = self.txLocalSearch.get_text().decode("utf-8")
         iiter = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
         ret = iiter.backward_search(tx, 0)
         if not ret:
@@ -551,7 +551,7 @@ class SkedApp(interface.BaseDialog):
         
     def _on_cmd_gsearch(self, widget = None, data = None):
         ## Big, ugly and sloooooooow! Optimization needed!!
-        text = unicode(self.txGlobalSearch.get_text(), "utf-8")
+        text = self.txGlobalSearch.get_text().decode("utf-8")
         text = text.strip().upper()
         if self.mnAnyWord.get_property("active") == True:
             mode = SkedApp.ANY_WORD
@@ -618,7 +618,7 @@ class SkedApp(interface.BaseDialog):
     
     
     def _on_cmd_goto(self, widget = None, data = None):
-        self.hl_change_page(self.txPageName.get_text())
+        self.hl_change_page(self.txPageName.get_text().decode("utf-8"))
         
     def _on_cmd_header1(self, widget = None, data = None):
         self.insert_formatting("===", "===")
@@ -802,10 +802,6 @@ class SkedApp(interface.BaseDialog):
     def handle_history(self, page = None):
         if page == None:
             return
-        if isinstance(page, unicode):
-            page = page.upper()
-        else:
-            page = unicode(page, "utf-8").upper()
         if page not in self.history:
             self.history.append(page)
             self.history_model.prepend([page])
@@ -850,7 +846,7 @@ class SkedApp(interface.BaseDialog):
 
     def get_text(self):
         start, end = self.txBuffer.get_bounds()
-        return unicode(self.txBuffer.get_text(start, end), "utf-8")
+        return self.txBuffer.get_text(start, end).decode("utf-8")
 
     def set_text(self, text):
         self.txBuffer.handler_block(self.text_change_sigid)
@@ -1035,7 +1031,7 @@ class SkedApp(interface.BaseDialog):
         self.reset_timers()
         if page == "":
             page = "index"
-        if self.curpage != None and self.curpage != page:
+        if self.curpage != None and self.curpage.upper() != page.upper():
             self.backl.append(self.curpage)
         self.forwardl = []
         self.change_page(page)
@@ -1045,18 +1041,24 @@ class SkedApp(interface.BaseDialog):
     def change_page(self, page):
         self.reset_timers()
         self.save_current_page()
-        self.handle_history(page)
         page = self.normalize_date_page_name(page)
+        pair = self.db.get_pair(self.page_name(page), None)
+        if pair:
+            page = pair[0][4:]  # pag_pageName
+            text = pair[1]
+        else:
+            text = ""
+        self.handle_history(page)
         self.curpage = page
-        self.txPageName.set_text(page)
-        self.set_text(self.db.get_key(self.page_name(self.curpage), ""))
+        self.txPageName.set_text(self.curpage)
+        self.set_text(text)
         self.format_text()
         
     def save_current_page(self):
         if self.curpage != None:
             #self.enqueue_undo()  ## Buggy ##
-            tx = self.get_text().encode("utf-8")
-            if tx != "":
+            tx = self.get_text()
+            if tx != u"":
                 self.db.set_key(self.page_name(self.curpage), tx)
             else:
                 self.db.del_key(self.page_name(self.curpage))
@@ -1075,13 +1077,13 @@ class SkedApp(interface.BaseDialog):
             d = int(match.group(1))
             m = int(match.group(2))
             y = int(match.group(3))
-            return "%04d-%02d-%02d" % (y, m, d)
+            return u"%04d-%02d-%02d" % (y, m, d)
         match = re.search("([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})", page)
         if match != None:
             y = int(match.group(1))
             m = int(match.group(2))
             d = int(match.group(3))
-            return "%04d-%02d-%02d" % (y, m, d)
+            return u"%04d-%02d-%02d" % (y, m, d)
         return page
 
     def has_page(self, page):
@@ -1090,11 +1092,9 @@ class SkedApp(interface.BaseDialog):
     def page_name(self, page):
         # Gets an utf-8 encoded string-or-unicode-string and return a the page
         # name as an utf-8 encoded prefixed string. Sounds confuse for you? :)
-        if isinstance(page, unicode):
-            upage = page.upper()
-        else:
-            upage = unicode(page, "utf-8").upper()
-        return "pag_" + upage.encode("utf-8")
+        if not isinstance(page, unicode):
+            page = page.decode("utf-8")
+        return "pag_" + page
         
     def mark_page_on_calendar(self):
         if self.curpage != None:

@@ -21,8 +21,9 @@
 
 """
 Databases used by Sked.
-$Id$
 """
+
+__CVSID__ = "$Id$"
 
 import os
 import zlib
@@ -113,6 +114,8 @@ class FileSystemDatabase(object):
         except OSError:
             raise AccessDeniedError
     
+    def get_path(self):
+        return self.path
 
 
 class EncryptedDatabase(object):
@@ -188,10 +191,26 @@ class EncryptedDatabase(object):
             self._db.set_key("_hash", masshash)
             self._ready = True
         else:
+            # Too may dependencies on self._db ...
             if not self._ready:
                 raise NotReadyError
-            # change password...
-    
+            curdir = self._db.get_path()
+            tmpdir = self._tmpnam(curdir)
+            while os.access(tmpdir, os.F_OK):   # path exists? Try again.
+                tmpdir = self._tmpnam(curdir)
+            tmpdb = EncryptedDatabase(tmpdir)
+            tmpdb.set_password(pwd)
+            if not tmpdb.is_ready():
+                raise AccessDeniedError
+            for k, v in self.pairs():
+                tmpdb.set_key(k, v)
+            os.rmdir(curdir)    ### BUGGY! Don't work with directories.
+            os.rename(tmpdir, curdir)
+            self._key = tmpdb._key
+            self._dbsalt = tmpdb._dbsalt
+            self._mass = tmpdb._mass
+            self._hash = tmpdb._hash
+
     def has_key(self, key):
         if not self._ready:
             raise NotReadyError
@@ -294,4 +313,6 @@ class EncryptedDatabase(object):
     def _rand_str(self, bytes = 16):
         return self._rnd.get_bytes(bytes)
 
-
+    def _tmpnam(self, prefix = ""):
+        # Avoids os.tempnam(). 
+        return prefix + self._hexhash(self._rand_str())

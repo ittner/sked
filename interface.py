@@ -341,7 +341,7 @@ class BasePasswordChangeDialog(BasePasswordDialog):
                     qfact = 80.0
                 else:
                     qfact = 100.0
-            qfact = qfact * min(8.0, plen) / 8.0
+            qfact = qfact * min(10.0, plen) / 10.0
         if qfact < 50:
             qtext = "Bad"
         elif qfact < 75:

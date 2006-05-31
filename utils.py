@@ -61,3 +61,15 @@ def open_browser(url):
         msgbox.run()
         msgbox.destroy()
 
+def rename_file(oldn, newn):
+    """ Renames a file. """
+    if os.name == 'nt' and os.path.exists(oldn):
+        # Windows don't allow us to atomically rename files.
+        try:
+            os.remove(newn)
+        except OSError, exc:
+            import errno
+            if exc.errno != errno.ENOENT:
+                raise exc
+    # Rename the file.
+    os.rename(oldn, newn)

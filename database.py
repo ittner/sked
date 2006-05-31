@@ -28,6 +28,8 @@ __CVSID__ = "$Id$"
 import os
 import zlib
 import struct
+import utils
+
 from Crypto.Cipher import AES
 from Crypto.Hash import MD5     # Alias for md5.md5
 from Crypto.Util.randpool import RandomPool
@@ -51,6 +53,7 @@ class FileSystemDatabase(object):
 
     VERSION = "1"
     SUFFIX = ".entry"
+    TMPSUFFIX = ".tmp"
     VERFILE = "version"
     
     def __init__(self, path):
@@ -92,17 +95,17 @@ class FileSystemDatabase(object):
         return data
     
     def set_key(self, key, value):
-        tpath = os.path.join(self.path, key + ".tmp")
         path = os.path.join(self.path, key + FileSystemDatabase.SUFFIX)
+        tpath = os.path.join(self.path, key + FileSystemDatabase.TMPSUFFIX)
         try:
             fp = open(tpath, "wb")
         except IOError:
             raise AccessDeniedError
         fp.write(value)
         fp.close()
-        # File renaming is atomic on most OSes.
         try:
-            os.rename(tpath, path)
+            # Tries to rename the file atomically.
+            utils.rename_file(tpath, path)
         except IOError:
             raise AccessDeniedError
 
@@ -196,8 +199,6 @@ class EncryptedDatabase(object):
                 raise NotReadyError
             curdir = self._db.get_path()
             tmpdir = self._tmpnam(curdir)
-            while os.access(tmpdir, os.F_OK):   # path exists? Try again.
-                tmpdir = self._tmpnam(curdir)
             tmpdb = EncryptedDatabase(tmpdir)
             tmpdb.set_password(pwd)
             if not tmpdb.is_ready():
@@ -314,5 +315,8 @@ class EncryptedDatabase(object):
         return self._rnd.get_bytes(bytes)
 
     def _tmpnam(self, prefix = ""):
-        # Avoids os.tempnam(). 
-        return prefix + self._hexhash(self._rand_str())
+        # Avoids os.tempnam(). WARNING! There is a race condition here!
+        name = prefix + self._hexhash(self._rand_str())
+        while os.access(name, os.F_OK):   # path exists? Try again.
+            name = prefix + self._hexhash(self._rand_str())
+        return name

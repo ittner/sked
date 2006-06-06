@@ -28,6 +28,8 @@ __CVSID__ = "$Id$"
 import os
 import zlib
 import struct
+import shutil
+
 import utils
 
 from Crypto.Cipher import AES
@@ -205,12 +207,17 @@ class EncryptedDatabase(object):
                 raise AccessDeniedError
             for k, v in self.pairs():
                 tmpdb.set_key(k, v)
-            os.rmdir(curdir)    ### BUGGY! Don't work with directories.
+            oldtmp = self._tmpnam(curdir + ".old.")
+            os.rename(curdir, oldtmp)
             os.rename(tmpdir, curdir)
             self._key = tmpdb._key
             self._dbsalt = tmpdb._dbsalt
             self._mass = tmpdb._mass
             self._hash = tmpdb._hash
+            shutil.rmtree(oldtmp)
+
+    def check_password(self, pwd):
+        return self._hash(pwd.encode("utf-8")) == self._key
 
     def has_key(self, key):
         if not self._ready:

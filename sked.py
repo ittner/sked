@@ -362,6 +362,7 @@ class SkedApp(interface.BaseDialog):
             'on_cmd_search_mode' : self._on_cmd_search_mode,
             'on_cmd_today'       : self._on_cmd_today,
             'on_cmd_tomorrow'    : self._on_cmd_tomorrow,
+            'on_cmd_underline'   : self._on_cmd_underline,
             'on_cmd_undo'        : self._on_cmd_undo,
             'on_cmd_yesterday'   : self._on_cmd_yesterday,
             'on_lsearch_keypress': self._on_lsearch_keypress,
@@ -650,6 +651,9 @@ class SkedApp(interface.BaseDialog):
         self.hl_change_page("index")
         
     def _on_cmd_italic(self, widget = None, data = None):
+        self.insert_formatting("//", "//")
+
+    def _on_cmd_underline(self, widget = None, data = None):
         self.insert_formatting("_", "_")
         
     def _on_cmd_link(self, widget = None, data = None):
@@ -889,6 +893,9 @@ class SkedApp(interface.BaseDialog):
                 'font' : self.opt.get_str("std_font"),
                 'foreground' : self.opt.get_str("std_color")
             }],
+            ['underline', {
+                'underline' : pango.UNDERLINE_SINGLE
+            }],
             ['italic', {
                 'style' : pango.STYLE_ITALIC
             }],
@@ -982,10 +989,16 @@ class SkedApp(interface.BaseDialog):
             self._apply_tag_on_group(match, "bold", 2)
             self._apply_tag_on_group(match, "format", 3)
         
-        italic_re = ur"(_+)(.+?)(_+)"       # _italic_
+        italic_re = ur"(//+)(.+?)(//+)"       # //italic//
         for match in re.finditer(italic_re, tx):
             self._apply_tag_on_group(match, "format", 1)
             self._apply_tag_on_group(match, "italic", 2)
+            self._apply_tag_on_group(match, "format", 3)
+        
+        underl_re = ur"\s(_+)(.+?)(_+)"       # _underline_
+        for match in re.finditer(underl_re, tx):
+            self._apply_tag_on_group(match, "format", 1)
+            self._apply_tag_on_group(match, "underline", 2)
             self._apply_tag_on_group(match, "format", 3)
 
         link_re = ur"(\[\[ *)(.+?)( *\]\])" # [[Link]]
@@ -998,7 +1011,7 @@ class SkedApp(interface.BaseDialog):
             self._apply_tag_on_group(match, style, 2)
             self._apply_tag_on_group(match, "format", 3)
 
-        url_re = ur"(([a-zA-Z]+://|www\.)[a-zA-Z0-9._/%#&?~=-]+)" # url
+        url_re = ur"(([a-zA-Z]+://|www\.)[a-zA-Z0-9.,_/%#&?~=-]+)" # url
         for match in re.finditer(url_re, tx):
             self._apply_tag_on_group(match, "url", 1)
 

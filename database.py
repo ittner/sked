@@ -200,7 +200,7 @@ class EncryptedDatabase(object):
             if not self._ready:
                 raise NotReadyError
             curdir = self._db.get_path()
-            tmpdir = self._tmpnam(curdir)
+            tmpdir = self._tmpnam(curdir + ".new.")
             tmpdb = EncryptedDatabase(tmpdir)
             tmpdb.set_password(pwd)
             if not tmpdb.is_ready():

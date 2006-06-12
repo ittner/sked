@@ -196,7 +196,7 @@ class SkedApp(interface.BaseDialog):
             dlg.run()
             dlg.destroy()
             pwd = dlg.get_new_password()
-            if pwd:
+            if pwd != False:
                 db.set_password(pwd)
         else:
             pwd = u""
@@ -215,7 +215,7 @@ class SkedApp(interface.BaseDialog):
                 dlg.run()
                 dlg.destroy()
                 pwd = dlg.get_password()
-                if not pwd:
+                if pwd == None:
                     break
         if db.is_ready():
             self.db = db
@@ -451,7 +451,23 @@ class SkedApp(interface.BaseDialog):
         self.opt.set_bool("show_calendar", show_calendar)
         
     def _on_cmd_change_pwd(self, widget = None, data = None):
-        pass
+        while True:
+            dlg = interface.PasswordChangeDialog(self.window)
+            rep = dlg.run()
+            dlg.destroy()
+            if rep != gtk.RESPONSE_OK:
+                return
+            pwd = dlg.get_password()
+            if self.db.check_password(pwd):
+                newpwd = dlg.get_new_password()
+                self.db.set_password(newpwd)
+                return
+            alert = gtk.MessageDialog(self.window,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                "Wrong password. Please try again.")
+            alert.run()
+            alert.destroy()
         
     def _on_cmd_code(self, widget = None, data = None):
         self.insert_formatting("|||", "|||")

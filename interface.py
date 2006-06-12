@@ -215,7 +215,7 @@ class BasePasswordDialog(BaseDialog):
 
     def run(self):
         return self.dlg.run()
-        
+    
     def set_text(self, text):
         self.lbGeneral.set_text(text)
     
@@ -263,7 +263,7 @@ class PasswordDialog(BasePasswordDialog):
         self.dlg.response(True)
         
     def _on_cmd_cancel(self, widget = None, data = None):
-        self.password = False
+        self.password = None
         self.dlg.response(False)
         return False
 
@@ -366,19 +366,31 @@ class PasswordChangeDialog(BasePasswordChangeDialog):
         BasePasswordChangeDialog.__init__(self, parent)
         self.password = None
 
+    def get_password(self):
+        return self.password
+
     def _load_interface(self):
         BasePasswordChangeDialog._load_interface(self)
         self.lbPassword.set_property("visible", True)
         self.txPassword.set_property("visible", True)
 
     def _on_cmd_ok(self, widget = None, data = None):
-        BasePasswordChangeDialog._on_cmd_ok(self)
-        self.password = self.txPassword.get_text().decode("utf-8")
-        self.dlg.response(True)
+        new = self.txNewPassword.get_text().decode("utf-8")
+        conf = self.txConfirmPassword.get_text().decode("utf-8")
+        if new == conf:
+            self.password = self.txPassword.get_text().decode("utf-8")
+            self.newpassword = new
+            self.dlg.response(gtk.RESPONSE_OK)
+        else:
+            alert = gtk.MessageDialog(self.dlg,
+                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                "The passwords does not match.")
+            alert.run()
+            alert.destroy()
 
     def _on_cmd_cancel(self, widget = None, data = None):
-        BasePasswordChangeDialog._on_cmd_cancel(self)
         self.password = None
-        self.dlg.response(False)
-        return False
+        self.newpassword = None
+        self.dlg.response(gtk.RESPONSE_CANCEL)
 

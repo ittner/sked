@@ -33,11 +33,12 @@ from gtk import gdk
 import gobject
 import pango
 
-try:    # Check for Gtk+ spellcheking
-    import gtkspell
-    HAS_SPELL = True
-except:
-    HAS_SPELL = False
+#try:    # Check for Gtk+ spellcheking
+#    import gtkspell
+#    HAS_SPELL = True
+#except:
+#    HAS_SPELL = False
+HAS_SPELL = False   # <--- Fix format/spellcheck conflict first.
 
 import os               # Operating system stuff
 import re               # Regular expressions

@@ -41,6 +41,7 @@ def get_home_dir():
     return os.path.expanduser('~')
 
 def search_share_path(fname):
+    #TODO: Fix hardcoded paths.
     prefixes = ['', 'usr/share/sked/', 'usr/local/share/sked/']
     for prefix in prefixes:
         if os.path.exists(prefix + fname):

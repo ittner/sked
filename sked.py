@@ -199,11 +199,9 @@ class SkedApp(interface.BaseDialog):
             dlg = interface.NewPasswordDialog()
             dlg.set_title("Sked - New database")
             dlg.set_text("You are using this program for the first time. "
-                " Must define a password to lock the database")
-            dlg.run()
-            dlg.destroy()
-            pwd = dlg.get_new_password()
-            if pwd != False:
+                "Please enter a password to lock the database")
+            pwd = dlg.run()
+            if pwd != None:
                 db.set_password(pwd)
         else:
             pwd = u""
@@ -219,9 +217,7 @@ class SkedApp(interface.BaseDialog):
                 firstime = False
                 dlg.set_title("Sked - Password required")
                 dlg.set_text("The database is locked. Please enter the password.")
-                dlg.run()
-                dlg.destroy()
-                pwd = dlg.get_password()
+                pwd = dlg.run()
                 if pwd == None:
                     break
         if db.is_ready():
@@ -464,23 +460,10 @@ class SkedApp(interface.BaseDialog):
         self.opt.set_bool("show_calendar", show_calendar)
         
     def _on_cmd_change_pwd(self, widget = None, data = None):
-        while True:
-            dlg = interface.PasswordChangeDialog(self.window)
-            rep = dlg.run()
-            dlg.destroy()
-            if rep != gtk.RESPONSE_OK:
-                return
-            pwd = dlg.get_password()
-            if self.db.check_password(pwd):
-                newpwd = dlg.get_new_password()
-                self.db.set_password(newpwd)
-                return
-            alert = gtk.MessageDialog(self.window,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-                "Wrong password. Please try again.")
-            alert.run()
-            alert.destroy()
+        dlg = interface.PasswordChangeDialog(self.window, self.db.check_password)
+        newpwd = dlg.run()
+        if newpwd != None:
+            self.db.set_password(newpwd)
         
     def _on_cmd_code(self, widget = None, data = None):
         self.insert_formatting("|||", "|||")

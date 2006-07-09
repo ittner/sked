@@ -314,7 +314,7 @@ class BasePasswordChangeDialog(BasePasswordDialog):
 
     def _update_meter(self, widget = None, data = None):
         # The quality meter reaches the maximum for passwords mixing letters,
-        # numbers and special symbols with, at least, 8 chars.
+        # numbers and special symbols with, at least, 10 chars.
         qfact = 0.0
         qtext = "Bad"
         pwd = self.txNewPassword.get_text().decode("utf-8")

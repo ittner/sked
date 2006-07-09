@@ -33,6 +33,7 @@ import gobject
 import pango
 import re
 
+from history import HistoryManager
 import utils
 
 
@@ -394,3 +395,47 @@ class PasswordChangeDialog(BasePasswordChangeDialog):
         self.newpassword = None
         self.dlg.response(gtk.RESPONSE_CANCEL)
 
+
+
+class InsertPageTextDialog(BaseDialog):
+    
+    def __init__(self, skapp):
+        self.app = skapp
+        self.parent = skapp.window
+        self.history = HistoryManager(self.app, u"insert_history", True)
+        self.hmodel = gtk.ListStore(gobject.TYPE_STRING)
+        self._load_interface()
+
+    def _load_interface(self):
+        self.glade_init("dlgInsertPageText")
+        self.dlg = self.glade.get_widget("dlgInsertPageText")
+        self.cbePageName = self.glade.get_widget("cbePageName")
+        self.txPageName = self.cbePageName.child
+        self.cbePageName.set_model(self.hmodel)
+        self.cbePageName.set_text_column(0)
+
+    def run(self):
+        self.hmodel.clear()
+        for item in self.history.get_items():
+            self.hmodel.append([item])
+        while True:
+            val = self.dlg.run()
+            if val == gtk.RESPONSE_OK:
+                page = self.txPageName.get_text().decode("utf-8")
+                if self.app.has_page(page):
+                    self.dlg.destroy()
+                    self.history.add(page)
+                    self.history.save()
+                    return page
+                else:
+                    alert = gtk.MessageDialog(self.dlg,
+                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                        gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                        "Page not found.")
+                    alert.run()
+                    alert.destroy()
+            if val == gtk.RESPONSE_CANCEL:
+                self.dlg.destroy()
+                self.history.save()
+                return None
+        return None

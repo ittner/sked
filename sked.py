@@ -354,6 +354,7 @@ class SkedApp(interface.BaseDialog):
             'on_cmd_history_go'  : self._on_cmd_listbox_go,
             'on_cmd_history_tg'  : self._on_cmd_history_tg,
             'on_cmd_home'        : self._on_cmd_home,
+            'on_cmd_insert_page' : self._on_cmd_insert_page,  
             'on_cmd_italic'      : self._on_cmd_italic,
             'on_cmd_link'        : self._on_cmd_link,
             'on_cmd_lsearch_next': self._on_cmd_lsearch_next,
@@ -680,6 +681,15 @@ class SkedApp(interface.BaseDialog):
         
     def _on_cmd_italic(self, widget = None, data = None):
         self.insert_formatting("//", "//")
+        
+    def _on_cmd_insert_page(self, widget = None, data = None):
+        dlg = interface.InsertPageTextDialog(self)
+        page = dlg.run()
+        if page:
+            pkey = self.page_name(page)
+            pair = self.db.get_pair(pkey)
+            if pair:
+                self.insert_text_cursor(pair[1])
 
     def _on_cmd_underline(self, widget = None, data = None):
         self.insert_formatting("_", "_")
@@ -913,6 +923,11 @@ class SkedApp(interface.BaseDialog):
             imark = tmp_mark
         self.txBuffer.insert(self.txBuffer.get_iter_at_mark(imark), before)
         self.txBuffer.insert(self.txBuffer.get_iter_at_mark(smark), after)
+    
+    def insert_text_cursor(self, text):
+        imark = self.txBuffer.get_insert()
+        iiter = self.txBuffer.get_iter_at_mark(imark)
+        self.txBuffer.insert(iiter, text)
 
     def set_text_tags(self):
         tagdata = [
@@ -1142,7 +1157,7 @@ class SkedApp(interface.BaseDialog):
         # name as an utf-8 encoded prefixed string. Sounds confuse for you? :)
         if not isinstance(page, unicode):
             page = page.decode("utf-8")
-        return "pag_" + page
+        return "pag_" + self.normalize_date_page_name(page)
         
     def mark_page_on_calendar(self):
         if self.curpage != None:
@@ -1187,4 +1202,3 @@ if __name__ == '__main__':
     app = SkedApp()
     app.start()
     gtk.main()
-

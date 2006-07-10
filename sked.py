@@ -342,6 +342,7 @@ class SkedApp(interface.BaseDialog):
             'on_cmd_ft_search'   : self._on_cmd_ft_search,
             'on_cmd_goto'        : self._on_cmd_goto,
             'on_cmd_gsearch'     : self._on_cmd_gsearch,
+            'on_cmd_gsearch_mn'  : self._on_cmd_gsearch_mn,
             'on_cmd_gsearch_tg'  : self._on_cmd_gsearch_tg,
             'on_cmd_header1'     : self._on_cmd_header1,
             'on_cmd_header2'     : self._on_cmd_header2,
@@ -566,6 +567,12 @@ class SkedApp(interface.BaseDialog):
         show_gsearch = self.tgGlobalSearch.get_active()
         self.bxGlobalSearch.set_property("visible", show_gsearch)
         self.opt.set_bool("show_gsearch", show_gsearch)
+        
+    def _on_cmd_gsearch_mn(self, widget = None, data = None):
+        if self.tgGlobalSearch.get_active() == False:
+            self.tgGlobalSearch.set_active(True)
+        #self.tgHistory.set_active(False)
+        self.txGlobalSearch.grab_focus()
         
     def _on_cmd_gsearch(self, widget = None, data = None):
         ## Big, ugly and sloooooooow! Optimization needed!!

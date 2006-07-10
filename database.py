@@ -33,8 +33,9 @@ import shutil
 import utils
 
 from Crypto.Cipher import AES
-from Crypto.Hash import MD5     # Alias for md5.md5
+import md5 as MD5
 from Crypto.Util.randpool import RandomPool
+from Crypto.Hash import SHA256
 
 
 class AccessDeniedError(Exception):
@@ -158,7 +159,7 @@ class EncryptedDatabase(object):
 
     def __init__(self, path):
         self._ready = False
-        self._rnd = RandomPool()
+        self._rnd = RandomPool(hash=SHA256)
         self._db = FileSystemDatabase(path)
 
     def is_new(self):

@@ -51,23 +51,28 @@ def importdb():
     db = database.EncryptedDatabase(path)
     if db.is_new():
         dlg = interface.NewPasswordDialog()
-        dlg.set_title("Importing Data - Sked")
-        dlg.set_text("Enter a password for the new database")
-        dlg.run()
-        dlg.destroy()
-        pwd = dlg.get_new_password()
+        dlg.set_title("Sked - Importing database")
+        dlg.set_text("You are using this program for the first time. "
+            "Please enter a password to lock the database")
+        pwd = dlg.run()
         if pwd:
             db.set_password(pwd)
     else:
         pwd = u""
+        firstime = True
         while not db.try_password(pwd):
+            if not firstime:
+                alert = gtk.MessageDialog(None, gtk.DIALOG_MODAL,
+                    gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                    "Wrong password. Please try again.")
+                alert.run()
+                alert.destroy()
             dlg = interface.PasswordDialog()
-            dlg.set_title("Importing Data - Sked")
-            dlg.set_text("The new database already exists. Enter the password.")
-            dlg.run()
-            dlg.destroy()
-            pwd = dlg.get_password()
-            if not pwd:
+            firstime = False
+            dlg.set_title("Sked - Password required")
+            dlg.set_text("The database is locked. Please enter the password.")
+            pwd = dlg.run()
+            if pwd == None:
                 break
     if db.is_ready():
         for k in idb:
@@ -91,4 +96,3 @@ def importdb():
 if __name__ == "__main__":
     importdb()
     gtk.main()
-    

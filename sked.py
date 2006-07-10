@@ -362,6 +362,7 @@ class SkedApp(interface.BaseDialog):
             'on_cmd_paste'       : self._on_cmd_paste,
             'on_cmd_preferences' : self._on_cmd_preferences,
             'on_cmd_redo'        : self._on_cmd_redo,
+            'on_cmd_rename_page' : self._on_cmd_rename_page,
             'on_cmd_restore'     : self._on_cmd_restore,
             'on_cmd_search_menu' : self._on_cmd_search_menu,
             'on_cmd_search_mode' : self._on_cmd_search_mode,
@@ -721,6 +722,13 @@ class SkedApp(interface.BaseDialog):
             self.hl_change_page(ls[0])
             self.set_text(ls[1])
         self.format_text()
+
+    def _on_cmd_rename_page(self, widget = None, data = None):
+        ##TODO!
+        dlg = interface.RenamePageDialog(self)
+        page = dlg.run()
+        if page != None:
+            pass
 
     def _on_cmd_restore(self, widget = None, data = None):
         pass

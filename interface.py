@@ -434,8 +434,69 @@ class InsertPageTextDialog(BaseDialog):
                         "Page not found.")
                     alert.run()
                     alert.destroy()
-            if val == gtk.RESPONSE_CANCEL:
+            elif val == gtk.RESPONSE_CANCEL:
                 self.dlg.destroy()
                 self.history.save()
                 return None
         return None
+
+
+class RenamePageDialog(BaseDialog):
+    
+    def __init__(self, skapp):
+        self.app = skapp
+        self.parent = skapp.window
+        self.curpage = self.app.curpage
+        self.history = HistoryManager(self.app, u"rename_history", True)
+        self.hmodel = gtk.ListStore(gobject.TYPE_STRING)
+        self._load_interface()
+        self.page_name = None
+        self.create_redirect = False
+
+    def _load_interface(self):
+        self.glade_init("dlgRenamePage")
+        self.dlg = self.glade.get_widget("dlgRenamePage")
+        self.lbCurrentName = self.glade.get_widget("lbCurrentName")
+        self.cbCreateRedirect = self.glade.get_widget("cbCreateRedirect")
+        self.cbeNewName = self.glade.get_widget("cbeNewName")
+        self.txNewName = self.cbeNewName.child
+        self.cbeNewName.set_model(self.hmodel)
+        self.cbeNewName.set_text_column(0)
+
+    def run(self):
+        self.hmodel.clear()
+        for item in self.history.get_items():
+            self.hmodel.append([item])
+        self.lbCurrentName.set_text(self.curpage)
+        self.txNewName.set_text(self.curpage)
+        while True:
+            val = self.dlg.run()
+            if val == gtk.RESPONSE_OK:
+                page = self.txNewName.get_text().decode("utf-8")
+                pname = self.app.page_name(page).upper()
+                cname = self.app.page_name(self.curpage).upper()
+                if (not self.app.has_page(page)) or cname == pname:
+                    self.dlg.destroy()
+                    self.history.add(page)
+                    self.history.save()
+                    self.page_name = page
+                    self.create_redirect = self.cbCreateRedirect.get_active()
+                    return page
+                else:
+                    alert = gtk.MessageDialog(self.dlg,
+                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                        gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+                        "Page already exists.")
+                    alert.run()
+                    alert.destroy()
+            elif val == gtk.RESPONSE_CANCEL:
+                self.dlg.destroy()
+                self.history.save()
+                return None
+        return None
+        
+    def get_page_name(self):
+        return self.page_name
+        
+    def get_create_redirect(self):
+        return create_redirect

@@ -921,6 +921,7 @@ class SkedApp(interface.BaseDialog):
             imark = tmp_mark
         self.txBuffer.insert(self.txBuffer.get_iter_at_mark(imark), before)
         self.txBuffer.insert(self.txBuffer.get_iter_at_mark(smark), after)
+        self.format_text()
     
     def insert_text_cursor(self, text):
         imark = self.txBuffer.get_insert()
@@ -1052,7 +1053,7 @@ class SkedApp(interface.BaseDialog):
             self._apply_tag_on_group(match, style, 2)
             self._apply_tag_on_group(match, "format", 3)
 
-        url_re = ur"(([a-zA-Z]+://|www\.)[a-zA-Z0-9.,_/%#&?~=-]+)" # url
+        url_re = ur"(([a-zA-Z]+://|www\.)[a-zA-Z0-9.,_/%#&?~=:+-]+)" # url
         for match in re.finditer(url_re, tx):
             self._apply_tag_on_group(match, "url", 1)
 

@@ -36,6 +36,7 @@ class HistoryManager:
         self._unique = unique
         self._dbkey = dbkey
         self._db = None
+        self._model = None
         self._items = []
         if self._dbkey != None:
             self._db = skapp.db
@@ -45,6 +46,7 @@ class HistoryManager:
                     self._items = str.split(u"\n")
                 except:
                     pass
+        self._refresh_model()
 
     def save(self):
         self._trim()
@@ -61,6 +63,7 @@ class HistoryManager:
     
     def pop(self):
         return self._items.pop(0)
+        self._refresh_model()
 
     def add(self, item):
         if self._unique:
@@ -74,6 +77,22 @@ class HistoryManager:
 
     def sort(self):
         sort(self._items)
+        self._refresh_model()
+
+    def set_model(self, model):
+        """If a ListStore model is given, the HistoryHandler will synchronize
+        it automatically. This model MUST be a ListStore with only one string.
+            Ex. gtk.ListStore(gobject.TYPE_STRING)
+        """
+        self._model = model
+        self._refresh_model()
+        
+    def _refresh_model(self):
+        if self._model != None:
+            self._model.clear()
+            for item in self._items:
+                self._model.append([item])
 
     def _trim(self):
         self._items = self._items[:self._maxitems]
+        self._refresh_model()

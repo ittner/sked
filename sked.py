@@ -49,6 +49,7 @@ import pickle           # For options only
 import utils
 import database
 import interface
+from history import HistoryManager
 
 
 # Option manager ---------------------------------------------------------
@@ -179,9 +180,10 @@ class SkedApp(interface.BaseDialog):
             self.undol = []
             self.redol = []
             self.last_undo_cnt = 0;
-            self.history = ["index"]
             self.window_state = 0
+            self.history = HistoryManager(self, u"history", True)
             self.history_model = gtk.ListStore(gobject.TYPE_STRING)
+            self.history.set_model(self.history_model)
             self.gsearch_model = gtk.ListStore(gobject.TYPE_STRING)
             self.load_interface()
         #except Exception:
@@ -235,7 +237,6 @@ class SkedApp(interface.BaseDialog):
         self.curpage = None
         self.restore_window_geometry()
         self.update_options()
-        self.load_history()
         self._on_cmd_date_change()
         self._update_back_forward()
         self._update_undo_redo()
@@ -305,21 +306,10 @@ class SkedApp(interface.BaseDialog):
             st = gdk.WINDOW_STATE_MAXIMIZED | gdk.WINDOW_STATE_ICONIFIED
             self.window_state = event.new_window_state & st
         
-    def load_history(self):
-        hstr = self.db.get_key("history", "index")
-        self.history = hstr.split("\n")
-        self.history = self.history[-self.max_history:]
-        self.history_model.clear()
-        for item in self.history:
-            self.history_model.prepend([item])
-
-    def save_history(self):
-        self.db.set_key("history", "\n".join(self.history))
-
     def quit(self, widget = None, data = None):
         self.save_current_page()
-        self.save_history()
         self.save_window_geometry()
+        self.history.save()
         self.opt.save()
         self.window.destroy()
         gtk.main_quit()
@@ -844,18 +834,6 @@ class SkedApp(interface.BaseDialog):
         self.mnForward.set_sensitive(f)
         self.mnBack.set_sensitive(b)
     
-    def handle_history(self, page = None):
-        if page == None:
-            return
-        if page not in self.history:
-            self.history.append(page)
-            self.history_model.prepend([page])
-            if len(self.history) > self.max_history:
-                self.history = self.history[-self.max_history:]
-                self.history_model.clear()
-                for item in self.history:
-                    self.history_model.prepend([item])
-
     def _update_undo_redo(self):
         u = len(self.undol) > 0
         r = len(self.redol) > 0
@@ -1110,7 +1088,7 @@ class SkedApp(interface.BaseDialog):
             text = pair[1]
         else:
             text = ""
-        self.handle_history(page)
+        self.history.add(page)
         self.curpage = page
         self.txPageName.set_text(self.curpage)
         self.set_text(text)

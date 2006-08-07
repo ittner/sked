@@ -74,6 +74,7 @@ class HistoryManager:
                     break
         self._items.insert(0, item)
         self._trim()
+        self._refresh_model()
 
     def sort(self):
         sort(self._items)
@@ -95,4 +96,3 @@ class HistoryManager:
 
     def _trim(self):
         self._items = self._items[:self._maxitems]
-        self._refresh_model()

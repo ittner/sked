@@ -376,7 +376,8 @@ class SkedApp(interface.BaseDialog):
         self.btCut = self.glade.get_widget("btCut")
         self.btPaste = self.glade.get_widget("btPaste")
         self.btDelete = self.glade.get_widget("btDelete")
-        self.txPageName = self.glade.get_widget("txPageName")
+        self.cbPageName = self.glade.get_widget("cbPageName")
+        self.txPageName = self.cbPageName.child
         self.btBack = self.glade.get_widget("btBack")
         self.btForward = self.glade.get_widget("btForward")
         self.mnBack = self.glade.get_widget("mnBack")
@@ -404,6 +405,9 @@ class SkedApp(interface.BaseDialog):
             self.spell = gtkspell.Spell(self.txNote)
         else:
             self.spell = None
+
+        self.cbPageName.set_model(self.history_model)
+        self.cbPageName.set_text_column(0)
 
         self.lsHistory = self.glade.get_widget("lsHistory")
         self.lsHistory.set_model(self.history_model)

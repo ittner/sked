@@ -20,11 +20,12 @@
 #
 
 """
-XML data importer for Sked.
+XML data importer/exporter for Sked.
 $Id$
 """
 
 from xml.sax.handler import ContentHandler
+from xml.sax import saxutils
 
 
 class VersionError(Exception):
@@ -91,3 +92,53 @@ class SkedDocumentHandler(ContentHandler):
 
     def get_state(self):
         return self._state
+
+
+
+class XMLExporter(object):
+    """Exports Sked databases as XML data to streams. By now, only text entries
+    are supported."""
+    
+    def __init__(self, db, fp):
+        """Creates a new data exporter. 'db' is a Sked database and 'fp' is 
+        some file handler."""
+        
+        self._db = db
+        self._fp = fp
+
+
+    def write_all(self, prefix, callback = None):
+        """Writes all entries begining with 'prefix' to the output. 'callback'
+        is called for each written entry with no arguments. """
+        
+        self._fp.write('<?xml version="1.0" encoding="utf-8"?>\n' \
+                       '<!DOCTYPE skeddata SYSTEM "sked.dtd">\n'  \
+                       '<skeddata version="1.0">\n')
+        
+        plen = len(prefix)
+        for tmp in self._db.pairs():
+            if tmp[0].startswith(prefix):
+                name = tmp[0][plen:]
+                self._fp.write(" <entry name=%s>%s</entry>\n" % (\
+                    saxutils.quoteattr(name).encode("utf-8"), \
+                    saxutils.escape(tmp[1]).encode("utf-8")))
+                if callback != None: callback()
+
+        self._fp.write("</skeddata>\n")
+
+
+
+class XMLFileExporter(XMLExporter):
+    """Exports Sked databases as XML files without compression or encryption.
+    """
+    
+    def __init__(self, db, fname):
+        """Creates a new data exporter. 'db' is a Sked database and 'fname' is 
+        the file wich will receive the data."""
+        
+        self._fname = fname
+        fp = open(fname, "w")
+        XMLExporter.__init__(self, db, fp)
+
+    def close(self):
+        self._fp.close()

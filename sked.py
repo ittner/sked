@@ -348,6 +348,7 @@ class SkedApp(interface.BaseDialog):
             'on_cmd_rename_page' : self._on_cmd_rename_page,
             'on_cmd_search_menu' : self._on_cmd_search_menu,
             'on_cmd_search_mode' : self._on_cmd_search_mode,
+            'on_cmd_sort_lines'  : self._on_cmd_sort_lines,
             'on_cmd_today'       : self._on_cmd_today,
             'on_cmd_tomorrow'    : self._on_cmd_tomorrow,
             'on_cmd_underline'   : self._on_cmd_underline,
@@ -706,7 +707,26 @@ class SkedApp(interface.BaseDialog):
                 elif fts:
                     if data.find(slist[0]) != -1:
                         self.gsearch_model.append([page])
-    
+
+    def _on_cmd_sort_lines(self, widget = None, data = None):
+        smark = self.txBuffer.get_selection_bound()
+        imark = self.txBuffer.get_insert()
+        iiter = self.txBuffer.get_iter_at_mark(imark)
+        siter = self.txBuffer.get_iter_at_mark(smark)
+        poff = iiter.compare(siter)     # Catapoff! ;)
+        if poff == 0:   # No selection.
+            return
+        elif poff > 0:  # Inverse selection? Let's put it in the right order.
+            tmp_iter = siter
+            siter = iiter
+            iiter = tmp_iter
+        text = self.txBuffer.get_text(siter, iiter).decode("utf-8")
+        arr = text.split(u"\n")
+        arr.sort()
+        text = u"\n".join(arr)
+        self.txBuffer.delete(siter, iiter)
+        self.txBuffer.insert(siter, text)
+        self.format_text()
     
     def _on_cmd_goto(self, widget = None, data = None):
         self.hl_change_page(self.txPageName.get_text().decode("utf-8"))

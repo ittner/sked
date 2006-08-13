@@ -501,14 +501,22 @@ class RenamePageDialog(BaseDialog):
         
     def get_create_redirect(self):
         return create_redirect
-        
 
-def confirm_file_overwrite(parent_window, fpath):
-    fdir, fname = os.path.split(fpath)
+
+def confirm_yes_no(parent_window, msg):
+    """A simple Yes/No message box.
+    """
     dlg = gtk.MessageDialog(parent_window,
         gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-        gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
-        u"The file " + fname + u" already exists. Do you want to replace it?")
+        gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, msg)
     ret = dlg.run()
     dlg.destroy()
     return ret == gtk.RESPONSE_YES
+
+
+def confirm_file_overwrite(parent_window, fpath):
+    """A simple "Do you want to overwrite" message box.
+    """
+    fdir, fname = os.path.split(fpath)
+    return confirm_yes_no(parent_window, u"The file " + fname + \
+        u" already exists. Do you want to replace it?")

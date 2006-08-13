@@ -481,7 +481,54 @@ class SkedApp(interface.BaseDialog):
         # Done.
         
     def _on_cmd_import(self, widget = None, data = None):
-        pass
+        # Should be in another class?
+        dlg = gtk.FileChooserDialog("Import data", None,
+            gtk.FILE_CHOOSER_ACTION_OPEN,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+            gtk.STOCK_OK, gtk.RESPONSE_OK))
+
+        dlg.set_default_response(gtk.RESPONSE_OK)
+        dlg.set_current_folder(self.opt.get_str("last_directory"))
+        
+        filter = gtk.FileFilter()
+        filter.set_name("Non-encrypted XML files")
+        filter.add_pattern("*.xml")
+        dlg.add_filter(filter)
+       
+        # Add support for compressed XML files here.
+        fname = None
+        while True:
+            ret = dlg.run()
+            if ret == gtk.RESPONSE_OK:
+                fname = dlg.get_filename()
+                self.opt.set_str("last_directory", dlg.get_current_folder())
+                dlg.destroy()
+                break
+            else:
+                dlg.destroy()
+                return
+
+        if not interface.confirm_yes_no(self.window, u"Entries loaded from " \
+            "the file will replace entries with the same name on database. " \
+            "Do you want to proceed?"):
+            return
+        try:
+            xmlio.import_xml_file(self.db, fname)
+            # Reload current page (it can be replaced after importing).
+            page = self.normalize_date_page_name(self.curpage)
+            pair = self.db.get_pair(self.page_name(page), None)
+            if pair:
+                page = pair[0][4:]  # pag_pageName
+                text = pair[1]
+                self.curpage = page
+                self.txPageName.set_text(self.curpage)
+                self.set_text(text)
+                self.format_text()
+        except:
+            interface.error_dialog(dlg, u"Failed to read the file. Please " \
+                "check if the XML file is well formed and if you have " \
+                "sufficient access rights.")
+        # Done.
 
     def _on_cmd_bold(self, widget = None, data = None):
         self.insert_formatting("*", "*")

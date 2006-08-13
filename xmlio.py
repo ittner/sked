@@ -24,8 +24,9 @@ XML data importer/exporter for Sked.
 $Id$
 """
 
-from xml.sax.handler import ContentHandler
+from xml import sax
 from xml.sax import saxutils
+from xml.sax.handler import ContentHandler
 
 
 class VersionError(Exception):
@@ -41,7 +42,7 @@ class SkedContentHandler(ContentHandler):
     READY = 0
     WAITING_SKEDDATA = 1
     WAITING_ENTRY = 2
-    WAITING_TEXT = 3
+    WAITING_DATA = 3
     DONE = 4
 
     def __init__(self, db, callback = None):
@@ -54,7 +55,7 @@ class SkedContentHandler(ContentHandler):
         
     def endDocument(self):
         if self._state == SkedContentHandler.DONE:
-            self._db.sync()
+            return
         else:
             raise PrematureDocumentEndError
 
@@ -84,13 +85,11 @@ class SkedContentHandler(ContentHandler):
         and name == "skeddata":
             self._state = SkedContentHandler.DONE
         else:
-            raise FormatError
+            raise DataFormatError
 
-    def characters(self, chrs, offset, length):
+    def characters(self, data):
         if self._state == SkedContentHandler.WAITING_DATA:
-            self._pagedata = self._pagedata + chrs[offset:offset+length]
-        else:
-            raise FormatError
+            self._pagedata = self._pagedata + data
 
     def get_state(self):
         return self._state

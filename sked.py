@@ -189,11 +189,8 @@ class SkedApp(interface.BaseDialog):
             self.gsearch_model = gtk.ListStore(gobject.TYPE_STRING)
             self.load_interface()
         #except Exception:
-        #    alert = gtk.MessageDialog(None,
-        #        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-        #        gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
-        #       "An initialization error has occurred. Namárië.")
-        #    alert.run()
+        #    interface.error_dialog(None, \
+        #        u"An initialization error has occurred. Namárië.")
         #    self.quit()
             
     def start_database(self):
@@ -212,11 +209,8 @@ class SkedApp(interface.BaseDialog):
             firstime = True
             while not db.try_password(pwd):
                 if not firstime:
-                    alert = gtk.MessageDialog(None, gtk.DIALOG_MODAL,
-                        gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-                        "Wrong password. Please try again.")
-                    alert.run()
-                    alert.destroy()
+                    interface.error_dialog(None, \
+                        u"Wrong password. Please try again.")
                 dlg = interface.PasswordDialog()
                 firstime = False
                 dlg.set_title("Sked - Password required")
@@ -228,11 +222,7 @@ class SkedApp(interface.BaseDialog):
             self.db = db
             self.dbpath = path
         else:
-            alert = gtk.MessageDialog(None, gtk.DIALOG_MODAL,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-                "Can't open the database. Namárie.")
-            alert.run()
-            alert.destroy()
+            interface.error_dialog(None, u"Can't open the database. Namárië.")
             self.quit()
     
     def start(self):
@@ -523,13 +513,9 @@ class SkedApp(interface.BaseDialog):
         self.reset_timers()
         page = self.curpage
         if page == None: return
-        confirm = gtk.MessageDialog(self.window,
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-            gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
-            "Delete the page \"" + page + "\" forever?")
-        bt = confirm.run()
-        confirm.destroy()
-        if bt == gtk.RESPONSE_YES:
+        ret = interface.confirm_yes_no(self.window, \
+            u"Delete the page \"" + page + u"\" forever?")
+        if ret:
             self.enqueue_undo()
             if len(self.backl) > 0:
                 lastpage = self.backl.pop()
@@ -621,20 +607,12 @@ class SkedApp(interface.BaseDialog):
             mode = SkedApp.EXACT_PHRASE
             slist = [ text ]
         else:
-            alert = gtk.MessageDialog(self.window,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+            interface.error_dialog(self.window, \
                 "You must select a search mode.")
-            alert.run()
-            alert.destroy()
             return
         if len(slist) == 0 or slist[0] == "":
-            alert = gtk.MessageDialog(self.window,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
+            interface.error_dialog(self.window, \
                 "You must supply a search string.")
-            alert.run()
-            alert.destroy()
             return
         fts = self.mnFullText.get_active()
         self.gsearch_model.clear()

@@ -284,12 +284,7 @@ class BasePasswordChangeDialog(BasePasswordDialog):
         if new == None or conf == None:
             return None
         elif new != conf:
-            alert = gtk.MessageDialog(self.dlg,
-                gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-                "The passwords does not match.")
-            alert.run()
-            alert.destroy()
+            error_dialog(self.dlg, u"The passwords does not match.")
             return None
         else:
             return new
@@ -385,12 +380,8 @@ class PasswordChangeDialog(BasePasswordChangeDialog):
                         self.dlg.destroy()
                         return newpwd
                     else:
-                        alert = gtk.MessageDialog(self.dlg,
-                            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                            gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-                            "Wrong password. Please try again.")
-                        alert.run()
-                        alert.destroy()
+                        error_dialog(self.dlg, \
+                            u"Wrong password. Please try again.")
             elif val == gtk.RESPONSE_CANCEL:
                 self.password = None
                 self.newpassword = None
@@ -429,12 +420,7 @@ class InsertPageTextDialog(BaseDialog):
                     self.history.save()
                     return page
                 else:
-                    alert = gtk.MessageDialog(self.dlg,
-                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                        gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-                        "Page not found.")
-                    alert.run()
-                    alert.destroy()
+                    error_dialog(self.dlg, u"Page not found.")
             elif val == gtk.RESPONSE_CANCEL:
                 self.dlg.destroy()
                 self.history.save()
@@ -484,12 +470,7 @@ class RenamePageDialog(BaseDialog):
                     self.create_redirect = self.cbCreateRedirect.get_active()
                     return page
                 else:
-                    alert = gtk.MessageDialog(self.dlg,
-                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                        gtk.MESSAGE_ERROR, gtk.BUTTONS_OK,
-                        "Page already exists.")
-                    alert.run()
-                    alert.destroy()
+                    error_dialog(self.dlg, u"Page already exists.")
             elif val == gtk.RESPONSE_CANCEL:
                 self.dlg.destroy()
                 self.history.save()
@@ -520,3 +501,13 @@ def confirm_file_overwrite(parent_window, fpath):
     fdir, fname = os.path.split(fpath)
     return confirm_yes_no(parent_window, u"The file " + fname + \
         u" already exists. Do you want to replace it?")
+
+
+def error_dialog(parent_window, msg):
+    """A simple error dialog box.
+    """
+    dlg = gtk.MessageDialog(parent_window,
+        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+        gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, msg)
+    dlg.run()
+    dlg.destroy()

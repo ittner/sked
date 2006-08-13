@@ -455,22 +455,26 @@ class SkedApp(interface.BaseDialog):
         while True:
             ret = dlg.run()
             if ret == gtk.RESPONSE_OK:
-                self.opt.set_str("last_directory", dlg.get_current_folder())
                 fname = dlg.get_filename()
                 prename, ext = os.path.splitext(fname)
                 if ext == "":
                     fname = fname + ".xml"
-                if not os.path.exists(fname):
-                    dlg.destroy()
-                    break
-                elif interface.confirm_file_overwrite(dlg, fname):
-                    dlg.destroy()
-                    break
+                if os.path.exists(fname):
+                    if not interface.confirm_file_overwrite(dlg, fname):
+                        continue
+                self.opt.set_str("last_directory", dlg.get_current_folder())
+                dlg.destroy()
+                break
             else:
                 dlg.destroy()
                 return
-        xmlio.export_xml_file(self.db, fname, u"pag_")
-        # Done.    
+        try:
+            xmlio.export_xml_file(self.db, fname, u"pag_")
+        except:
+            interface.error_dialog(dlg, u"Failed to write the file. Please "
+                "check if the file is not being used and if you have "
+                "sufficient access rights.")
+        # Done.
         
     def _on_cmd_import(self, widget = None, data = None):
         pass

@@ -35,6 +35,7 @@ import re
 
 from history import HistoryManager
 import utils
+import os.path
 
 
 class BaseDialog(object):
@@ -500,3 +501,14 @@ class RenamePageDialog(BaseDialog):
         
     def get_create_redirect(self):
         return create_redirect
+        
+
+def confirm_file_overwrite(parent_window, fpath):
+    fdir, fname = os.path.split(fpath)
+    dlg = gtk.MessageDialog(parent_window,
+        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+        gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO,
+        u"The file " + fname + u" already exists. Do you want to replace it?")
+    ret = dlg.run()
+    dlg.destroy()
+    return ret == gtk.RESPONSE_YES

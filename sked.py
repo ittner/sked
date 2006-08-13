@@ -49,6 +49,7 @@ import pickle           # For options only
 import utils
 import database
 import interface
+import xmlio
 from history import HistoryManager
 
 
@@ -166,7 +167,8 @@ class SkedApp(interface.BaseDialog):
         "show_calendar" : True,
         "show_history"  : True,
         "show_gsearch"  : False,
-        "max_history"   : 50
+        "max_history"   : 50,
+        "last_directory": "."
     }
 
     def __init__(self):
@@ -319,7 +321,6 @@ class SkedApp(interface.BaseDialog):
         self.glade.signal_autoconnect({
             'on_cmd_about'       : self._on_cmd_about,
             'on_cmd_back'        : self._on_cmd_back,
-            'on_cmd_backup'      : self._on_cmd_backup,
             'on_cmd_bold'        : self._on_cmd_bold,
             'on_cmd_calendar_tg' : self._on_cmd_calendar_tg,
             'on_cmd_change_pwd'  : self._on_cmd_change_pwd,
@@ -328,6 +329,7 @@ class SkedApp(interface.BaseDialog):
             'on_cmd_cut'         : self._on_cmd_cut,
             'on_cmd_delete'      : self._on_cmd_delete,
             'on_cmd_exit'        : self._on_cmd_exit,
+            'on_cmd_export'      : self._on_cmd_export,
             'on_cmd_forward'     : self._on_cmd_forward,
             'on_cmd_ft_search'   : self._on_cmd_ft_search,
             'on_cmd_goto'        : self._on_cmd_goto,
@@ -341,6 +343,7 @@ class SkedApp(interface.BaseDialog):
             'on_cmd_history_go'  : self._on_cmd_listbox_go,
             'on_cmd_history_tg'  : self._on_cmd_history_tg,
             'on_cmd_home'        : self._on_cmd_home,
+            'on_cmd_import'      : self._on_cmd_import,
             'on_cmd_insert_page' : self._on_cmd_insert_page,  
             'on_cmd_italic'      : self._on_cmd_italic,
             'on_cmd_link'        : self._on_cmd_link,
@@ -353,7 +356,6 @@ class SkedApp(interface.BaseDialog):
             'on_cmd_preferences' : self._on_cmd_preferences,
             'on_cmd_redo'        : self._on_cmd_redo,
             'on_cmd_rename_page' : self._on_cmd_rename_page,
-            'on_cmd_restore'     : self._on_cmd_restore,
             'on_cmd_search_menu' : self._on_cmd_search_menu,
             'on_cmd_search_mode' : self._on_cmd_search_mode,
             'on_cmd_today'       : self._on_cmd_today,
@@ -444,9 +446,45 @@ class SkedApp(interface.BaseDialog):
         abt = interface.AboutDialog(self.window)
         abt.show()
         
-    def _on_cmd_backup(self, widget = None, data = None):
-        pass
+    def _on_cmd_export(self, widget = None, data = None):
+        # Should be in another class?
+        dlg = gtk.FileChooserDialog("Export data", None,
+            gtk.FILE_CHOOSER_ACTION_SAVE,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+            gtk.STOCK_OK, gtk.RESPONSE_OK))
+            
+        dlg.set_default_response(gtk.RESPONSE_OK)
+        dlg.set_current_folder(self.opt.get_str("last_directory"))
         
+        filter = gtk.FileFilter()
+        filter.set_name("XML files")
+        filter.add_pattern("*.xml")
+        dlg.add_filter(filter)
+       
+        # Add support for compressed XML files here.
+        while True:
+            ret = dlg.run()
+            if ret == gtk.RESPONSE_OK:
+                self.opt.set_str("last_directory", dlg.get_current_folder())
+                fname = dlg.get_filename()
+                prename, ext = os.path.splitext(fname)
+                if ext == "":
+                    fname = fname + ".xml"
+                if not os.path.exists(fname):
+                    dlg.destroy()
+                    break
+                elif interface.confirm_file_overwrite(dlg, fname):
+                    dlg.destroy()
+                    break
+            else:
+                dlg.destroy()
+                return
+        xmlio.export_xml_file(self.db, fname, u"pag_")
+        # Done.    
+        
+    def _on_cmd_import(self, widget = None, data = None):
+        pass
+
     def _on_cmd_bold(self, widget = None, data = None):
         self.insert_formatting("*", "*")
 
@@ -723,9 +761,6 @@ class SkedApp(interface.BaseDialog):
         page = dlg.run()
         if page != None:
             pass
-
-    def _on_cmd_restore(self, widget = None, data = None):
-        pass
 
     def _on_cmd_search_menu(self, widget = None, event = None):
         self.mnSearchOptions.popup(None, None, None, 0, 0)

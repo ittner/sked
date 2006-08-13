@@ -447,7 +447,7 @@ class SkedApp(interface.BaseDialog):
         dlg.set_current_folder(self.opt.get_str("last_directory"))
         
         filter = gtk.FileFilter()
-        filter.set_name("XML files")
+        filter.set_name("Non-encrypted XML files")
         filter.add_pattern("*.xml")
         dlg.add_filter(filter)
        
@@ -468,11 +468,15 @@ class SkedApp(interface.BaseDialog):
             else:
                 dlg.destroy()
                 return
+
+        if not interface.confirm_yes_no(self.window, u"The database will " \
+            "be exported without encryption. Do you want to proceed?"):
+            return
         try:
             xmlio.export_xml_file(self.db, fname, u"pag_")
         except:
-            interface.error_dialog(dlg, u"Failed to write the file. Please "
-                "check if the file is not being used and if you have "
+            interface.error_dialog(dlg, u"Failed to write the file. Please " \
+                "check if the file is not being used and if you have " \
                 "sufficient access rights.")
         # Done.
         

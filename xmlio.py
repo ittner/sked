@@ -37,55 +37,57 @@ class DataFormatError(Exception):
 class PrematureDocumentEndError(Exception):
     pass
 
-class SkedDocumentHandler(ContentHandler):
+class SkedContentHandler(ContentHandler):
     READY = 0
     WAITING_SKEDDATA = 1
     WAITING_ENTRY = 2
     WAITING_TEXT = 3
     DONE = 4
 
-    def __init__(self, fd, db):
-        self._fd = fd
+    def __init__(self, db, callback = None):
         self._db = db
-        self._state = SkedDocumentHandler.READY
+        self._state = SkedContentHandler.READY
+        self._callback = callback
         
     def startDocument(self):
-        self._state = SkedDocumentHandler.WAITING_SKEDDATA
+        self._state = SkedContentHandler.WAITING_SKEDDATA
         
     def endDocument(self):
-        if self._state == SkedDocumentHandler.DONE:
+        if self._state == SkedContentHandler.DONE:
             self._db.sync()
         else:
             raise PrematureDocumentEndError
 
     def startElement(self, name, attrs):
-        if self._state == SkedDocumentHandler.WAITING_SKEDDATA \
+        if self._state == SkedContentHandler.WAITING_SKEDDATA \
         and name == "skeddata":
             ver = attrs.get("version")
             if ver != "1.0":
                 raise VersionError
-            self._state = SkedDocumentHandler.WAITING_ENTRY
-        elif self._state == SkedDocumentHandler.WAITING_ENTRY \
+            self._state = SkedContentHandler.WAITING_ENTRY
+        elif self._state == SkedContentHandler.WAITING_ENTRY \
         and name == "entry":
             self._pagename = attrs.get("name")
             self._pagedata = ""
-            self._state = SkedDocumentHandler.WAITING_DATA
+            self._state = SkedContentHandler.WAITING_DATA
         else:
             raise DataFormatError
 
     def endElement(self, name):
-        if self._state == SkedDocumentHandler.WAITING_DATA \
+        if self._state == SkedContentHandler.WAITING_DATA \
         and name == "entry":
             self._db.set_key("pag_" + self._pagename, self._pagedata)
-            self._state = SkedDocumentHandler.WAITING_ENTRY
-        elif self._state == SkedDocumentHandler.WAITING_ENTRY \
+            self._state = SkedContentHandler.WAITING_ENTRY
+            if self._callback:
+                SkedContentHandler._callback()
+        elif self._state == SkedContentHandler.WAITING_ENTRY \
         and name == "skeddata":
-            self._state = SkedDocumentHandler.DONE
+            self._state = SkedContentHandler.DONE
         else:
             raise FormatError
 
     def characters(self, chrs, offset, length):
-        if self._state == SkedDocumentHandler.WAITING_DATA:
+        if self._state == SkedContentHandler.WAITING_DATA:
             self._pagedata = self._pagedata + chrs[offset:offset+length]
         else:
             raise FormatError
@@ -93,6 +95,23 @@ class SkedDocumentHandler(ContentHandler):
     def get_state(self):
         return self._state
 
+
+def import_xml_data(db, fp, callback = None):
+    """ Import XML data from a stream 'fp' into the database 'db'. 'callback'
+    will be called for each entry imported. """
+
+    parser = sax.make_parser()
+    handler = SkedContentHandler(db, callback)
+    sax.parse(fp, handler)
+
+
+def import_xml_file(db, fname, callback = None):
+    """ Import XML data from a file 'fname' into the database 'db'. 'callback'
+    will be called for each entry imported. """
+    
+    fp = open(fname, "rb")
+    import_xml_data(db, fp, callback)
+    fp.close()
 
 
 class XMLExporter(object):
@@ -105,7 +124,6 @@ class XMLExporter(object):
         
         self._db = db
         self._fp = fp
-
 
     def write_all(self, prefix, callback = None):
         """Writes all entries begining with 'prefix' to the output. 'callback'
@@ -127,18 +145,13 @@ class XMLExporter(object):
         self._fp.write("</skeddata>\n")
 
 
-
-class XMLFileExporter(XMLExporter):
-    """Exports Sked databases as XML files without compression or encryption.
+def export_xml_file(db, fname, prefix, callback = None):
+    """Exports the entries begining with 'prefix' from the database 'db' to
+    the file named 'fname' with no compression or encryption. For each entry
+    exported, 'callback' will be called with no arguments.
     """
-    
-    def __init__(self, db, fname):
-        """Creates a new data exporter. 'db' is a Sked database and 'fname' is 
-        the file wich will receive the data."""
-        
-        self._fname = fname
-        fp = open(fname, "w")
-        XMLExporter.__init__(self, db, fp)
 
-    def close(self):
-        self._fp.close()
+    fp = open(fname, "w")
+    exp = XMLExporter(db, fp)
+    exp.write_all(prefix, callback)
+    fp.close()

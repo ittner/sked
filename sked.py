@@ -168,7 +168,7 @@ class SkedApp(interface.BaseDialog):
         "show_history"  : True,
         "show_gsearch"  : False,
         "max_history"   : 50,
-        "last_directory": "."
+        "last_directory": utils.get_home_dir()
     }
 
     def __init__(self):
@@ -516,15 +516,7 @@ class SkedApp(interface.BaseDialog):
         try:
             xmlio.import_xml_file(self.db, fname)
             # Reload current page (it can be replaced after importing).
-            page = self.normalize_date_page_name(self.curpage)
-            pair = self.db.get_pair(self.page_name(page), None)
-            if pair:
-                page = pair[0][4:]  # pag_pageName
-                text = pair[1]
-                self.curpage = page
-                self.txPageName.set_text(self.curpage)
-                self.set_text(text)
-                self.format_text()
+            self.reload_current_page()
         except:
             interface.error_dialog(dlg, u"Failed to read the file. Please " \
                 "check if the XML file is well formed and if you have " \
@@ -1194,6 +1186,18 @@ class SkedApp(interface.BaseDialog):
                 self.db.set_key(self.page_name(self.curpage), tx)
             else:
                 self.db.del_key(self.page_name(self.curpage))
+
+    def reload_current_page(self):
+        """ Reloads current page from DB.  Changes will be discarted. """
+        page = self.normalize_date_page_name(self.curpage)
+        pair = self.db.get_pair(self.page_name(page), None)
+        if pair:
+            page = pair[0][4:]  # pag_pageName
+            text = pair[1]
+            self.curpage = page
+            self.txPageName.set_text(self.curpage)
+            self.set_text(text)
+            self.format_text()
 
     def change_page_link(self, page):
         self.reset_timers()

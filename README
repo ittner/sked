@@ -1,0 +1,82 @@
+Sked -- The wikish scheduler
+(c) 2006 Alexandre Erwin Ittner - aittner@netuno.com.br
+
+
+This is the first public release of Sked. This is a development release only
+and NOT intended for the final user.
+
+
+ABOUT
+
+Sked is a personal calendar/scheduler that uses a wiki-like syntax for text
+formatting and organization. Entries can have topics, links, style formatting,
+etc. Unicode is used natively, so, the program can be used with any language.
+
+The wiki code is NOT hidden from the editing interface -- it makes editing
+easy, and avoids the edit/view/edit cycle. Also, text are saved automatically.
+A delay is given before the text formatting, so, its appearence will not
+change while the user is typing.
+
+The application is written in the Python language, usign the GTK+ toolkit
+(with PyGTK and Glade) for user interface. Although primarily designed for
+X11 (Unix/Linux/*BSD/etc.) desktops, the application is portable for Win32
+and MacOS systems.
+
+Information is stored in a on-disk, flat-file database. To protect user
+information and avoid unauthorized access to private/confidential data, the
+database is encrypted with AES, using 128-bit keys derived from a
+user-provided passphrase through MD5 ("string to key", S2K).  GZIP compression
+is used to reduce the database size and spoil know-text cryptanalysis. The
+PyCrypto library is used for all encryption-related functions.
+
+
+SECURITY WARNING
+
+The current database implementation leaks a lot of useful information for
+cryptanalisys. Don't trust it yet! The leaked information includes:
+
+  * The total numbers of database entries;
+  * The approximated length of all entries;
+  * The modification time of all entries. It's critical since "history", 
+    "options", etc. will always be the last modified ones, in a know order,
+    which may lead to cryptanalytic attacks.
+
+Also, the database wastes disk space due to clustering.
+
+
+
+REQUIREMENTS
+
+  * Python >= 2.4
+  * PyGTK+ >= 2.8
+  * PyCrypto >= 2.0
+
+
+TO DO
+
+  * Implement a decent encrypted database.
+  * Fix the GUI (better dialogs/windows, toolbars, etc.)
+  * Better code organization.
+  * Better search system.
+  * Printing.
+  * HTML exporting.
+  * etc.
+
+
+WIKI SYNTAX TIPS
+
+  === Header 1 ===
+  == Header 2 ==
+  = Header 3 =
+
+  *bold*
+  _underline_
+  //italic//
+  [[Link]]
+  ||| Preformated text |||
+
+  Notes:
+    * Dates in the formats DD/MM/YYYY and YYYY-MM-DD reconized automatically.
+    * No other text are allowed in the same line as the headers.
+
+

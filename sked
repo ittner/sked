@@ -1,0 +1,6 @@
+#!/bin/sh
+
+python /usr/local/share/sked/sked.py
+
+# Inutiliza os timestamps dos arquivos de dados.
+touch ~/.sked/*

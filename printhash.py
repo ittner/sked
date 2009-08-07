@@ -1,6 +1,6 @@
 #/usr/bin/env python
 
-# Sked. (c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>
+# Sked. (c) 2006-09 Alexandre Erwin Ittner <alexandre@ittner.com.br>
 # Distributed under the GNU GPL v2 or later. WITHOUT ANY WARRANTY.
 
 # Prints the hashes/IVs from Sked database entries as hexadecimal strings

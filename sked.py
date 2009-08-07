@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Sked - a wikish scheduler with Python and PyGTK
-# (c) 2006 Alexandre Erwin Ittner <aittner@netuno.com.br>
+# (c) 2006-09 Alexandre Erwin Ittner <alexandre@ittner.com.br>
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

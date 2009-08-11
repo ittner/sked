@@ -63,7 +63,15 @@ def make_key(pwd):
 
 
 class EncryptedDatabase(object):
+    """Implements a Sked secure database over a Berkeley DB4.x encrypted 
+    database. Key and data MUST be valid Unicode strings. The database
+    format is:
     
+    dbkey  = key.upper().encode("utf-8")
+    dbdata = pickle.dumps([ key, zlib.compress(data.encode("utf-8")) ], 2)
+    
+    """
+
     def __init__(self, path):
         self._db = None
         self._path = os.path.normpath(path)

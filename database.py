@@ -50,6 +50,17 @@ def _hash_sha256_str(sa, sb = ""):
     md.update(sb)
     return md.hexdigest()
 
+def _normalize_pwd(pwd):
+    return pwd.encode("utf-8")
+
+def make_key(pwd):
+    # Key strengthing to slow down dictionary based attacks.
+    npwd = _normalize_pwd(pwd)
+    enckey = _hash_sha256_str(npwd)
+    for i in range(1, 42):
+        enckey = _hash_sha256_str(npwd, enckey)
+    return enckey
+
 
 class EncryptedDatabase(object):
     
@@ -67,7 +78,7 @@ class EncryptedDatabase(object):
     def try_open(self, pwd):
         try:
             self._db = db.DB()
-            enckey = self._make_key(pwd)
+            enckey = make_key(pwd)
             self._db.set_encrypt(enckey, db.DB_ENCRYPT_AES)
             self._db.open(self._path, None, db.DB_HASH, db.DB_DIRTY_READ)
             self._set_pwd_hash(pwd)
@@ -79,7 +90,7 @@ class EncryptedDatabase(object):
     
     def create(self, pwd):
         self._db = db.DB()
-        enckey = self._make_key(pwd)
+        enckey = make_key(pwd)
         self._db.set_encrypt(enckey, db.DB_ENCRYPT_AES)
         self._db.open(self._path, None, db.DB_HASH, db.DB_CREATE)
         self._set_pwd_hash(pwd)
@@ -166,11 +177,8 @@ class EncryptedDatabase(object):
     def _make_db_key(self, key):
         return key.upper().encode("utf-8")
 
-    def _normalize_pwd(self, pwd):
-        return pwd.encode("utf-8")
-        
     def _make_pwd_hash(self, pwd):
-        return _hash_sha256_str(self._normalize_pwd(pwd))
+        return _hash_sha256_str(_normalize_pwd(pwd))
         
     def _set_pwd_hash(self, pwd):
         # We need this to change the password later. For security, we
@@ -178,10 +186,3 @@ class EncryptedDatabase(object):
         # in 'our' side of the Python VM)
         self._pwd_hash = self._make_pwd_hash(pwd)
 
-    def _make_key(self, pwd):
-        # Key strengthing to slow down dictionary based attacks.
-        npwd = self._normalize_pwd(pwd)
-        enckey = _hash_sha256_str(npwd)
-        for i in range(1, 42):
-            enckey = _hash_sha256_str(npwd, enckey)
-        return enckey

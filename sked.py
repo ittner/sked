@@ -536,7 +536,7 @@ class SkedApp(interface.BaseDialog):
         dlg = interface.PasswordChangeDialog(self.window, self.db.check_password)
         newpwd = dlg.run()
         if newpwd != None:
-            self.db.set_password(newpwd)
+            self.db.change_pwd(newpwd)
         
     def _on_cmd_code(self, widget = None, data = None):
         self.insert_formatting("|||", "|||")

@@ -84,14 +84,44 @@ class EncryptedDatabase(object):
         self._set_pwd_hash(pwd)
         self._ready = True
 
-    def change_pwd(self, oldpwd, newpwd):
-        # To do
-        return False    # Failed.
+    def change_pwd(self, newpwd):
+        # Creates a new database and re-encrypts everything
+        i = 0
+        newpath = self._path  + ".tmp"  # FIXME: Bad, very bad race condition
+        while os.path.exists(newpath):
+            newpath = self._path  + ".tmp" + str(i)
+            i = i + 1
+
+        newdb = db.DB()
+        newkey = self._make_key(newpwd)
+        newdb.set_encrypt(newkey, db.DB_ENCRYPT_AES)
+        newdb.open(newpath, None, db.DB_HASH, db.DB_CREATE)
+        
+        cursor = self._db.cursor()
+        rec = cursor.first()
+        while rec:
+            newdb.put(rec[0], rec[1])
+            rec = cursor.next()
+        
+        newdb.close()
+        self._db.close()
+
+        # DB4 provides its own rename. Why?        
+        os.rename(newpath, self._path)
+
+        self._db = db.DB()
+        self._pwd_hash = self._make_pwd_hash(newpwd)
+        self._db.set_encrypt(newkey, db.DB_ENCRYPT_AES)
+        self._db.open(self._path, None, db.DB_HASH, db.DB_DIRTY_READ)
+        return True
 
     def close(self):
         self._db.close()
         self._db = None
         self._ready = False
+
+    def check_password(self, pwd):
+        return self._pwd_hash == self._make_pwd_hash(pwd)
         
     def has_key(self, key):
         if not self._ready:
@@ -141,11 +171,14 @@ class EncryptedDatabase(object):
     def _normalize_pwd(self, pwd):
         return pwd.encode("utf-8")
         
+    def _make_pwd_hash(self, pwd):
+        return _hash_sha256_str(self._normalize_pwd(pwd))
+        
     def _set_pwd_hash(self, pwd):
         # We need this to change the password later. For security, we
         # won't keep it in plain text in the memory (or, at least, not
         # in 'our' side of the Python VM)
-        self._pwd_hash = _hash_sha256_str(self._normalize_pwd(pwd))        
+        self._pwd_hash = self._make_pwd_hash(pwd)
 
     def _make_key(self, pwd):
         # Key strengthing to slow down dictionary based attacks.

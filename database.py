@@ -159,7 +159,7 @@ class EncryptedDatabase(object):
         cursor = self._db.cursor()
         rec = cursor.first()
         while rec:
-            pair = cPickle.loads(self._db.get(rec[0]))
+            pair = cPickle.loads(rec[1])
             yield pair[0], zlib.decompress(pair[1]).decode("utf-8")
             rec = cursor.next()
 

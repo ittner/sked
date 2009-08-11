@@ -27,6 +27,7 @@ __CVSID__ = "$Id$"
 
 from bsddb import db
 import os
+import zlib
 import cPickle
 import hashlib
 
@@ -125,7 +126,8 @@ class EncryptedDatabase(object):
     def set_key(self, key, value):
         if not self._ready:
             raise NotReadyError
-        self._db.put(self._make_db_key(key), cPickle.dumps([key, value], 2))
+        cval = zlib.compress(value.encode("utf-8"))
+        self._db.put(self._make_db_key(key), cPickle.dumps([key, cval], 2))
 
     def get_key(self, key, default = None):
         ret = self.get_pair(key, None)
@@ -139,7 +141,9 @@ class EncryptedDatabase(object):
         try:
             spair = self._db.get(self._make_db_key(key))
             if spair != None:
-                return cPickle.loads(spair)
+                pair = cPickle.loads(spair)
+                pair[1] = zlib.decompress(pair[1]).decode("utf-8")
+                return pair
         except db.DBNotFoundError:
             pass
         return default
@@ -156,7 +160,7 @@ class EncryptedDatabase(object):
         rec = cursor.first()
         while rec:
             pair = cPickle.loads(self._db.get(rec[0]))
-            yield pair[0], pair[1]
+            yield pair[0], zlib.decompress(pair[1]).decode("utf-8")
             rec = cursor.next()
 
     def _make_db_key(self, key):

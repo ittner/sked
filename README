@@ -1,4 +1,4 @@
-Sked -- The wikish scheduler
+Sked -- The wikish scheduler - http://wikisked.sourceforge.net/
 (c) 2006-09 Alexandre Erwin Ittner - alexandre@ittner.com.br
 
 
@@ -7,55 +7,38 @@ This is an development snapshot and NOT intended for the final user yet.
 
 ABOUT
 
-Sked is a personal calendar that uses a wiki-like syntax for text formatting
-and organization. Entries can have topics, links, style formatting, etc.
-Unicode is used natively, so, the program can be used with any language.
+Sked is a personal organizer, calendar, schedule and braindump application
+with a wiki-like syntax for text formatting and organization. It's easier
+think of it as the result of the merge of a calendar with a desktop wiki.
 
-The wiki code is NOT hidden from the editing interface -- it makes editing
-easier and avoids the edit/view/edit cycle. Also text is saved automatically.
-A delay is given before the text formatting, so, its appearence will not
-change while the user is typing.
+Everything is tailored to speed up editing operations and ease the usage
+workflow: links and styles are unobtrusively inferred from the syntax,
+entries are automatically saved after a few seconds, almost all commands
+have keyboard shortcuts, and the last entries are kept in a history. Also,
+the wiki code is not hidden from the editing interface -- this makes editing
+easier, avoids the create/view/change cycle, and allows copy and pasting text
+among other applications without loss of information. A user-defined delay is
+given before the text reformatting, so, its appearance will not change while
+the user is typing.
 
-The application is written in the Python language, usign the GTK+ toolkit
-(with PyGTK and Glade) for the user interface. Although primarily designed
-for X desktops (Unix/Linux/*BSD/etc.), the application is portable and will
-run on Windows.
+All entries are stored in encrypted Berkeley DB4 database in the user's HOME
+directory. The encryption aims protect user information even from a skilled
+adversary (but I'm not a cryptologist and haven't done any extensive analysis
+of the DB4's crypto implementation -- it is a standard AES 128 bit). Users
+wanting a stronger security level should use full volume encryption for the
+$HOME directory (as I do).
 
-Information is stored in a on-disk, flat-file database. To protect user
-information and avoid unauthorized access to private/confidential data, the
-database is encrypted with AES using 128-bit keys derived from a 
-user-provided passphrase through MD5 ("string to key", S2K). GZIP compression
-is used to reduce the database size and spoil know-text cryptanalysis. The
-PyCrypto library is used for all encryption-related functions.
-
-
-SECURITY WARNING
-
-The current database implementation leaks a lot of information for
-cryptanalisys. Do not trust it yet -- it will keep curious eyes out of your 
-notes, but I don't think it will resist to a equipped adversary. The leaked
-information includes:
-
-  * The total numbers of database entries;
-  * The approximated length of all entries;
-  * The modification time of all entries. It is a critical point, since
-    "history", "options", etc. will always be the last modified ones, in a
-    know order, which may lead to cryptanalytic attacks.
-
-Also, the database wastes disk space due to filesystem clustering.
-
+As an extra, GZIP compression is used to shrink the database size.
 
 
 REQUIREMENTS
 
-  * Python >= 2.4
+  * Python >= 2.5
   * PyGTK+ >= 2.8
-  * PyCrypto >= 2.0
 
 
 TO DO
 
-  * Implement a decent encrypted database;
   * Fix the GUI (better dialogs/windows, toolbars, etc.);
   * Better code organization;
   * Better search system;
@@ -77,7 +60,8 @@ WIKI SYNTAX TIPS
   ||| Preformated text |||
 
   Notes:
-    * Dates in the formats DD/MM/YYYY and YYYY-MM-DD reconized automatically.
+    * URLs are parsed intelligently;
+    * Dates in the formats DD/MM/YYYY and YYYY-MM-DD recognized automatically;
     * No other text are allowed in the same line as the headers.
 
 

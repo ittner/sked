@@ -21,7 +21,7 @@
 #
 
 """
-Sked uses a key "strengthing algorithm" for is DB4 encryption passwords
+Sked uses a "key strengthing" algorithm for its DB4 encryption passwords
 that make key testing deliberately slow in order to spoil dictionary
 attacks. This application prints the generated keys for use with the 
 db4-utils suite (db4.x_dump, db4.x_verify, etc.).

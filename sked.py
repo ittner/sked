@@ -802,11 +802,16 @@ class SkedApp(interface.BaseDialog):
         self.format_text()
 
     def _on_cmd_rename_page(self, widget = None, data = None):
-        ##TODO!
         dlg = interface.RenamePageDialog(self)
-        page = dlg.run()
-        if page != None:
-            pass
+        newpage = dlg.run()
+        if newpage != None:
+            cpagename = self.page_name(self.curpage)
+            self.db.set_key(self.page_name(newpage), self.get_text())
+            self.hl_change_page(newpage)
+            if dlg.create_redirect:
+                self.db.set_key(cpagename, "Renamed to [[" + newpage + "]]\n")
+            else:
+                self.db.del_key(cpagename)
 
     def _on_cmd_search_menu(self, widget = None, event = None):
         self.mnSearchOptions.popup(None, None, None, 0, 0)

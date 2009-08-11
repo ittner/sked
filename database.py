@@ -92,15 +92,13 @@ class EncryptedDatabase(object):
             newpath = self._path  + ".tmp" + str(i)
             i = i + 1
 
-        newdb = db.DB()
-        newkey = self._make_key(newpwd)
-        newdb.set_encrypt(newkey, db.DB_ENCRYPT_AES)
-        newdb.open(newpath, None, db.DB_HASH, db.DB_CREATE)
+        newdb = EncryptedDatabase(newpath)
+        newdb.create(newpwd)
         
         cursor = self._db.cursor()
         rec = cursor.first()
         while rec:
-            newdb.put(rec[0], rec[1])
+            newdb._db.put(rec[0], rec[1])
             rec = cursor.next()
         
         newdb.close()
@@ -108,12 +106,8 @@ class EncryptedDatabase(object):
 
         # DB4 provides its own rename. Why?        
         os.rename(newpath, self._path)
+        return self.try_open(newpwd)
 
-        self._db = db.DB()
-        self._pwd_hash = self._make_pwd_hash(newpwd)
-        self._db.set_encrypt(newkey, db.DB_ENCRYPT_AES)
-        self._db.open(self._path, None, db.DB_HASH, db.DB_DIRTY_READ)
-        return True
 
     def close(self):
         self._db.close()

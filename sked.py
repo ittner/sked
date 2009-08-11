@@ -194,7 +194,7 @@ class SkedApp(interface.BaseDialog):
         #    self.quit()
             
     def start_database(self):
-        path = os.path.join(utils.get_home_dir(), ".sked")
+        path = os.path.join(utils.get_home_dir(), ".sked_db")
         db = database.EncryptedDatabase(path)
         if db.is_new():
             dlg = interface.NewPasswordDialog()
@@ -203,11 +203,11 @@ class SkedApp(interface.BaseDialog):
                 "Please enter a password to lock the database")
             pwd = dlg.run()
             if pwd != None:
-                db.set_password(pwd)
+                db.create(pwd)
         else:
             pwd = u""
             firstime = True
-            while not db.try_password(pwd):
+            while not db.try_open(pwd):
                 if not firstime:
                     interface.error_dialog(None, \
                         u"Wrong password. Please try again.")
@@ -304,6 +304,7 @@ class SkedApp(interface.BaseDialog):
         self.history.save()
         self.opt.save()
         self.window.destroy()
+        self.db.close()
         gtk.main_quit()
 
     def load_interface(self):

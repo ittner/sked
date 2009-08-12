@@ -35,6 +35,7 @@ import pango
 import os               # Operating system stuff
 import webbrowser       # System web browser
 import datetime         # Date validation
+import sys              # Paths, etc.
 
 
 def get_home_dir():
@@ -42,13 +43,11 @@ def get_home_dir():
 
 def search_share_path(fname):
     #TODO: Fix hardcoded paths.
-    prefixes = ['', 'usr/share/sked/', 'usr/local/share/sked/']
+    prefixes = ['data/', sys.prefix + '/share/sked/',
+        '/usr/local/share/sked/']
     for prefix in prefixes:
         if os.path.exists(prefix + fname):
             return prefix + fname;
-    for prefix in prefixes:
-        if os.path.exists('/' + prefix + fname):
-            return '/' + prefix + fname;
     return None
 
 def open_browser(url):

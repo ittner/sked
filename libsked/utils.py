@@ -29,13 +29,9 @@ pygtk.require('2.0')
 import gtk
 from gtk import glade
 from gtk import gdk
-import gobject
-import pango
 
-import os               # Operating system stuff
-import webbrowser       # System web browser
-import datetime         # Date validation
-import sys              # Paths, etc.
+import os
+import webbrowser
 
 
 def get_home_dir():

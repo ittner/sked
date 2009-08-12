@@ -223,7 +223,7 @@ class SkedApp(interface.BaseDialog):
             self.dbpath = path
         else:
             interface.error_dialog(None, u"Can't open the database. Namárië.")
-            self.quit()
+            exit()
     
     def start(self):
         self.curpage = None

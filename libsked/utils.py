@@ -56,7 +56,9 @@ def open_browser(url):
         msgbox.destroy()
 
 def rename_file(oldn, newn):
-    """ Renames a file. """
+    """Renames a file. It's an atomic operation on POSIX systems, thanks
+    to underlying rename() implementation. It does not happen in Windows,
+    so, we get a race condition."""
     if os.name == 'nt' and os.path.exists(oldn):
         # Windows don't allow us to atomically rename files.
         try:

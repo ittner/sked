@@ -124,8 +124,9 @@ class EncryptedDatabase(object):
         newdb.close()
         self._db.close()
 
-        # DB4 provides its own rename. Why?        
-        os.rename(newpath, self._path)
+        # DB4 provides its own rename. Why?  May it save us from the lack 
+        # of atomicity on Windows' os.rename()?
+        utils.rename_file(newpath, self._path)
         return self.try_open(newpwd)
 
 

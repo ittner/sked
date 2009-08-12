@@ -42,7 +42,7 @@ class BaseDialog(object):
     GLADE_FILE_NAME = 'sked.glade'
     
     def glade_init(self, root = None):
-        fname = utils.search_share_path(BaseDialog.GLADE_FILE_NAME)
+        fname = utils.data_path(BaseDialog.GLADE_FILE_NAME)
         self.glade = gtk.glade.XML(fname, root)
         return self.glade
 

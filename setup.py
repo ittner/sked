@@ -15,8 +15,6 @@ with a wiki-like syntax for text formatting and organization. It's easier
 think of it as the result of the merge of a calendar with a desktop wiki.
 """,
     packages=["libsked"],
-    scripts=["sked"],
-    data_files=[
-        ("share/sked", [ "data/sked.glade", "data/sked.dtd" ])
-    ]
+    package_data={"libsked": [ "sked.glade", "sked.dtd"] },
+    scripts=["sked"]
 )

@@ -41,14 +41,12 @@ import sys              # Paths, etc.
 def get_home_dir():
     return os.path.expanduser('~')
 
-def search_share_path(fname):
-    #TODO: Fix hardcoded paths.
-    prefixes = ['data/', sys.prefix + '/share/sked/',
-        '/usr/local/share/sked/']
-    for prefix in prefixes:
-        if os.path.exists(prefix + fname):
-            return prefix + fname;
-    return None
+def data_path(fname = None):
+    # Assumes that all libsked data files are in the package directory.
+    if fname:
+        return os.path.join(os.path.dirname(__file__), fname)
+    else:
+        return os.path.dirname(__file__)
 
 def open_browser(url):
     try:

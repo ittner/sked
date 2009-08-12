@@ -1,5 +1,5 @@
 include README
 include COPYING
 include test1.xml
-include data/sked.glade*
-include data/sked.dtd
+include libsked/sked.glade*
+include libsked/sked.dtd

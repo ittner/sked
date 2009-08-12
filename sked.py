@@ -233,6 +233,7 @@ class SkedApp(interface.BaseDialog):
         self._update_back_forward()
         self._update_undo_redo()
         self.window.show()
+        gtk.main()
 
     def save_window_geometry(self):
         self.opt.set_int("window_state", self.window_state)
@@ -1280,4 +1281,3 @@ class SkedApp(interface.BaseDialog):
 if __name__ == '__main__':
     app = SkedApp()
     app.start()
-    gtk.main()

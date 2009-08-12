@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+
+import sked
+
+if __name__ == '__main__':
+    app = sked.SkedApp()
+    app.start()

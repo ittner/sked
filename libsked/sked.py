@@ -196,6 +196,15 @@ class SkedApp(interface.BaseDialog):
     def start_database(self):
         path = os.path.join(utils.get_home_dir(), ".sked_db")
         db = database.EncryptedDatabase(path)
+        if not db.get_lock():
+            interface.error_dialog(None, "Sked failed to get exclusive "
+                + "access to its database. Normally, it means that there "
+                + "is another instance running or that it could not create "
+                + "files in your HOME directory. If the previous instance "
+                + "was closed in some unusual way (eg. by a power failure), "
+                +" you must delete the file " + db.lock_path
+                + " before proceeding.")
+            exit()
         if db.is_new():
             dlg = interface.NewPasswordDialog()
             dlg.set_title("Sked - New database")
@@ -217,7 +226,8 @@ class SkedApp(interface.BaseDialog):
                 dlg.set_text("The database is locked. Please enter the password.")
                 pwd = dlg.run()
                 if pwd == None:
-                    break
+                    db.release_lock()
+                    exit()
         if db.is_ready():
             self.db = db
             self.dbpath = path

@@ -30,6 +30,7 @@ import os
 import zlib
 import cPickle
 import hashlib
+import fcntl
 
 import utils
 
@@ -76,6 +77,7 @@ class EncryptedDatabase(object):
         self._db = None
         self._path = os.path.normpath(path)
         self._ready = False
+        self.lock_path = self._path + ".lock"
 
     def is_new(self):
         return not os.path.exists(self._path)
@@ -133,7 +135,32 @@ class EncryptedDatabase(object):
     def close(self):
         self._db.close()
         self._db = None
+        self.release_lock()
         self._ready = False
+
+    def get_lock(self):
+        """Try to get exclusive access to the database."""
+        # A very primitive (and buggy) locking system. We can't use the DB4
+        # native locking bacause we need it before create the database.
+        try:
+            self._lock_fd = os.open(self.lock_path, \
+                os.O_CREAT | os.O_WRONLY, 0666)
+            fcntl.lockf(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except:
+            return False
+        return True
+
+    def release_lock(self):
+        """Releases exclusive access to database."""
+        try:
+            os.remove(self.lock_path)
+        except:
+            pass
+        try:
+            os.close(self._lock_fd)
+        except:
+            pass
+        self._lock_fd = None
 
     def check_password(self, pwd):
         return self._pwd_hash == self._make_pwd_hash(pwd)

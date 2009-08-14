@@ -1,0 +1,55 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+configure: configure-stamp
+
+configure-stamp:
+	dh_testdir
+	touch configure-stamp
+
+build: build-stamp
+
+build-stamp: configure-stamp 
+	dh_testdir
+	python setup.py build
+	touch build-stamp
+
+clean: 
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp configure-stamp
+	python setup.py clean --all
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k 
+	dh_installdirs
+	python setup.py install --no-compile --root $(CURDIR)/debian/sked/
+
+binary-indep: build install
+	dh_testdir
+	dh_testroot
+	dh_installdocs
+	dh_installchangelogs
+	dh_pysupport
+	dh_fixperms
+	dh_strip
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+arch-build:
+
+binary-arch: build install
+
+binary: binary-indep binary-arch
+
+.PHONY: configure configure-stamp build build-stamp clean install \
+binary-indep arch-build binary-arch binary
+

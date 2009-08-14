@@ -2,7 +2,7 @@
 
 from distutils.core import setup
 
-setup(name="Sked",
+setup(name="sked",
     version="0.1",
     description="The wikish scheduler",
     author="Alexandre Erwin Ittner",

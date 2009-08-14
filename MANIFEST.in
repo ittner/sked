@@ -3,5 +3,6 @@ include COPYING
 include test1.xml
 include sked.desktop
 include sked.png
+recursive-include debian *
 include libsked/sked.glade*
 include libsked/sked.dtd

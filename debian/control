@@ -1,5 +1,5 @@
 Source: sked
-Section: misc
+Section: x11
 Priority: optional
 Maintainer: Alexandre Erwin Ittner <alexandre@ittner.com.br>
 Build-Depends: debhelper (>= 5)

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE skeddata SYSTEM "sked.dtd">
+<skeddata version="1.0">
+ <entry name="Sked wiki language">Back to [[Sked Help]]
+===Sked wiki language===
+
+Sked's wiki dialect is designed for fast typing and good readability as text, while keeping some similarities with the MediaWiki's syntax and the conventions used in email. The following tokens are recognized:
+
+
+===Level 1 Header===
+
+==Level 2 Header==
+
+=Level 3 Header=
+
+Links pointing to existing pages and [[non-existing pages]] appears different;
+Dates written as 20/06/2009 or 2009-06-20 links automatically to the corresponding entry;
+URLs are parsed intelligently: www.kernel.org,  http://wikisked.sourceforge.net/ and (try www.google.com);
+Text can also be *bold*, //italic// and _underlined_;
+There are keyboard shortcuts for almost every command;
+Styles may be customized;
+Everything stills being *text*.
+
+|||
+  o--------------------------------o
+  |  Source-code or pre-formatted  |
+  |  text can be easily inserted.  |
+  o--------------------------------o
+|||
+
+
+</entry>
+ <entry name="index">
+
+*Welcome!* This is the 'index' page of your newly created database. Before start editing, you may want to read the [[Sked Help]].
+
+</entry>
+ <entry name="Sked database security">Back to [[Sked Help]]
+===Sked database security===
+
+==Encryption==
+
+Sked saves its data in an encrypted Berkeley DB4 database locked with a password. The encryption aims to protect user information even from a skilled adversary. For technical information on this subject, see http://www.oracle.com/technology/documentation/berkeley-db/db/ref/env/encrypt.html.
+
+There is no way to access the database without the password. If you forget it, all your entries will be lost! Of course, as the backups are not encrypted, you may delete the database, create a new one and import the data back. 
+
+
+==Backups==
+
+Every piece of data saved in your computer *must* have a backup, and Sked's database is no exception. To backup your data, *do not* simply copy the database file to the storage media -- the right way to backup is export it as XML (menu "File" and "Export") so it can be imported back with the corresponding "Import" command.  
+
+The XML format is suitable for long term archival and can be read even without Sked. But note that this XML file is *not* encrypted -- to keep this data safe you must encrypt it with some other utility, like GnuPG (http://www.gnupg.org/).
+
+
+==Upgrading==
+
+Sked database format may change from time to time and some changes may make the database incompatible with the previous format. So, a special caution is needed when upgrading from a previous version of Sked. The best way to ensure a successful upgrade is to export the database as XML *before* the upgrade and import it back after.
+
+
+
+</entry>
+ <entry name="Sked Help">Back to [[index]]
+===Sked Help===
+
+For more information, visit the Sked Homepage: http://wikisked.sourceforge.net/
+
+
+==About==
+
+Sked is a personal organizer, calendar, schedule and braindump application with a wiki-like syntax for text formatting and organization. It's easier think of it as the merge of a calendar with a desktop wiki.
+
+Everything is tailored to speed up editing operations and ease the usage workflow: links and styles are unobtrusively inferred from the syntax, entries are automatically saved after a few seconds, almost all commands have keyboard shortcuts, and the last entries are kept in a history. Also, the wiki code is *not* hidden from the editing interface -- this makes editing easier, avoids the create/view/change cycle, and allows copy and pasting text among other applications without loss of information. A user-defined delay is given before the text reformatting, so, its appearance will not change while the user is typing.
+
+See also: [[Sked wiki language]], [[Sked database security]] and [[Sked License]].
+
+</entry>
+ <entry name="Sked License">Back to [[Sked Help]]
+===Sked License===
+
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but *WITHOUT ANY WARRANTY*; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+</entry>
+</skeddata>

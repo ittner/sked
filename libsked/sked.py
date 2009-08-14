@@ -192,11 +192,14 @@ class SkedApp(interface.BaseDialog):
         #        u"An initialization error has occurred. Namárië.")
         #    self.quit()
             
-    def start(self):
+    def start(self, page=None):
         self.curpage = None
         self.restore_window_geometry()
         self.update_options()
-        self._on_cmd_date_change()
+        if page == None:
+            self._on_cmd_date_change()
+        else:
+            self.hl_change_page(page)
         self._update_back_forward()
         self._update_undo_redo()
         self.window.show()
@@ -1257,6 +1260,7 @@ def main():
             + " before proceeding.")
         return
 
+    jump_to_page = None
     if db.is_new():
         dlg = interface.NewPasswordDialog()
         dlg.set_title("Sked - New database")
@@ -1265,6 +1269,11 @@ def main():
         pwd = dlg.run()
         if pwd != None:
             db.create(pwd)
+            try:
+                xmlio.import_xml_file(db, utils.data_path("help.xml"))
+                jump_to_page = "index"
+            except:
+                pass
         else:
             db.release_lock()
             return
@@ -1287,7 +1296,7 @@ def main():
     if db.is_ready():
         try:
             app = SkedApp(db)
-            app.start()
+            app.start(jump_to_page)
             gtk.main()
         except Exception, e:
             print(e)

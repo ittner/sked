@@ -43,7 +43,7 @@ import os               # Operating system stuff
 import re               # Regular expressions
 import webbrowser       # System web browser
 import datetime         # Date validation
-import cPickle           # For options only
+import cPickle          # For options only
 
 import utils
 import database
@@ -139,7 +139,7 @@ class SkedApp(interface.BaseDialog):
         "window_w"  : 700,
         "window_h"  : 500,
         "window_state" : 0, # can be gdk.WINDOW_STATE_MAXIMIZED | ICONIFIED
-        "format_time"   : 3,
+        "format_time"   : 2,
         "save_time"     : 15,
         "undo_levels"   : 16,
         "show_edit_buttons" : True,
@@ -152,15 +152,15 @@ class SkedApp(interface.BaseDialog):
         "link_color"    : "#0000FF",
         "new_link_color": "#FF0000",
         "url_link_color": "#0000FF",
-        "std_font"      : "Sans 12",
-        "header1_font"  : "Sans Bold 18",
-        "header2_font"  : "Sans Bold 16",
-        "header3_font"  : "Sans Bold 14",
-        "code_font"     : "Monospace 12",
+        "std_font"      : "Sans 10",
+        "header1_font"  : "Sans Bold 16",
+        "header2_font"  : "Sans Bold 14",
+        "header3_font"  : "Sans Bold 12",
+        "code_font"     : "Monospace 10",
         "format_font"   : "Sans 6",
-        "link_font"     : "Sans 12",
-        "new_link_font" : "Sans 12",
-        "url_link_font" : "Sans 12",
+        "link_font"     : "Sans 10",
+        "new_link_font" : "Sans 10",
+        "url_link_font" : "Sans 10",
         "ft_search"     : False,
         "search_mode"   : ALL_WORDS,
         "show_calendar" : True,

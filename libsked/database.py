@@ -72,11 +72,14 @@ class EncryptedDatabase(object):
     
     """
 
-    def __init__(self, path):
+    def __init__(self, path = None):
         self._db = None
-        self._path = os.path.normpath(path)
-        self._ready = False
+        if path:
+            self._path = path
+        else:
+            self._path = os.path.join(utils.get_home_dir(), ".sked.db")
         self.lock_path = self._path + ".lock"
+        self._ready = False
         self._lock_fd = None
 
     def is_new(self):

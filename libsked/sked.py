@@ -171,9 +171,9 @@ class SkedApp(interface.BaseDialog):
         "last_directory": utils.get_home_dir()
     }
 
-    def __init__(self):
+    def __init__(self, db):
         #try:
-            self.start_database()
+            self.db = db
             self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
             self.formatTimerID = None
             self.saveTimerID = None
@@ -193,48 +193,6 @@ class SkedApp(interface.BaseDialog):
         #        u"An initialization error has occurred. Namárië.")
         #    self.quit()
             
-    def start_database(self):
-        path = os.path.join(utils.get_home_dir(), ".sked_db")
-        db = database.EncryptedDatabase(path)
-        if not db.get_lock():
-            interface.error_dialog(None, "Sked failed to get exclusive "
-                + "access to its database. Normally, it means that there "
-                + "is another instance running or that it could not create "
-                + "files in your HOME directory. If the previous instance "
-                + "was closed in some unusual way (eg. by a power failure), "
-                +" you must delete the file " + db.lock_path
-                + " before proceeding.")
-            exit()
-        if db.is_new():
-            dlg = interface.NewPasswordDialog()
-            dlg.set_title("Sked - New database")
-            dlg.set_text("You are using this program for the first time. "
-                "Please enter a password to lock the database")
-            pwd = dlg.run()
-            if pwd != None:
-                db.create(pwd)
-        else:
-            pwd = u""
-            firstime = True
-            while not db.try_open(pwd):
-                if not firstime:
-                    interface.error_dialog(None, \
-                        u"Wrong password. Please try again.")
-                dlg = interface.PasswordDialog()
-                firstime = False
-                dlg.set_title("Sked - Password required")
-                dlg.set_text("The database is locked. Please enter the password.")
-                pwd = dlg.run()
-                if pwd == None:
-                    db.release_lock()
-                    exit()
-        if db.is_ready():
-            self.db = db
-            self.dbpath = path
-        else:
-            interface.error_dialog(None, u"Can't open the database. Namárië.")
-            exit()
-    
     def start(self):
         self.curpage = None
         self.restore_window_geometry()
@@ -243,7 +201,6 @@ class SkedApp(interface.BaseDialog):
         self._update_back_forward()
         self._update_undo_redo()
         self.window.show()
-        gtk.main()
 
     def save_window_geometry(self):
         self.opt.set_int("window_state", self.window_state)
@@ -315,7 +272,6 @@ class SkedApp(interface.BaseDialog):
         self.history.save()
         self.opt.save()
         self.window.destroy()
-        self.db.close()
         gtk.main_quit()
 
     def load_interface(self):
@@ -1287,7 +1243,57 @@ class SkedApp(interface.BaseDialog):
         self.calendar.thaw()
 
 
-# Initialization.
-if __name__ == '__main__':
-    app = SkedApp()
-    app.start()
+def main():
+    # Connect to the database.
+    db = database.EncryptedDatabase()
+    if not db.get_lock():
+        interface.error_dialog(None, "Sked failed to get exclusive "
+            + "access to its database. Normally, it means that there "
+            + "is another instance running or that it could not create "
+            + "files in your HOME directory. If the previous instance "
+            + "was closed in some unusual way (eg. by a power failure), "
+            + "you must delete the file " + db.lock_path
+            + " before proceeding.")
+        return
+
+    if db.is_new():
+        dlg = interface.NewPasswordDialog()
+        dlg.set_title("Sked - New database")
+        dlg.set_text("You are using this program for the first time. "
+            "Please enter a password to lock the database")
+        pwd = dlg.run()
+        if pwd != None:
+            db.create(pwd)
+        else:
+            db.release_lock()
+            return
+    else:
+        pwd = u""
+        firstime = True
+        while not db.try_open(pwd):
+            if not firstime:
+                interface.error_dialog(None, \
+                    "Wrong password. Please try again.")
+            dlg = interface.PasswordDialog()
+            firstime = False
+            dlg.set_title("Sked - Password required")
+            dlg.set_text("The database is locked. Please enter the password.")
+            pwd = dlg.run()
+            if pwd == None:
+                db.release_lock()
+                return
+
+    if db.is_ready():
+        try:
+            app = SkedApp(db)
+            app.start()
+            gtk.main()
+        except Exception, e:
+            print(e)
+        finally:
+            db.close()
+    else:
+        interface.error_dialog(None, u"Can't open the database. Namárië.")
+        db.release_lock()
+        return
+

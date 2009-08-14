@@ -412,7 +412,8 @@ class SkedApp(interface.BaseDialog):
             gtk.STOCK_OK, gtk.RESPONSE_OK))
             
         dlg.set_default_response(gtk.RESPONSE_OK)
-        dlg.set_current_folder(self.opt.get_str("last_directory"))
+        dir = self.opt.get_str("last_directory") or utils.get_home_dir()
+        dlg.set_current_folder(dir)
         
         filter = gtk.FileFilter()
         filter.set_name("Non-encrypted XML files")
@@ -456,7 +457,8 @@ class SkedApp(interface.BaseDialog):
             gtk.STOCK_OK, gtk.RESPONSE_OK))
 
         dlg.set_default_response(gtk.RESPONSE_OK)
-        dlg.set_current_folder(self.opt.get_str("last_directory"))
+        dir = self.opt.get_str("last_directory") or utils.get_home_dir()
+        dlg.set_current_folder(dir)
         
         filter = gtk.FileFilter()
         filter.set_name("Non-encrypted XML files")

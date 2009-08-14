@@ -1,5 +1,7 @@
 include README
 include COPYING
 include test1.xml
+include sked.desktop
+include sked.png
 include libsked/sked.glade*
 include libsked/sked.dtd

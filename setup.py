@@ -16,5 +16,10 @@ think of it as the result of the merge of a calendar with a desktop wiki.
 """,
     packages=["libsked"],
     package_data={"libsked": [ "sked.glade", "sked.dtd"] },
-    scripts=["sked"]
+    scripts=["sked"],
+    data_files=[
+        ('share/doc/sked', ["README", "COPYING"]),
+        ('share/applications', ["sked.desktop"]),
+        ('share/pixmaps', ["sked.png"])
+    ]
 )

@@ -503,7 +503,7 @@ class SkedApp(interface.BaseDialog):
     def _on_cmd_change_pwd(self, widget = None, data = None):
         dlg = interface.PasswordChangeDialog(self.window, self.db.check_password)
         newpwd = dlg.run()
-        if newpwd != None:
+        if newpwd:
             self.db.change_pwd(newpwd)
         
     def _on_cmd_code(self, widget = None, data = None):

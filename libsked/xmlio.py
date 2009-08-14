@@ -26,8 +26,9 @@ $Id$
 
 from xml import sax
 from xml.sax import saxutils
-from xml.sax.handler import ContentHandler
+from xml.sax.handler import ContentHandler, EntityResolver
 
+import utils
 
 class VersionError(Exception):
     pass
@@ -95,13 +96,21 @@ class SkedContentHandler(ContentHandler):
         return self._state
 
 
+class SkedEntityResolver(EntityResolver):
+    def resolveEntity(self, publicId, systemId):
+        if systemId == "sked.dtd":
+            return utils.data_path(systemId)
+        return None
+
+
 def import_xml_data(db, fp, callback = None):
     """ Import XML data from a stream 'fp' into the database 'db'. 'callback'
     will be called for each entry imported. """
 
     parser = sax.make_parser()
-    handler = SkedContentHandler(db, callback)
-    sax.parse(fp, handler)
+    parser.setContentHandler(SkedContentHandler(db, callback))
+    parser.setEntityResolver(SkedEntityResolver())
+    parser.parse(fp)
 
 
 def import_xml_file(db, fname, callback = None):

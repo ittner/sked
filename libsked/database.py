@@ -168,12 +168,13 @@ class EncryptedDatabase(object):
             raise NotReadyError
         return self._db.has_key(self._make_db_key(key)) == 1
     
-    def set_key(self, key, value):
+    def set_key(self, key, value, sync = True):
         if not self._ready:
             raise NotReadyError
         cval = zlib.compress(value.encode("utf-8"))
         self._db.put(self._make_db_key(key), cPickle.dumps([key, cval], 2))
-        self._db.sync()
+        if sync:
+            self._db.sync()
 
     def get_key(self, key, default = None):
         ret = self.get_pair(key, None)

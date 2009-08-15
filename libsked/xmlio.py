@@ -78,7 +78,7 @@ class SkedContentHandler(ContentHandler):
     def endElement(self, name):
         if self._state == SkedContentHandler.WAITING_DATA \
         and name == "entry":
-            self._db.set_key("pag_" + self._pagename, self._pagedata)
+            self._db.set_key("pag_" + self._pagename, self._pagedata, False)
             self._state = SkedContentHandler.WAITING_ENTRY
             if self._callback:
                 SkedContentHandler._callback()

@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name="sked",
-    version="0.1",
+    version="0.2",
     description="The wikish scheduler",
     author="Alexandre Erwin Ittner",
     author_email="alexandre@ittner.com.br",

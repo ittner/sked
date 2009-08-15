@@ -1,3 +1,9 @@
+sked (0.2) hardy; urgency=low
+
+  * Fixes;
+
+ -- Alexandre Erwin Ittner <alexandre@ittner.com.br>  Fri, 15 Aug 2009 04:30:00 -0300
+ 
 sked (0.1) hardy; urgency=low
 
   * Initial Release.

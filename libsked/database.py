@@ -173,6 +173,7 @@ class EncryptedDatabase(object):
             raise NotReadyError
         cval = zlib.compress(value.encode("utf-8"))
         self._db.put(self._make_db_key(key), cPickle.dumps([key, cval], 2))
+        self._db.sync()
 
     def get_key(self, key, default = None):
         ret = self.get_pair(key, None)

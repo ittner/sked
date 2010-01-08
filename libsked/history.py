@@ -23,7 +23,6 @@
 History manager.
 """
 
-__CVSID__ = "$Id$"
 
 class HistoryManager:
     """

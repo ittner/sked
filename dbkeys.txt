@@ -1,5 +1,4 @@
 Database keys used in Sked.
-$Id$
 
 pag_*           Pages
 options         Main options

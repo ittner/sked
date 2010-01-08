@@ -22,7 +22,6 @@
 Main application module.
 """
 
-__CVSID__ = "$Id$"
 
 import pygtk            # GTK+ stuff
 pygtk.require('2.0')

@@ -21,7 +21,6 @@
 
 """
 XML data importer/exporter for Sked.
-$Id$
 """
 
 from xml import sax

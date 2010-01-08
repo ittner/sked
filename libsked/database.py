@@ -23,7 +23,6 @@
 Databases used by Sked.
 """
 
-__CVSID__ = "$Id$"
 
 from bsddb import db
 import os

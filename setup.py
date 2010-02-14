@@ -15,11 +15,11 @@ with a wiki-like syntax for text formatting and organization. It's easier
 think of it as the result of the merge of a calendar with a desktop wiki.
 """,
     packages=["libsked"],
-    package_data={"libsked": [ "sked.glade", "sked.dtd", "help.xml" ] },
+    package_data={"libsked": [ "sked.glade", "sked.dtd", "help.xml", "sked.png" ] },
     scripts=["sked"],
     data_files=[
         ('share/doc/sked', ["README", "COPYING"]),
         ('share/applications', ["sked.desktop"]),
-        ('share/pixmaps', ["sked.png"])
+        ('share/pixmaps', ["libsked/sked.png"])
     ]
 )

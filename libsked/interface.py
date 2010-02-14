@@ -209,6 +209,9 @@ class BasePasswordDialog(BaseDialog):
         self.txPassword.set_visibility(False)
         self.txNewPassword.set_visibility(False)
         self.txConfirmPassword.set_visibility(False)
+        try:
+            self.dlg.set_icon_from_file(utils.data_path("sked.png"))
+        except: pass
 
     def set_text(self, text):
         self.lbGeneral.set_text(text)

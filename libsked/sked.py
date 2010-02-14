@@ -403,6 +403,9 @@ class SkedApp(interface.BaseDialog):
         display = gdk.display_manager_get().get_default_display()
         self.clipboard = gtk.Clipboard(display, "CLIPBOARD")
         self.set_text_tags()
+        try:
+            self.window.set_icon_from_file(utils.data_path("sked.png"))
+        except: pass
 
     def _on_cmd_about(self, widget = None, data = None):
         abt = interface.AboutDialog(self.window)

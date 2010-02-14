@@ -362,6 +362,8 @@ class SkedApp(interface.BaseDialog):
 
         self.bxLocalSearch = self.glade.get_widget("bxLocalSearch")
         self.txLocalSearch = self.glade.get_widget("txLocalSearch")
+        self.txStatus = self.glade.get_widget("statusBar")
+        self._status_bar_ctx = None
         
         if HAS_SPELL:
             self.spell = gtkspell.Spell(self.txNote)
@@ -839,6 +841,7 @@ class SkedApp(interface.BaseDialog):
             self.enqueue_undo()
         self.reset_timers()
         self.set_timers()
+        self.set_status((self.curpage or "Nothing") + " changed")
 
     def _on_text_delete(self, widget = None, s = None, e = None, dt = None):
         # big amount of text being deleted? Prepare for undo!
@@ -870,6 +873,13 @@ class SkedApp(interface.BaseDialog):
             gobject.source_remove(self.formatTimerID)
         if self.saveTimerID:
             gobject.source_remove(self.saveTimerID)
+
+    def set_status(self, text):
+        if self._status_bar_ctx == None:
+            self._status_bar_ctx = self.txStatus.get_context_id("skedmain")
+        else:
+            self.txStatus.pop(self._status_bar_ctx)
+        self.txStatus.push(self._status_bar_ctx, text)
 
     def _set_edit_buttons(self):
         show = self.opt.get_bool("show_edit_buttons")
@@ -1153,6 +1163,7 @@ class SkedApp(interface.BaseDialog):
         self.txPageName.set_text(self.curpage)
         self.set_text(text)
         self.format_text()
+        self.set_status(page)
         
     def save_current_page(self):
         if self.curpage != None:
@@ -1162,6 +1173,7 @@ class SkedApp(interface.BaseDialog):
                 self.db.set_key(self.page_name(self.curpage), tx)
             else:
                 self.db.del_key(self.page_name(self.curpage))
+            self.set_status(self.curpage + " saved")
 
     def reload_current_page(self):
         """ Reloads current page from DB.  Changes will be discarted. """

@@ -74,9 +74,17 @@ class EncryptedDatabase(object):
     def __init__(self, path = None):
         self._db = None
         if path:
+            ddir = os.path.split(path)[0]
             self._path = path
         else:
-            self._path = os.path.join(utils.get_home_dir(), ".sked.db")
+            # Follows the XDG Base Directory Specification
+            base = os.getenv("XDG_DATA_HOME")
+            if base == None or base == '':
+                base = os.path.join(utils.get_home_dir(), ".local", "share")
+            ddir = os.path.join(base, "sked")
+            self._path =  os.path.join(ddir, "sked.db")
+        if not os.path.exists(ddir):
+            os.makedirs(ddir, 0700)
         self.lock_path = self._path + ".lock"
         self._ready = False
         self._lock_fd = None

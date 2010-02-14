@@ -15,11 +15,11 @@ entries are automatically saved after a few seconds, almost all commands
 have keyboard shortcuts, and the last entries are kept in a history. Also,
 the wiki code is not hidden from the editing interface -- this makes editing
 easier, avoids the create/view/change cycle, and allows copy and pasting text
-among other applications without loss of information. A user-defined delay is
-given before the text reformatting, so, its appearance will not change while
-the user is typing.
+among other applications without loss of information. A user-defined delay
+is given before the text reformatting, so, its appearance will not change
+while the user is typing.
 
-All entries are stored in encrypted Berkeley DB4 database in the user's HOME
+All entries are stored in encrypted Berkeley DB4 database in the user's $HOME
 directory. The encryption aims protect user information even from a skilled
 adversary (but I'm not a cryptologist and haven't done any extensive analysis
 of the DB4's crypto implementation -- it is a standard AES 128 bit). Users
@@ -35,17 +35,54 @@ REQUIREMENTS
   * PyGTK+ >= 2.8
 
 
+
+INSTALLATION AND UPGRADE
+
+Sked is provided in several formats and the installation procedures varies.
+The .tar.gz package works for every supported operating system, but asks
+for some manual installation -- these packages must be unpacked in the final
+installation directory, like /opt/sked/. The installation of Debian packages
+are simpler -- just call them up on with dpkg or double-click it to install
+with your distribution's default installer.
+
+A special caution is needed when upgrading from a previous version of Sked,
+since new versions may bring incompatible changes to the database format.
+The best way to ensure a successful upgrade is to export the database as
+XML and import it back. The procedure is:
+
+  1. In the menu "File", select "Export..." and give a file name to export
+     the current database to a XML file;
+  2. Remove the old database (stored in ~/.local/share/sked/sked.db or 
+     ~/.sked.db for older versions);
+  3. Upgrade Sked;
+  4. Open the new version. Sked will create a new database;
+  5. In the menu "File", select "Import..." and select the file give in the
+     first step.
+
+
 TO DO
 
+  * Find a better file locking system;
+  * Add a DBus backend to handle multiple instances;
   * Fix the GUI (better dialogs/windows, toolbars, etc.);
   * Better code organization;
   * Better search system;
   * Printing;
-  * HTML exporting;
-  * etc.
+  * HTML exporting.
 
 
-WIKI SYNTAX TIPS
+KNOW BUGS
+
+  * Find and replace is a no-op;
+  * The application leaves stray lockfiles in the event of an OS crash or
+    power failure;
+  * Some formatting codes are overlapping. This must be fixed with a proper
+    parser;
+  * Undo/Redo commands have some quirks.
+
+
+
+WIKI SYNTAX
 
   === Header 1 ===
   == Header 2 ==
@@ -61,5 +98,4 @@ WIKI SYNTAX TIPS
     * URLs are parsed intelligently;
     * Dates in the formats DD/MM/YYYY and YYYY-MM-DD recognized automatically;
     * No other text are allowed in the same line as the headers.
-
 

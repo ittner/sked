@@ -1251,8 +1251,8 @@ def main():
     db = database.EncryptedDatabase()
     if not db.get_lock():
         interface.error_dialog(None, "Sked failed to get exclusive "
-            + "access to its database. Normally, it means that there "
-            + "is another instance running or that it could not create "
+            + "access to its database. It usually happens when there "
+            + "is another instance running or it could not create "
             + "files in your HOME directory. If the previous instance "
             + "was closed in some unusual way (eg. by a power failure), "
             + "you must delete the file " + db.lock_path

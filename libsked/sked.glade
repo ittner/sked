@@ -1161,11 +1161,7 @@
     </child>
   </widget>
   <widget class="GtkAboutDialog" id="dlgAbout">
-    <property name="resizable">False</property>
-    <property name="modal">True</property>
-    <property name="window_position">GTK_WIN_POS_CENTER</property>
     <property name="destroy_with_parent">True</property>
-    <property name="type_hint">GDK_WINDOW_TYPE_HINT_NORMAL</property>
     <property name="skip_taskbar_hint">True</property>
     <property name="program_name">Sked</property>
     <property name="version">0.2</property>
@@ -1522,6 +1518,8 @@ Public License instead of this License.
     <accessibility>
       <atkproperty name="AtkObject::accessible_name" translatable="yes">About Sked</atkproperty>
     </accessibility>
+    <signal name="close" handler="on_cmd_close"/>
+    <signal name="response" handler="on_cmd_close"/>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox1">
         <child internal-child="action_area">

@@ -54,16 +54,18 @@ class AboutDialog(BaseDialog):
         self._load_interface()
         
     def show(self):
-        if AboutDialog._dlg != None:
-            AboutDialog._dlg.present()
-        else:
-            AboutDialog._dlg = self.dlg
-            self.dlg.set_modal(True)
-            self.dlg.show()
+        self.dlg.set_modal(True)
+        self.dlg.show()
+
+    def _close(self, widget = None, data = None):
+        self.dlg.destroy()
 
     def _load_interface(self):
         self.glade_init("dlgAbout")
         self.dlg = self.glade.get_widget("dlgAbout")
+        self.glade.signal_autoconnect({
+            'on_cmd_close' : self._close
+        })
 
 
 

@@ -1630,7 +1630,7 @@ Public License instead of this License.
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="tooltip" translatable="yes">The maximum number of unique pages to keep in the history.</property>
-                    <property name="adjustment">1 0 1000 1 10 10</property>
+                    <property name="adjustment">1 0 1000 1 10 0</property>
                     <property name="climb_rate">1</property>
                     <property name="numeric">True</property>
                   </widget>
@@ -1702,7 +1702,7 @@ Public License instead of this License.
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="tooltip" translatable="yes">The maximum number of undo states to keep on memory.</property>
-                    <property name="adjustment">16 0 100 1 10 10</property>
+                    <property name="adjustment">16 0 100 1 10 0</property>
                     <property name="climb_rate">1</property>
                     <property name="numeric">True</property>
                   </widget>
@@ -1720,7 +1720,7 @@ Public License instead of this License.
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="tooltip" translatable="yes">The number of seconds of inactivity before save the current page data.</property>
-                    <property name="adjustment">15 0 100 1 10 10</property>
+                    <property name="adjustment">15 0 100 1 10 0</property>
                     <property name="climb_rate">1</property>
                     <property name="numeric">True</property>
                   </widget>
@@ -1738,7 +1738,7 @@ Public License instead of this License.
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="tooltip" translatable="yes">The idle time, in seconds, before format the current page.</property>
-                    <property name="adjustment">3 0 60 1 10 10</property>
+                    <property name="adjustment">3 0 60 1 10 0</property>
                     <property name="climb_rate">1</property>
                     <property name="numeric">True</property>
                   </widget>

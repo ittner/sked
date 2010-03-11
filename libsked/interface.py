@@ -52,6 +52,7 @@ class AboutDialog(BaseDialog):
         self.ui.connect_signals(self)
         
     def show(self):
+        self.dlg.set_transient_for(self.parent)
         self.dlg.set_modal(True)
         self.dlg.show()
 
@@ -61,7 +62,6 @@ class AboutDialog(BaseDialog):
 
 
 class PreferencesDialog(BaseDialog):
-    _dlg = None
 
     def __init__(self, parent):
         self.parent = parent
@@ -70,11 +70,9 @@ class PreferencesDialog(BaseDialog):
         self._set_widget_values()
         
     def show(self):
-        if PreferencesDialog._dlg != None:
-            PreferencesDialog._dlg.present()
-        else:
-            PreferencesDialog._dlg = self.dlg
-            self.dlg.show()
+        self.dlg.set_transient_for(self.parent.window)
+        self.dlg.set_modal(True)
+        self.dlg.show()
 
     def _load_interface(self):
         self.ui_init("preferences-dialog.ui")
@@ -110,12 +108,10 @@ class PreferencesDialog(BaseDialog):
     def on_cmd_ok(self, widget = None, data = None):
         self._save_widget_values()
         self.dlg.destroy()
-        PreferencesDialog._dlg = None
         self.parent.update_options()
         
     def on_cmd_cancel(self, widget = None, data = None):
         self.dlg.destroy()
-        PreferencesDialog._dlg = None
         return False
 
     def _set_widget_values(self):
@@ -233,6 +229,9 @@ class PasswordDialog(BasePasswordDialog):
         self.pgPasswordQuality.set_property("visible", False)
         
     def run(self):
+        if self.parent:
+            self.dlg.set_transient_for(self.parent)
+            self.dlg.set_modal(True)
         val = self.dlg.run()
         if val == gtk.RESPONSE_OK:
             self.password = self.txPassword.get_text().decode("utf-8")
@@ -326,6 +325,9 @@ class NewPasswordDialog(BasePasswordChangeDialog):
         self.txPassword.set_property("visible", False)
         
     def run(self):
+        if self.parent:
+            self.dlg.set_transient_for(self.parent)
+            self.dlg.set_modal(True)
         while True:
             val = self.dlg.run()
             if val == gtk.RESPONSE_OK:
@@ -356,6 +358,9 @@ class PasswordChangeDialog(BasePasswordChangeDialog):
         self.txPassword.set_property("visible", True)
 
     def run(self):
+        if self.parent:
+            self.dlg.set_transient_for(self.parent)
+            self.dlg.set_modal(True)
         while True:
             val = self.dlg.run()
             if val == gtk.RESPONSE_OK:
@@ -398,6 +403,8 @@ class InsertPageTextDialog(BaseDialog):
         self.hmodel.clear()
         for item in self.history.get_items():
             self.hmodel.append([item])
+        self.dlg.set_transient_for(self.parent)
+        self.dlg.set_modal(True)
         while True:
             val = self.dlg.run()
             if val == gtk.RESPONSE_OK:
@@ -444,6 +451,8 @@ class RenamePageDialog(BaseDialog):
             self.hmodel.append([item])
         self.lbCurrentName.set_text(self.curpage)
         self.txNewName.set_text(self.curpage)
+        self.dlg.set_transient_for(self.parent)
+        self.dlg.set_modal(True)
         while True:
             val = self.dlg.run()
             if val == gtk.RESPONSE_OK:

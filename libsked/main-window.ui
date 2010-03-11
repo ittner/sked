@@ -296,48 +296,6 @@
               </object>
             </child>
             <child>
-              <object class="GtkMenuItem" id="mnView">
-                <property name="label" translatable="yes">_View</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="mnView_menu">
-                    <child>
-                      <object class="GtkCheckMenuItem" id="mnEditButtons">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Edit buttons</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_cmd_edit_bt_tg"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkCheckMenuItem" id="mnCalendar">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Calendar panel</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_cmd_calendar_tg"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkCheckMenuItem" id="mnHistoryButtons">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">_History panel</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_cmd_history_tg"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkCheckMenuItem" id="mnGlobalSearch">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Global search panel</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_cmd_gsearch_tg"/>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
               <object class="GtkMenuItem" id="mnGo">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">_Go</property>

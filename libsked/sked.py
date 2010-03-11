@@ -26,7 +26,6 @@ Main application module.
 import pygtk            # GTK+ stuff
 pygtk.require('2.0')
 import gtk
-from gtk import glade
 from gtk import gdk
 import gobject
 import pango
@@ -185,7 +184,7 @@ class SkedApp(interface.BaseDialog):
             self.history_model = gtk.ListStore(gobject.TYPE_STRING)
             self.history.set_model(self.history_model)
             self.gsearch_model = gtk.ListStore(gobject.TYPE_STRING)
-            self.load_interface()
+            self._load_interface()
         #except Exception:
         #    interface.error_dialog(None, \
         #        u"An initialization error has occurred. Namárië.")
@@ -262,7 +261,7 @@ class SkedApp(interface.BaseDialog):
         else:   # Default. Also, any invalid option will get here.
             self.mnAllWords.set_property("active", True)
             
-    def _on_window_state(self, widget, event, data = None):
+    def on_window_state(self, widget, event, data = None):
         if widget == self.window:
             st = gdk.WINDOW_STATE_MAXIMIZED | gdk.WINDOW_STATE_ICONIFIED
             self.window_state = event.new_window_state & st
@@ -275,94 +274,46 @@ class SkedApp(interface.BaseDialog):
         self.window.destroy()
         gtk.main_quit()
 
-    def load_interface(self):
-        self.glade_init()
-        self.glade.signal_autoconnect({
-            'on_cmd_about'       : self.on_cmd_about,
-            'on_cmd_back'        : self.on_cmd_back,
-            'on_cmd_bold'        : self.on_cmd_bold,
-            'on_cmd_calendar_tg' : self.on_cmd_calendar_tg,
-            'on_cmd_change_pwd'  : self.on_cmd_change_pwd,
-            'on_cmd_code'        : self.on_cmd_code,
-            'on_cmd_copy'        : self.on_cmd_copy,
-            'on_cmd_cut'         : self.on_cmd_cut,
-            'on_cmd_delete'      : self.on_cmd_delete,
-            'on_cmd_exit'        : self.on_cmd_exit,
-            'on_cmd_export'      : self.on_cmd_export,
-            'on_cmd_forward'     : self.on_cmd_forward,
-            'on_cmd_ft_search'   : self.on_cmd_ft_search,
-            'on_cmd_goto'        : self.on_cmd_goto,
-            'on_cmd_gsearch'     : self.on_cmd_gsearch,
-            'on_cmd_gsearch_mn'  : self.on_cmd_gsearch_mn,
-            'on_cmd_gsearch_tg'  : self.on_cmd_gsearch_tg,
-            'on_cmd_header1'     : self.on_cmd_header1,
-            'on_cmd_header2'     : self.on_cmd_header2,
-            'on_cmd_header3'     : self.on_cmd_header3,
-            'on_cmd_history_go'  : self.on_cmd_listbox_go,
-            'on_cmd_history_go'  : self.on_cmd_listbox_go,
-            'on_cmd_history_tg'  : self.on_cmd_history_tg,
-            'on_cmd_home'        : self.on_cmd_home,
-            'on_cmd_import'      : self.on_cmd_import,
-            'on_cmd_insert_page' : self.on_cmd_insert_page,
-            'on_cmd_italic'      : self.on_cmd_italic,
-            'on_cmd_link'        : self.on_cmd_link,
-            'on_cmd_lsearch_next': self.on_cmd_lsearch_next,
-            'on_cmd_lsearch_prev': self.on_cmd_lsearch_prev,
-            'on_cmd_lsearch_show': self.on_cmd_lsearch_show,
-            'on_cmd_lsearch_hide': self.on_cmd_lsearch_hide,
-            'on_cmd_lsearch_tg'  : self.on_cmd_lsearch_tg,
-            'on_cmd_paste'       : self.on_cmd_paste,
-            'on_cmd_preferences' : self.on_cmd_preferences,
-            'on_cmd_redo'        : self.on_cmd_redo,
-            'on_cmd_rename_page' : self.on_cmd_rename_page,
-            'on_cmd_search_menu' : self.on_cmd_search_menu,
-            'on_cmd_search_mode' : self.on_cmd_search_mode,
-            'on_cmd_sort_lines'  : self.on_cmd_sort_lines,
-            'on_cmd_today'       : self.on_cmd_today,
-            'on_cmd_tomorrow'    : self.on_cmd_tomorrow,
-            'on_cmd_underline'   : self.on_cmd_underline,
-            'on_cmd_undo'        : self.on_cmd_undo,
-            'on_cmd_yesterday'   : self.on_cmd_yesterday,
-            'on_lsearch_keypress': self._on_lsearch_keypress,
-            'on_window_state'    : self._on_window_state
-        })
-
-        self.window = self.glade.get_widget("wndMain")
-        self.txNote = self.glade.get_widget("NoteText")
+    def _load_interface(self):
+        self.ui_init("main-window.ui")
+        self.window = self.ui.get_object("wndMain")
+        self.txNote = self.ui.get_object("NoteText")
         self.txBuffer = self.txNote.get_buffer()
-        self.calendar = self.glade.get_widget("Calendar")
-        self.btSep1 = self.glade.get_widget("btSep1")
-        self.btUndo = self.glade.get_widget("btUndo")
-        self.btRedo = self.glade.get_widget("btRedo")
-        self.btCopy = self.glade.get_widget("btCopy")
-        self.btCut = self.glade.get_widget("btCut")
-        self.btPaste = self.glade.get_widget("btPaste")
-        self.btDelete = self.glade.get_widget("btDelete")
-        self.cbPageName = self.glade.get_widget("cbPageName")
+        self.calendar = self.ui.get_object("Calendar")
+        self.btSep1 = self.ui.get_object("btSep1")
+        self.btUndo = self.ui.get_object("btUndo")
+        self.btRedo = self.ui.get_object("btRedo")
+        self.btCopy = self.ui.get_object("btCopy")
+        self.btCut = self.ui.get_object("btCut")
+        self.btPaste = self.ui.get_object("btPaste")
+        self.btDelete = self.ui.get_object("btDelete")
+        self.cbPageName = self.ui.get_object("cbPageName")
         self.txPageName = self.cbPageName.child
-        self.btBack = self.glade.get_widget("btBack")
-        self.btForward = self.glade.get_widget("btForward")
-        self.mnBack = self.glade.get_widget("mnBack")
-        self.mnForward = self.glade.get_widget("mnForward")
-        self.mnUndo = self.glade.get_widget("mnUndo")
-        self.mnRedo = self.glade.get_widget("mnRedo")
-        self.bxHistory = self.glade.get_widget("bxHistory")
-        self.bxGlobalSearch = self.glade.get_widget("bxGlobalSearch")
-        self.tgCalendar = self.glade.get_widget("tgCalendar")
-        self.tgHistory = self.glade.get_widget("tgHistory")
-        self.tgGlobalSearch = self.glade.get_widget("tgGlobalSearch")
-        self.txGlobalSearch = self.glade.get_widget("txGlobalSearch")
+        self.btBack = self.ui.get_object("btBack")
+        self.btForward = self.ui.get_object("btForward")
+        self.mnBack = self.ui.get_object("mnBack")
+        self.mnForward = self.ui.get_object("mnForward")
+        self.mnUndo = self.ui.get_object("mnUndo")
+        self.mnRedo = self.ui.get_object("mnRedo")
+        self.bxHistory = self.ui.get_object("bxHistory")
+        self.bxGlobalSearch = self.ui.get_object("bxGlobalSearch")
+        self.tgCalendar = self.ui.get_object("tgCalendar")
+        self.tgHistory = self.ui.get_object("tgHistory")
+        self.tgGlobalSearch = self.ui.get_object("tgGlobalSearch")
+        self.txGlobalSearch = self.ui.get_object("txGlobalSearch")
 
-        self.btSearchOptions = self.glade.get_widget("btSearchOptions")
-        self.mnSearchOptions = self.glade.get_widget("mnSearchOptions")
-        self.mnFullText = self.glade.get_widget("mnFullTextSearch")
-        self.mnAnyWord = self.glade.get_widget("mnAnyWordSearch")
-        self.mnAllWords = self.glade.get_widget("mnAllWordsSearch")
-        self.mnExactPhrase = self.glade.get_widget("mnExactPhraseSearch")
+        self.btSearchOptions = self.ui.get_object("btSearchOptions")
+        self.mnSearchOptions = self.ui.get_object("mnSearchOptions")
+        self.mnFullText = self.ui.get_object("mnFullTextSearch")
+        self.mnAnyWord = self.ui.get_object("mnAnyWordSearch")
+        self.mnAllWords = self.ui.get_object("mnAllWordsSearch")
+        self.mnExactPhrase = self.ui.get_object("mnExactPhraseSearch")
 
-        self.bxLocalSearch = self.glade.get_widget("bxLocalSearch")
-        self.txLocalSearch = self.glade.get_widget("txLocalSearch")
-        self.txStatus = self.glade.get_widget("statusBar")
+        self.bxLocalSearch = self.ui.get_object("bxLocalSearch")
+        self.txLocalSearch = self.ui.get_object("txLocalSearch")
+        self.txStatus = self.ui.get_object("statusBar")
+
+        self.ui.connect_signals(self)
         self._status_bar_ctx = None
         
         if HAS_SPELL:
@@ -373,7 +324,7 @@ class SkedApp(interface.BaseDialog):
         self.cbPageName.set_model(self.history_model)
         self.cbPageName.set_text_column(0)
 
-        self.lsHistory = self.glade.get_widget("lsHistory")
+        self.lsHistory = self.ui.get_object("lsHistory")
         self.lsHistory.set_model(self.history_model)
         self.history_column = gtk.TreeViewColumn("Page Name")
         self.lsHistory.append_column(self.history_column)
@@ -381,7 +332,7 @@ class SkedApp(interface.BaseDialog):
         self.history_column.pack_start(self.history_renderer, True)
         self.history_column.add_attribute(self.history_renderer, "text", 0)
         
-        self.lsGlobalSearch = self.glade.get_widget("lsGlobalSearch")
+        self.lsGlobalSearch = self.ui.get_object("lsGlobalSearch")
         self.lsGlobalSearch.set_model(self.gsearch_model)
         self.gsearch_column = gtk.TreeViewColumn("Page Name")
         self.lsGlobalSearch.append_column(self.gsearch_column)
@@ -585,7 +536,7 @@ class SkedApp(interface.BaseDialog):
     def on_cmd_lsearch_tg(self, widget = None, data = None):
         pass
         
-    def _on_lsearch_keypress(self, widget = None, event = None, data = None):
+    def on_lsearch_keypress(self, widget = None, event = None, data = None):
         if widget == self.txLocalSearch and event.type == gdk.KEY_PRESS \
         and event.keyval == gtk.keysyms.Escape:
             self.on_cmd_lsearch_hide()
@@ -708,6 +659,9 @@ class SkedApp(interface.BaseDialog):
     def on_cmd_header3(self, widget = None, data = None):
         self.insert_formatting("=", "=")
 
+    def on_cmd_history_go(self, widget = None, path = None, column = None):
+        return self.on_cmd_listbox_go(widget, path, column)
+
     def on_cmd_listbox_go(self, widget = None, path = None, column = None):
         # Should be used for global search too.
         model, iter = widget.get_selection().get_selected()
@@ -790,6 +744,9 @@ class SkedApp(interface.BaseDialog):
 
     def on_cmd_search_menu(self, widget = None, event = None):
         self.mnSearchOptions.popup(None, None, None, 0, 0)
+
+    def on_cmd_find_and_replace(self, widget = None, event = None):
+        pass
 
     def on_cmd_today(self, widget = None, data = None):
         dt = datetime.datetime.today()

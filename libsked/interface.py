@@ -26,7 +26,6 @@ User interface module.
 import pygtk            # GTK+ stuff
 pygtk.require('2.0')
 import gtk
-from gtk import glade
 from gtk import gdk
 import gobject
 import pango
@@ -38,20 +37,19 @@ import os.path
 
 
 class BaseDialog(object):
-    GLADE_FILE_NAME = 'sked.glade'
     
-    def glade_init(self, root = None):
-        fname = utils.data_path(BaseDialog.GLADE_FILE_NAME)
-        self.glade = gtk.glade.XML(fname, root)
-        return self.glade
+    def ui_init(self, fname):
+        self.ui = gtk.Builder()
+        self.ui.add_from_file(utils.data_path(fname))
 
 
 class AboutDialog(BaseDialog):
-    _dlg = None
 
     def __init__(self, parent):
         self.parent = parent
-        self._load_interface()
+        self.ui_init("about-dialog.ui")
+        self.dlg = self.ui.get_object("dlgAbout")
+        self.ui.connect_signals(self)
         
     def show(self):
         self.dlg.set_modal(True)
@@ -59,13 +57,6 @@ class AboutDialog(BaseDialog):
 
     def on_cmd_close(self, widget = None, data = None):
         self.dlg.destroy()
-
-    def _load_interface(self):
-        self.glade_init("dlgAbout")
-        self.dlg = self.glade.get_widget("dlgAbout")
-        self.glade.signal_autoconnect({
-            'on_cmd_close' : self.on_cmd_close
-        })
 
 
 
@@ -86,40 +77,35 @@ class PreferencesDialog(BaseDialog):
             self.dlg.show()
 
     def _load_interface(self):
-        self.glade_init("dlgPreferences")
-
-        self.dlg = self.glade.get_widget("dlgPreferences")
-        self.spFormatTime = self.glade.get_widget("spFormatTime")
-        self.spSaveTime = self.glade.get_widget("spSaveTime")
-        self.spUndoLevels = self.glade.get_widget("spUndoLevels")
-        self.spHistorySize = self.glade.get_widget("spHistorySize")
-        self.cbShowEdit = self.glade.get_widget("cbShowEdit")
-        self.cbShowCalendar = self.glade.get_widget("cbShowCalendar")
-        self.cbShowHistory = self.glade.get_widget("cbShowHistory")
-        self.cbShowGlobalSearch = self.glade.get_widget("cbShowGlobalSearch")
-        self.clbStandard = self.glade.get_widget("clbStandard")
-        self.clbHeader1 = self.glade.get_widget("clbHeader1")
-        self.clbHeader2 = self.glade.get_widget("clbHeader2")
-        self.clbHeader3 = self.glade.get_widget("clbHeader3")
-        self.clbCode = self.glade.get_widget("clbCode")
-        self.clbLink = self.glade.get_widget("clbLink")
-        self.clbNewLink = self.glade.get_widget("clbNewLink")
-        self.clbFormat = self.glade.get_widget("clbFormat")
-        self.clbURL = self.glade.get_widget("clbURL")
-        self.fbStandard = self.glade.get_widget("fbStandard")
-        self.fbHeader1 = self.glade.get_widget("fbHeader1")
-        self.fbHeader2 = self.glade.get_widget("fbHeader2")
-        self.fbHeader3 = self.glade.get_widget("fbHeader3")
-        self.fbCode = self.glade.get_widget("fbCode")
-        self.fbLink = self.glade.get_widget("fbLink")
-        self.fbNewLink = self.glade.get_widget("fbNewLink")
-        self.fbFormat = self.glade.get_widget("fbFormat")
-        self.fbURL = self.glade.get_widget("fbURL")
-
-        self.glade.signal_autoconnect({
-            'on_cmd_ok'     : self.on_cmd_ok,
-            'on_cmd_cancel' : self.on_cmd_cancel
-        })
+        self.ui_init("preferences-dialog.ui")
+        self.dlg = self.ui.get_object("dlgPreferences")
+        self.spFormatTime = self.ui.get_object("spFormatTime")
+        self.spSaveTime = self.ui.get_object("spSaveTime")
+        self.spUndoLevels = self.ui.get_object("spUndoLevels")
+        self.spHistorySize = self.ui.get_object("spHistorySize")
+        self.cbShowEdit = self.ui.get_object("cbShowEdit")
+        self.cbShowCalendar = self.ui.get_object("cbShowCalendar")
+        self.cbShowHistory = self.ui.get_object("cbShowHistory")
+        self.cbShowGlobalSearch = self.ui.get_object("cbShowGlobalSearch")
+        self.clbStandard = self.ui.get_object("clbStandard")
+        self.clbHeader1 = self.ui.get_object("clbHeader1")
+        self.clbHeader2 = self.ui.get_object("clbHeader2")
+        self.clbHeader3 = self.ui.get_object("clbHeader3")
+        self.clbCode = self.ui.get_object("clbCode")
+        self.clbLink = self.ui.get_object("clbLink")
+        self.clbNewLink = self.ui.get_object("clbNewLink")
+        self.clbFormat = self.ui.get_object("clbFormat")
+        self.clbURL = self.ui.get_object("clbURL")
+        self.fbStandard = self.ui.get_object("fbStandard")
+        self.fbHeader1 = self.ui.get_object("fbHeader1")
+        self.fbHeader2 = self.ui.get_object("fbHeader2")
+        self.fbHeader3 = self.ui.get_object("fbHeader3")
+        self.fbCode = self.ui.get_object("fbCode")
+        self.fbLink = self.ui.get_object("fbLink")
+        self.fbNewLink = self.ui.get_object("fbNewLink")
+        self.fbFormat = self.ui.get_object("fbFormat")
+        self.fbURL = self.ui.get_object("fbURL")
+        self.ui.connect_signals(self)
         
     def on_cmd_ok(self, widget = None, data = None):
         self._save_widget_values()
@@ -197,17 +183,17 @@ class BasePasswordDialog(BaseDialog):
     """ Commom base for password-related dialog boxes. """
 
     def _load_interface(self):
-        self.glade_init("dlgPassword")
-        self.dlg = self.glade.get_widget("dlgPassword")
-        self.lbGeneral = self.glade.get_widget("lbGeneral")
-        self.lbPassword = self.glade.get_widget("lbPassword")
-        self.lbNewPassword = self.glade.get_widget("lbNewPassword")
-        self.lbConfirmPassword = self.glade.get_widget("lbConfirmPassword")
-        self.lbPasswordQuality = self.glade.get_widget("lbPasswordQuality")
-        self.txPassword = self.glade.get_widget("txPassword")
-        self.txNewPassword = self.glade.get_widget("txNewPassword")
-        self.txConfirmPassword = self.glade.get_widget("txConfirmPassword")
-        self.pgPasswordQuality = self.glade.get_widget("pgPasswordQuality")
+        self.ui_init("password-dialog.ui")
+        self.dlg = self.ui.get_object("dlgPassword")
+        self.lbGeneral = self.ui.get_object("lbGeneral")
+        self.lbPassword = self.ui.get_object("lbPassword")
+        self.lbNewPassword = self.ui.get_object("lbNewPassword")
+        self.lbConfirmPassword = self.ui.get_object("lbConfirmPassword")
+        self.lbPasswordQuality = self.ui.get_object("lbPasswordQuality")
+        self.txPassword = self.ui.get_object("txPassword")
+        self.txNewPassword = self.ui.get_object("txNewPassword")
+        self.txConfirmPassword = self.ui.get_object("txConfirmPassword")
+        self.pgPasswordQuality = self.ui.get_object("pgPasswordQuality")
         self.txPassword.set_visibility(False)
         self.txNewPassword.set_visibility(False)
         self.txConfirmPassword.set_visibility(False)
@@ -278,9 +264,7 @@ class BasePasswordChangeDialog(BasePasswordDialog):
         self.txNewPassword.set_property("visible", True)
         self.txConfirmPassword.set_property("visible", True)
         self.pgPasswordQuality.set_property("visible", True)
-        self.glade.signal_autoconnect({
-            'on_pwd_change' : self.on_pwd_change
-        })
+        self.ui.connect_signals(self)
 
     def _check_match(self):
         new = self.txNewPassword.get_text().decode("utf-8")
@@ -403,9 +387,9 @@ class InsertPageTextDialog(BaseDialog):
         self._load_interface()
 
     def _load_interface(self):
-        self.glade_init("dlgInsertPageText")
-        self.dlg = self.glade.get_widget("dlgInsertPageText")
-        self.cbePageName = self.glade.get_widget("cbePageName")
+        self.ui_init("insert-page-dialog.ui")
+        self.dlg = self.ui.get_object("dlgInsertPageText")
+        self.cbePageName = self.ui.get_object("cbePageName")
         self.txPageName = self.cbePageName.child
         self.cbePageName.set_model(self.hmodel)
         self.cbePageName.set_text_column(0)
@@ -445,11 +429,11 @@ class RenamePageDialog(BaseDialog):
         self.create_redirect = False
 
     def _load_interface(self):
-        self.glade_init("dlgRenamePage")
-        self.dlg = self.glade.get_widget("dlgRenamePage")
-        self.lbCurrentName = self.glade.get_widget("lbCurrentName")
-        self.cbCreateRedirect = self.glade.get_widget("cbCreateRedirect")
-        self.cbeNewName = self.glade.get_widget("cbeNewName")
+        self.ui_init("rename-page-dialog.ui")
+        self.dlg = self.ui.get_object("dlgRenamePage")
+        self.lbCurrentName = self.ui.get_object("lbCurrentName")
+        self.cbCreateRedirect = self.ui.get_object("cbCreateRedirect")
+        self.cbeNewName = self.ui.get_object("cbeNewName")
         self.txNewName = self.cbeNewName.child
         self.cbeNewName.set_model(self.hmodel)
         self.cbeNewName.set_text_column(0)

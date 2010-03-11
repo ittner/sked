@@ -57,14 +57,14 @@ class AboutDialog(BaseDialog):
         self.dlg.set_modal(True)
         self.dlg.show()
 
-    def _close(self, widget = None, data = None):
+    def on_cmd_close(self, widget = None, data = None):
         self.dlg.destroy()
 
     def _load_interface(self):
         self.glade_init("dlgAbout")
         self.dlg = self.glade.get_widget("dlgAbout")
         self.glade.signal_autoconnect({
-            'on_cmd_close' : self._close
+            'on_cmd_close' : self.on_cmd_close
         })
 
 
@@ -117,17 +117,17 @@ class PreferencesDialog(BaseDialog):
         self.fbURL = self.glade.get_widget("fbURL")
 
         self.glade.signal_autoconnect({
-            'on_cmd_ok'     : self._on_cmd_ok,
-            'on_cmd_cancel' : self._on_cmd_cancel
+            'on_cmd_ok'     : self.on_cmd_ok,
+            'on_cmd_cancel' : self.on_cmd_cancel
         })
         
-    def _on_cmd_ok(self, widget = None, data = None):
+    def on_cmd_ok(self, widget = None, data = None):
         self._save_widget_values()
         self.dlg.destroy()
         PreferencesDialog._dlg = None
         self.parent.update_options()
         
-    def _on_cmd_cancel(self, widget = None, data = None):
+    def on_cmd_cancel(self, widget = None, data = None):
         self.dlg.destroy()
         PreferencesDialog._dlg = None
         return False
@@ -279,7 +279,7 @@ class BasePasswordChangeDialog(BasePasswordDialog):
         self.txConfirmPassword.set_property("visible", True)
         self.pgPasswordQuality.set_property("visible", True)
         self.glade.signal_autoconnect({
-            'on_pwd_change' : self._update_meter
+            'on_pwd_change' : self.on_pwd_change
         })
 
     def _check_match(self):
@@ -293,7 +293,7 @@ class BasePasswordChangeDialog(BasePasswordDialog):
         else:
             return new
 
-    def _update_meter(self, widget = None, data = None):
+    def on_pwd_change(self, widget = None, data = None):
         # The quality meter reaches the maximum for passwords mixing letters,
         # numbers and special symbols with, at least, 10 chars.
         qfact = 0.0

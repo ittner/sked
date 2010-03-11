@@ -196,7 +196,7 @@ class SkedApp(interface.BaseDialog):
         self.restore_window_geometry()
         self.update_options()
         if page == None:
-            self._on_cmd_date_change()
+            self.on_cmd_date_change()
         else:
             self.hl_change_page(page)
         self._update_back_forward()
@@ -278,51 +278,51 @@ class SkedApp(interface.BaseDialog):
     def load_interface(self):
         self.glade_init()
         self.glade.signal_autoconnect({
-            'on_cmd_about'       : self._on_cmd_about,
-            'on_cmd_back'        : self._on_cmd_back,
-            'on_cmd_bold'        : self._on_cmd_bold,
-            'on_cmd_calendar_tg' : self._on_cmd_calendar_tg,
-            'on_cmd_change_pwd'  : self._on_cmd_change_pwd,
-            'on_cmd_code'        : self._on_cmd_code,
-            'on_cmd_copy'        : self._on_cmd_copy,
-            'on_cmd_cut'         : self._on_cmd_cut,
-            'on_cmd_delete'      : self._on_cmd_delete,
-            'on_cmd_exit'        : self._on_cmd_exit,
-            'on_cmd_export'      : self._on_cmd_export,
-            'on_cmd_forward'     : self._on_cmd_forward,
-            'on_cmd_ft_search'   : self._on_cmd_ft_search,
-            'on_cmd_goto'        : self._on_cmd_goto,
-            'on_cmd_gsearch'     : self._on_cmd_gsearch,
-            'on_cmd_gsearch_mn'  : self._on_cmd_gsearch_mn,
-            'on_cmd_gsearch_tg'  : self._on_cmd_gsearch_tg,
-            'on_cmd_header1'     : self._on_cmd_header1,
-            'on_cmd_header2'     : self._on_cmd_header2,
-            'on_cmd_header3'     : self._on_cmd_header3,
-            'on_cmd_history_go'  : self._on_cmd_listbox_go,
-            'on_cmd_history_go'  : self._on_cmd_listbox_go,
-            'on_cmd_history_tg'  : self._on_cmd_history_tg,
-            'on_cmd_home'        : self._on_cmd_home,
-            'on_cmd_import'      : self._on_cmd_import,
-            'on_cmd_insert_page' : self._on_cmd_insert_page,  
-            'on_cmd_italic'      : self._on_cmd_italic,
-            'on_cmd_link'        : self._on_cmd_link,
-            'on_cmd_lsearch_next': self._on_cmd_lsearch_next,
-            'on_cmd_lsearch_prev': self._on_cmd_lsearch_prev,
-            'on_cmd_lsearch_show': self._on_cmd_lsearch_show,
-            'on_cmd_lsearch_hide': self._on_cmd_lsearch_hide,
-            'on_cmd_lsearch_tg'  : self._on_cmd_lsearch_tg,
-            'on_cmd_paste'       : self._on_cmd_paste,
-            'on_cmd_preferences' : self._on_cmd_preferences,
-            'on_cmd_redo'        : self._on_cmd_redo,
-            'on_cmd_rename_page' : self._on_cmd_rename_page,
-            'on_cmd_search_menu' : self._on_cmd_search_menu,
-            'on_cmd_search_mode' : self._on_cmd_search_mode,
-            'on_cmd_sort_lines'  : self._on_cmd_sort_lines,
-            'on_cmd_today'       : self._on_cmd_today,
-            'on_cmd_tomorrow'    : self._on_cmd_tomorrow,
-            'on_cmd_underline'   : self._on_cmd_underline,
-            'on_cmd_undo'        : self._on_cmd_undo,
-            'on_cmd_yesterday'   : self._on_cmd_yesterday,
+            'on_cmd_about'       : self.on_cmd_about,
+            'on_cmd_back'        : self.on_cmd_back,
+            'on_cmd_bold'        : self.on_cmd_bold,
+            'on_cmd_calendar_tg' : self.on_cmd_calendar_tg,
+            'on_cmd_change_pwd'  : self.on_cmd_change_pwd,
+            'on_cmd_code'        : self.on_cmd_code,
+            'on_cmd_copy'        : self.on_cmd_copy,
+            'on_cmd_cut'         : self.on_cmd_cut,
+            'on_cmd_delete'      : self.on_cmd_delete,
+            'on_cmd_exit'        : self.on_cmd_exit,
+            'on_cmd_export'      : self.on_cmd_export,
+            'on_cmd_forward'     : self.on_cmd_forward,
+            'on_cmd_ft_search'   : self.on_cmd_ft_search,
+            'on_cmd_goto'        : self.on_cmd_goto,
+            'on_cmd_gsearch'     : self.on_cmd_gsearch,
+            'on_cmd_gsearch_mn'  : self.on_cmd_gsearch_mn,
+            'on_cmd_gsearch_tg'  : self.on_cmd_gsearch_tg,
+            'on_cmd_header1'     : self.on_cmd_header1,
+            'on_cmd_header2'     : self.on_cmd_header2,
+            'on_cmd_header3'     : self.on_cmd_header3,
+            'on_cmd_history_go'  : self.on_cmd_listbox_go,
+            'on_cmd_history_go'  : self.on_cmd_listbox_go,
+            'on_cmd_history_tg'  : self.on_cmd_history_tg,
+            'on_cmd_home'        : self.on_cmd_home,
+            'on_cmd_import'      : self.on_cmd_import,
+            'on_cmd_insert_page' : self.on_cmd_insert_page,
+            'on_cmd_italic'      : self.on_cmd_italic,
+            'on_cmd_link'        : self.on_cmd_link,
+            'on_cmd_lsearch_next': self.on_cmd_lsearch_next,
+            'on_cmd_lsearch_prev': self.on_cmd_lsearch_prev,
+            'on_cmd_lsearch_show': self.on_cmd_lsearch_show,
+            'on_cmd_lsearch_hide': self.on_cmd_lsearch_hide,
+            'on_cmd_lsearch_tg'  : self.on_cmd_lsearch_tg,
+            'on_cmd_paste'       : self.on_cmd_paste,
+            'on_cmd_preferences' : self.on_cmd_preferences,
+            'on_cmd_redo'        : self.on_cmd_redo,
+            'on_cmd_rename_page' : self.on_cmd_rename_page,
+            'on_cmd_search_menu' : self.on_cmd_search_menu,
+            'on_cmd_search_mode' : self.on_cmd_search_mode,
+            'on_cmd_sort_lines'  : self.on_cmd_sort_lines,
+            'on_cmd_today'       : self.on_cmd_today,
+            'on_cmd_tomorrow'    : self.on_cmd_tomorrow,
+            'on_cmd_underline'   : self.on_cmd_underline,
+            'on_cmd_undo'        : self.on_cmd_undo,
+            'on_cmd_yesterday'   : self.on_cmd_yesterday,
             'on_lsearch_keypress': self._on_lsearch_keypress,
             'on_window_state'    : self._on_window_state
         })
@@ -391,7 +391,7 @@ class SkedApp(interface.BaseDialog):
     
         # We need this signal ID to block the signal on date setting.
         self.date_change_sigid = self.calendar.connect("day-selected",
-            self._on_cmd_date_change)
+            self.on_cmd_date_change)
     
         # Also, we need to prevent the text buffer from dispatching signals
         # during some operations.
@@ -407,11 +407,11 @@ class SkedApp(interface.BaseDialog):
             self.window.set_icon_from_file(utils.data_path("sked.png"))
         except: pass
 
-    def _on_cmd_about(self, widget = None, data = None):
+    def on_cmd_about(self, widget = None, data = None):
         abt = interface.AboutDialog(self.window)
         abt.show()
         
-    def _on_cmd_export(self, widget = None, data = None):
+    def on_cmd_export(self, widget = None, data = None):
         # Should be in another class?
         dlg = gtk.FileChooserDialog("Export data", None,
             gtk.FILE_CHOOSER_ACTION_SAVE,
@@ -456,7 +456,7 @@ class SkedApp(interface.BaseDialog):
                 "sufficient access rights.")
         # Done.
         
-    def _on_cmd_import(self, widget = None, data = None):
+    def on_cmd_import(self, widget = None, data = None):
         # Should be in another class?
         dlg = gtk.FileChooserDialog("Import data", None,
             gtk.FILE_CHOOSER_ACTION_OPEN,
@@ -499,31 +499,31 @@ class SkedApp(interface.BaseDialog):
                 "sufficient access rights.")
         # Done.
 
-    def _on_cmd_bold(self, widget = None, data = None):
+    def on_cmd_bold(self, widget = None, data = None):
         self.insert_formatting("*", "*")
 
-    def _on_cmd_calendar_tg(self, widget = None, data = None):
+    def on_cmd_calendar_tg(self, widget = None, data = None):
         show_calendar = self.tgCalendar.get_active()
         self.calendar.set_property("visible", show_calendar)
         self.opt.set_bool("show_calendar", show_calendar)
         
-    def _on_cmd_change_pwd(self, widget = None, data = None):
+    def on_cmd_change_pwd(self, widget = None, data = None):
         dlg = interface.PasswordChangeDialog(self.window, self.db.check_password)
         newpwd = dlg.run()
         if newpwd:
             self.db.change_pwd(newpwd)
         
-    def _on_cmd_code(self, widget = None, data = None):
+    def on_cmd_code(self, widget = None, data = None):
         self.insert_formatting("|||", "|||")
         
-    def _on_cmd_copy(self, widget = None, data = None):
+    def on_cmd_copy(self, widget = None, data = None):
         self.txBuffer.copy_clipboard(self.clipboard)
         
-    def _on_cmd_cut(self, widget = None, data = None):
+    def on_cmd_cut(self, widget = None, data = None):
         self.txBuffer.cut_clipboard(self.clipboard,
             self.txNote.get_editable())
         
-    def _on_cmd_date_change(self, widget = None, data = None):
+    def on_cmd_date_change(self, widget = None, data = None):
         self.reset_timers()
         page = self.get_date_str()
         if self.curpage != None and self.curpage.upper() != page.upper():
@@ -533,7 +533,7 @@ class SkedApp(interface.BaseDialog):
         self.update_calendar()
         self._update_back_forward()
         
-    def _on_cmd_delete(self, widget = None, data = None):
+    def on_cmd_delete(self, widget = None, data = None):
         self.reset_timers()
         page = self.curpage
         if page == None: return
@@ -550,10 +550,10 @@ class SkedApp(interface.BaseDialog):
             if page == lastpage:
                 self.set_text("")
         
-    def _on_cmd_exit(self, widget = None, data = None):
+    def on_cmd_exit(self, widget = None, data = None):
         self.quit()
         
-    def _on_cmd_lsearch_next(self, widget = None, data = None):
+    def on_cmd_lsearch_next(self, widget = None, data = None):
         tx = self.txLocalSearch.get_text().decode("utf-8")
         iiter = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
         ret = iiter.forward_search(tx, 0)
@@ -564,7 +564,7 @@ class SkedApp(interface.BaseDialog):
             self.txBuffer.select_range(ret[1], ret[0])
             self.txNote.scroll_to_iter(ret[0], 0.0)
 
-    def _on_cmd_lsearch_prev(self, widget = None, data = None):
+    def on_cmd_lsearch_prev(self, widget = None, data = None):
         tx = self.txLocalSearch.get_text().decode("utf-8")
         iiter = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
         ret = iiter.backward_search(tx, 0)
@@ -575,28 +575,28 @@ class SkedApp(interface.BaseDialog):
             self.txBuffer.select_range(ret[0], ret[1])
             self.txNote.scroll_to_iter(ret[0], 0.0)
         
-    def _on_cmd_lsearch_show(self, widget = None, data = None):
+    def on_cmd_lsearch_show(self, widget = None, data = None):
         self.bxLocalSearch.set_property("visible", True)
         self.txLocalSearch.grab_focus()
 
-    def _on_cmd_lsearch_hide(self, widget = None, data = None):
+    def on_cmd_lsearch_hide(self, widget = None, data = None):
         self.bxLocalSearch.set_property("visible", False)
         
-    def _on_cmd_lsearch_tg(self, widget = None, data = None):
+    def on_cmd_lsearch_tg(self, widget = None, data = None):
         pass
         
     def _on_lsearch_keypress(self, widget = None, event = None, data = None):
         if widget == self.txLocalSearch and event.type == gdk.KEY_PRESS \
         and event.keyval == gtk.keysyms.Escape:
-            self._on_cmd_lsearch_hide()
+            self.on_cmd_lsearch_hide()
             return True
         return False
         
-    def _on_cmd_ft_search(self, widget = None, data = None):
+    def on_cmd_ft_search(self, widget = None, data = None):
         ft_search = self.mnFullText.get_active()
         self.opt.set_bool("ft_search", ft_search)
         
-    def _on_cmd_search_mode(self, widget = None, data = None):
+    def on_cmd_search_mode(self, widget = None, data = None):
         mode = SkedApp.ALL_WORDS    # default.
         if self.mnAnyWord.get_property("active") == True:
             mode = SkedApp.ANY_WORD
@@ -606,18 +606,18 @@ class SkedApp(interface.BaseDialog):
             mode = SkedApp.EXACT_PHRASE
         self.opt.set_int("search_mode", mode)
 
-    def _on_cmd_gsearch_tg(self, widget = None, data = None):
+    def on_cmd_gsearch_tg(self, widget = None, data = None):
         show_gsearch = self.tgGlobalSearch.get_active()
         self.bxGlobalSearch.set_property("visible", show_gsearch)
         self.opt.set_bool("show_gsearch", show_gsearch)
         
-    def _on_cmd_gsearch_mn(self, widget = None, data = None):
+    def on_cmd_gsearch_mn(self, widget = None, data = None):
         if self.tgGlobalSearch.get_active() == False:
             self.tgGlobalSearch.set_active(True)
         #self.tgHistory.set_active(False)
         self.txGlobalSearch.grab_focus()
         
-    def _on_cmd_gsearch(self, widget = None, data = None):
+    def on_cmd_gsearch(self, widget = None, data = None):
         ## Big, ugly and sloooooooow! Optimization needed!!
         text = self.txGlobalSearch.get_text().decode("utf-8")
         text = text.strip().upper()
@@ -676,7 +676,7 @@ class SkedApp(interface.BaseDialog):
                     if data.find(slist[0]) != -1:
                         self.gsearch_model.append([page])
 
-    def _on_cmd_sort_lines(self, widget = None, data = None):
+    def on_cmd_sort_lines(self, widget = None, data = None):
         smark = self.txBuffer.get_selection_bound()
         imark = self.txBuffer.get_insert()
         iiter = self.txBuffer.get_iter_at_mark(imark)
@@ -696,37 +696,37 @@ class SkedApp(interface.BaseDialog):
         self.txBuffer.insert(siter, text)
         self.format_text()
     
-    def _on_cmd_goto(self, widget = None, data = None):
+    def on_cmd_goto(self, widget = None, data = None):
         self.hl_change_page(self.txPageName.get_text().decode("utf-8"))
         
-    def _on_cmd_header1(self, widget = None, data = None):
+    def on_cmd_header1(self, widget = None, data = None):
         self.insert_formatting("===", "===")
 
-    def _on_cmd_header2(self, widget = None, data = None):
+    def on_cmd_header2(self, widget = None, data = None):
         self.insert_formatting("==", "==")
         
-    def _on_cmd_header3(self, widget = None, data = None):
+    def on_cmd_header3(self, widget = None, data = None):
         self.insert_formatting("=", "=")
 
-    def _on_cmd_listbox_go(self, widget = None, path = None, column = None):
+    def on_cmd_listbox_go(self, widget = None, path = None, column = None):
         # Should be used for global search too.
         model, iter = widget.get_selection().get_selected()
         page = model.get_value(iter, 0)
         if page != None:
             self.hl_change_page(page)
 
-    def _on_cmd_history_tg(self, widget = None, data = None):
+    def on_cmd_history_tg(self, widget = None, data = None):
         show_history = self.tgHistory.get_active()
         self.bxHistory.set_property("visible", show_history)
         self.opt.set_bool("show_history", show_history)
 
-    def _on_cmd_home(self, widget = None, data = None):
+    def on_cmd_home(self, widget = None, data = None):
         self.hl_change_page("index")
         
-    def _on_cmd_italic(self, widget = None, data = None):
+    def on_cmd_italic(self, widget = None, data = None):
         self.insert_formatting("//", "//")
         
-    def _on_cmd_insert_page(self, widget = None, data = None):
+    def on_cmd_insert_page(self, widget = None, data = None):
         dlg = interface.InsertPageTextDialog(self)
         page = dlg.run()
         if page:
@@ -735,13 +735,13 @@ class SkedApp(interface.BaseDialog):
             if pair:
                 self.insert_text_cursor(pair[1])
 
-    def _on_cmd_underline(self, widget = None, data = None):
+    def on_cmd_underline(self, widget = None, data = None):
         self.insert_formatting("_", "_")
         
-    def _on_cmd_link(self, widget = None, data = None):
+    def on_cmd_link(self, widget = None, data = None):
         self.insert_formatting("[[", "]]")
 
-    def _on_cmd_back(self, widget = None, data = None):
+    def on_cmd_back(self, widget = None, data = None):
         if len(self.backl) > 0:
             self.reset_timers()
             page = self.backl.pop()
@@ -750,7 +750,7 @@ class SkedApp(interface.BaseDialog):
             self.mark_page_on_calendar()
         self._update_back_forward()
 
-    def _on_cmd_forward(self, widget = None, data = None):
+    def on_cmd_forward(self, widget = None, data = None):
         if len(self.forwardl) > 0:
             self.reset_timers()
             page = self.forwardl.pop()
@@ -760,15 +760,15 @@ class SkedApp(interface.BaseDialog):
             self.mark_page_on_calendar()
         self._update_back_forward()
         
-    def _on_cmd_paste(self, widget = None, data = None):
+    def on_cmd_paste(self, widget = None, data = None):
         self.txBuffer.paste_clipboard(self.clipboard, None,
             self.txNote.get_editable())
         
-    def _on_cmd_preferences(self, widget = None, data = None):
+    def on_cmd_preferences(self, widget = None, data = None):
         wnd = interface.PreferencesDialog(self)
         wnd.show()
         
-    def _on_cmd_redo(self, widget = None, data = None):
+    def on_cmd_redo(self, widget = None, data = None):
         if len(self.redol) > 0:
             ls = self.redol.pop()
             self.enqueue_undo()
@@ -776,7 +776,7 @@ class SkedApp(interface.BaseDialog):
             self.set_text(ls[1])
         self.format_text()
 
-    def _on_cmd_rename_page(self, widget = None, data = None):
+    def on_cmd_rename_page(self, widget = None, data = None):
         dlg = interface.RenamePageDialog(self)
         newpage = dlg.run()
         if newpage != None:
@@ -788,18 +788,18 @@ class SkedApp(interface.BaseDialog):
             else:
                 self.db.del_key(cpagename)
 
-    def _on_cmd_search_menu(self, widget = None, event = None):
+    def on_cmd_search_menu(self, widget = None, event = None):
         self.mnSearchOptions.popup(None, None, None, 0, 0)
 
-    def _on_cmd_today(self, widget = None, data = None):
+    def on_cmd_today(self, widget = None, data = None):
         dt = datetime.datetime.today()
         self.hl_change_page("%04d-%02d-%02d" % (dt.year, dt.month, dt.day))
         
-    def _on_cmd_tomorrow(self, widget = None, data = None):
+    def on_cmd_tomorrow(self, widget = None, data = None):
         dt = datetime.datetime.today() + datetime.timedelta(1)
         self.hl_change_page("%04d-%02d-%02d" % (dt.year, dt.month, dt.day))
         
-    def _on_cmd_undo(self, widget = None, data = None):
+    def on_cmd_undo(self, widget = None, data = None):
         if len(self.undol) > 0:
             ls = self.undol.pop()
             self.enqueue_redo()
@@ -807,7 +807,7 @@ class SkedApp(interface.BaseDialog):
             self.set_text(ls[1])
         self.format_text()
 
-    def _on_cmd_yesterday(self, widget = None, data = None):
+    def on_cmd_yesterday(self, widget = None, data = None):
         dt = datetime.datetime.today() - datetime.timedelta(1)
         self.hl_change_page("%04d-%02d-%02d" % (dt.year, dt.month, dt.day))
 

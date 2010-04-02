@@ -766,6 +766,8 @@
                         <property name="can_focus">True</property>
                         <property name="has_focus">True</property>
                         <property name="wrap_mode">word</property>
+                        <property name="left_margin">4</property>
+                        <property name="right_margin">4</property>
                       </object>
                     </child>
                   </object>

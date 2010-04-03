@@ -461,7 +461,7 @@ class SkedApp(interface.BaseDialog):
     def on_cmd_change_pwd(self, widget = None, data = None):
         dlg = interface.PasswordChangeDialog(self.window, self.db.check_password)
         newpwd = dlg.run()
-        if newpwd:
+        if newpwd or newpwd == "":
             self.db.change_pwd(newpwd)
         
     def on_cmd_code(self, widget = None, data = None):
@@ -1236,7 +1236,9 @@ def main():
         dlg = interface.NewPasswordDialog()
         dlg.set_title("Sked - New database")
         dlg.set_text("You are using this program for the first time. "
-            "Please enter a password to lock the database")
+            "Please enter a password to lock the database or leave it "
+            "blank if you do not want to password protect your database. "
+            "It is possible to change this later")
         pwd = dlg.run()
         if pwd != None:
             db.create(pwd)

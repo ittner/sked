@@ -256,7 +256,8 @@ class BasePasswordChangeDialog(BasePasswordDialog):
     
     def _load_interface(self):
         BasePasswordDialog._load_interface(self)
-        self.set_text("Enter a password")
+        self.set_text("Enter a password to protect your database or leave "
+            "it blank to disable the password protection")
         self.lbNewPassword.set_property("visible", True)
         self.lbConfirmPassword.set_property("visible", True)
         self.lbPasswordQuality.set_property("visible", True)

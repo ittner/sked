@@ -26,7 +26,6 @@ Utility functions.
 import pygtk            # GTK+ stuff
 pygtk.require('2.0')
 import gtk
-from gtk import glade
 from gtk import gdk
 
 import os

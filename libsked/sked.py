@@ -1033,19 +1033,19 @@ class SkedApp(interface.BaseDialog):
                 self._apply_tag_on_group(match, h, 2)
                 self._apply_tag_on_group(match, "format", 3)
 
-        bold_re = ur"(\*+)(.+?)(\*+)"       # *bold*
+        bold_re = ur"\W(\*+)(.+?)(\*+)\W"       # *bold*
         for match in re.finditer(bold_re, tx):
             self._apply_tag_on_group(match, "format", 1)
             self._apply_tag_on_group(match, "bold", 2)
             self._apply_tag_on_group(match, "format", 3)
         
-        italic_re = ur"(//+)(.+?)(//+)"       # //italic//
+        italic_re = ur"\W(//+)(.+?)(//+)\W"     # //italic//
         for match in re.finditer(italic_re, tx):
             self._apply_tag_on_group(match, "format", 1)
             self._apply_tag_on_group(match, "italic", 2)
             self._apply_tag_on_group(match, "format", 3)
         
-        underl_re = ur"\s(_+)(.+?)(_+)"       # _underline_
+        underl_re = ur"\W(_+)(.+?)(_+)\W"       # _underline_
         for match in re.finditer(underl_re, tx):
             self._apply_tag_on_group(match, "format", 1)
             self._apply_tag_on_group(match, "underline", 2)

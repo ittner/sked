@@ -1,3 +1,13 @@
+sked (0.2-2~git) karmic; urgency=low
+
+  * Some new changes from development version.
+  * Requires word boundaries in bold, italic, and underline.
+  * Removing unused 'import glade'.
+  * Allow disable of the password protection.
+  * Adding a 4px margin to the text view.
+
+ -- Alexandre Erwin Ittner <alexandre@ittner.com.br>  Thu, 15 Apr 2010 03:40:00 -0300
+ 
 sked (0.2-1) karmic; urgency=low
 
   * Update for Karmic Koala;

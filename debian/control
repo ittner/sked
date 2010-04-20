@@ -10,7 +10,7 @@ Homepage: http://wikisked.sourceforge.net/
 
 Package: sked
 Architecture: all
-Depends: ${python:Depends}, python-gtk2 (>= 2.18.0)
+Depends: ${python:Depends}, python-gtk2 (>= 2.16.0)
 XB-Python-Version: ${python:Versions}
 Description: A wiki-based personal organizer, calendar, schedule application
   Sked is a personal organizer, calendar, schedule and braindump application

@@ -400,7 +400,9 @@ class SkedApp(interface.BaseDialog):
             "be exported without encryption. Do you want to proceed?"):
             return
         try:
+            self.set_status(u'Exporting to "' + fname + u'". Please wait...')
             xmlio.export_xml_file(self.db, fname, u"pag_")
+            self.set_status(u'Done')
         except:
             interface.error_dialog(dlg, u"Failed to write the file. Please " \
                 "check if the file is not being used and if you have " \
@@ -441,7 +443,9 @@ class SkedApp(interface.BaseDialog):
             "Do you want to proceed?"):
             return
         try:
+            self.set_status(u'Importing from "' + fname + u'". Please wait...')
             xmlio.import_xml_file(self.db, fname)
+            self.set_status(u'Done')
             # Reload current page (it can be replaced after importing).
             self.reload_current_page()
         except:
@@ -801,7 +805,8 @@ class SkedApp(interface.BaseDialog):
             self.enqueue_undo()
         self.reset_timers()
         self.set_timers()
-        self.set_status((self.curpage or "Nothing") + " changed")
+        if self.curpage:
+            self.set_status(u'Page "' + self.curpage + u'" changed')
 
     def _on_text_delete(self, widget = None, s = None, e = None, dt = None):
         # big amount of text being deleted? Prepare for undo!
@@ -1133,7 +1138,7 @@ class SkedApp(interface.BaseDialog):
                 self.db.set_key(self.page_name(self.curpage), tx)
             else:
                 self.db.del_key(self.page_name(self.curpage))
-            self.set_status(self.curpage + " saved")
+            self.set_status(u'Page "' + self.curpage + u'" saved')
 
     def reload_current_page(self):
         """ Reloads current page from DB.  Changes will be discarted. """

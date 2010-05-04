@@ -39,18 +39,13 @@ class HistoryManager:
         self._items = []
         if self._dbkey != None:
             self._db = skapp.db
-            str = self._db.get_key(self._dbkey, None)
-            if str != None:
-                try:
-                    self._items = str.split(u"\n")
-                except:
-                    pass
+            self._items = self._db.get_key(self._dbkey, [])
         self._refresh_model()
 
     def save(self):
         self._trim()
         if self._dbkey:
-            self._db.set_key(self._dbkey, u"\n".join(self._items))
+            self._db.set_key(self._dbkey, self._items)
 
     def get_items(self):
         return self._items

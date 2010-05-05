@@ -82,7 +82,7 @@ class EncryptedDatabase(object):
             if base == None or base == '':
                 base = os.path.join(utils.get_home_dir(), ".local", "share")
             ddir = os.path.join(base, "sked")
-            self._path =  os.path.join(ddir, "sked.db")
+            self._path =  os.path.join(ddir, "sked2.db")
         if not os.path.exists(ddir):
             os.makedirs(ddir, 0700)
         self.lock_path = self._path + ".lock"

@@ -96,6 +96,57 @@ class OptionManager:
 
 
 
+class PageManager(object):
+    _ENCODING = "utf-8"
+    _PREFIX = "page:"
+
+    def __init__(self, db):
+        """ Creates a new page manager using the given database. """
+        self.db = db
+
+    def exists(self, pagename):
+        """ Returns True if the database have a page with the given name. """
+        return self.db.has_key(self._db_key(pagename))
+
+    def load(self, pagename):
+        """ Loads the given page from the database. Returns the page object
+        or None if the page do not exists. """
+        rec = self.db.get_key(self._db_key(pagename), None)
+        if not rec:
+            return None
+        return self._decode_page(rec)
+
+    def save(self, page):
+        """ Saves the page to the database. Name is always taken from
+        the 'name' property. """
+        if page.text == None or page.text == u"":
+            self.delete(page.name)
+        else:
+            self.db.set_key(PageManager._PREFIX + page.normalized_name,
+                [ page.name, page.text, page.cursor_pos ])
+
+    def delete(self, pagename):
+        """ Deletes the given page from the database. """
+        self.db.del_key(self._db_key(pagename))
+
+    def iterate(self):
+        """ Iterates through the pages in the DB """
+        for rec in self.db.pairs():
+            if rec[0].startswith(PageManager._PREFIX):
+                yield self._decode_page(rec[1])
+
+    def _decode_page(self, dbrecord):
+        p = Page()
+        p.name = dbrecord[0].decode(PageManager._ENCODING)
+        p.text = dbrecord[1].decode(PageManager._ENCODING)
+        p.cursor_pos = dbrecord[2]
+        return p
+
+    def _db_key(self, pagename):
+        return PageManager._PREFIX + Page._normalize_name(pagename)
+
+
+
 class Page(object):
     
     def __init__(self, name = None, text = None):
@@ -105,65 +156,8 @@ class Page(object):
         self.text = text or u""
 
     @staticmethod
-    def set_db(db_object):
-        """ Sets a class-level database handler. This method MUST be called
-        before any database operation. """
-        Page._db = db_object
-        return
-
-    @staticmethod
-    def exists(pagename):
-        """ Returns True if the database have a page with the given name. """
-        return Page._db.has_key(Page._normalize_name(pagename))
-        
-    @staticmethod
-    def loadnew(pagename):
-        """ Loads the given page from the database. Returns the page object
-        or None if the page do not exists. """
-        p = Page()
-        if p.load(pagename):
-            return p
-        return None
-
-    @staticmethod
-    def iterate_pages():
-        for rec in Page._db.pairs():
-            if rec[0][:5] == "page:":
-                data = rec[1]
-                p = Page(data[0], data[1])
-                p.cursor_pos = data[2]
-                yield p
-
-    def load(self, pagename):
-        """ Loads the page given by 'pagename' into *this* instance. All the
-        current values will be overwritten. The method returns True on ok or
-        False if the page was not found in the database. """
-        nname = Page._normalize_name(pagename)
-        obj = Page._db.get_key(nname, None)
-        if not obj:
-            return False
-        self.name = obj[0]
-        self.text = obj[1]
-        self.cursor_pos = obj[2]
-        return True
-
-    def save(self):
-        """ Saves the current page to the database. Name is always taken from
-        the 'name' property. """
-        if self.text == None or self.text == u"":
-            self.delete()
-        else:
-            Page._db.set_key(self.normalized_name, [ self.name, self.text,
-                self.cursor_pos ])
-
-    def delete(self):
-        """ Deletes the current page from the database. """
-        Page._db.del_key(self.normalized_name)
-
-    @staticmethod
     def _normalize_name(name):
-        n = u"page:" + name.strip().lower()
-        return n.encode("utf-8")
+        return name.strip().lower().encode("utf-8")
 
     def _set_name(self, name):
         self._name = name

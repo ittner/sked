@@ -114,7 +114,7 @@ class Page(object):
     @staticmethod
     def exists(pagename):
         """ Returns True if the database have a page with the given name. """
-        pass
+        return Page._db.has_key(Page._normalize_name(pagename))
         
     @staticmethod
     def loadnew(pagename):
@@ -125,11 +125,27 @@ class Page(object):
             return p
         return None
 
+    @staticmethod
+    def iterate_pages():
+        for rec in Page._db.pairs():
+            if rec[0][:5] == "page:":
+                data = rec[1]
+                p = Page(data[0], data[1])
+                p.cursor_pos = data[2]
+                yield p
+
     def load(self, pagename):
         """ Loads the page given by 'pagename' into *this* instance. All the
         current values will be overwritten. The method returns True on ok or
         False if the page was not found in the database. """
-        pass
+        nname = Page._normalize_name(pagename)
+        obj = Page._db.get_key(nname, None)
+        if not obj:
+            return False
+        self.name = obj[0]
+        self.text = obj[1]
+        self.cursor_pos = obj[2]
+        return True
 
     def save(self):
         """ Saves the current page to the database. Name is always taken from
@@ -137,11 +153,12 @@ class Page(object):
         if self.text == None or self.text == u"":
             self.delete()
         else:
-            pass
+            Page._db.set_key(self.normalized_name, [ self.name, self.text,
+                self.cursor_pos ])
 
     def delete(self):
         """ Deletes the current page from the database. """
-        pass
+        Page._db.del_key(self.normalized_name)
 
     @staticmethod
     def _normalize_name(name):

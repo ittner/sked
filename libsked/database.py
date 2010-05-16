@@ -27,7 +27,7 @@ Databases used by Sked.
 from bsddb import db
 import os
 import zlib
-import cPickle
+import cPickle as pickle
 import hashlib
 
 import utils
@@ -63,12 +63,8 @@ def make_key(pwd):
 
 class EncryptedDatabase(object):
     """Implements a Sked secure database over a Berkeley DB4.x encrypted 
-    database. Key and data MUST be valid Unicode strings. The database
-    format is:
-    
-    dbkey  = key.upper().encode("utf-8")
-    dbdata = pickle.dumps([ key, zlib.compress(data.encode("utf-8")) ], 2)
-    
+    database. Key MUST be a valid Unicode string, data may be any python
+    object.
     """
 
     def __init__(self, path = None):
@@ -173,39 +169,29 @@ class EncryptedDatabase(object):
     def has_key(self, key):
         if not self._ready:
             raise NotReadyError
-        return self._db.has_key(self._make_db_key(key)) == 1
+        return self._db.has_key(key) == 1
     
     def set_key(self, key, value, sync = True):
         if not self._ready:
             raise NotReadyError
-        cval = zlib.compress(value.encode("utf-8"))
-        self._db.put(self._make_db_key(key), cPickle.dumps([key, cval], 2))
+        self._db.put(key, zlib.compress(pickle.dumps(value, 2)))
         if sync:
             self._db.sync()
 
     def get_key(self, key, default = None):
-        ret = self.get_pair(key, None)
-        if ret == None:
-            return default
-        return ret[1]
-
-    def get_pair(self, key, default = None):
         if not self._ready:
             raise NotReadyError
         try:
-            spair = self._db.get(self._make_db_key(key))
-            if spair != None:
-                pair = cPickle.loads(spair)
-                pair[1] = zlib.decompress(pair[1]).decode("utf-8")
-                return pair
+            val = self._db.get(key)
+            if val != None:
+                return pickle.loads(zlib.decompress(val))
         except db.DBNotFoundError:
             pass
         return default
 
     def del_key(self, key):
-        rkey = self._make_db_key(key)
-        if self._db.has_key(rkey) == 1:
-            self._db.delete(rkey)
+        if self._db.has_key(key) == 1:
+            self._db.delete(key)
 
     def pairs(self):
         if not self._ready:
@@ -213,12 +199,9 @@ class EncryptedDatabase(object):
         cursor = self._db.cursor()
         rec = cursor.first()
         while rec:
-            pair = cPickle.loads(rec[1])
-            yield pair[0], zlib.decompress(pair[1]).decode("utf-8")
+            data = pickle.loads(zlib.decompress(rec[1]))
+            yield rec[0], data
             rec = cursor.next()
-
-    def _make_db_key(self, key):
-        return key.upper().encode("utf-8")
 
     def _make_pwd_hash(self, pwd):
         return _hash_sha256_str(_normalize_pwd(pwd))

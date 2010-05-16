@@ -115,10 +115,20 @@ class Page(object):
     def exists(pagename):
         """ Returns True if the database have a page with the given name. """
         pass
+        
+    @staticmethod
+    def loadnew(pagename):
+        """ Loads the given page from the database. Returns the page object
+        or None if the page do not exists. """
+        p = Page()
+        if p.load(pagename):
+            return p
+        return None
 
     def load(self, pagename):
         """ Loads the page given by 'pagename' into *this* instance. All the
-        current values will be overwritten. """
+        current values will be overwritten. The method returns True on ok or
+        False if the page was not found in the database. """
         pass
 
     def save(self):

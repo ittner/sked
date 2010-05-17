@@ -27,6 +27,7 @@ from xml import sax
 from xml.sax import saxutils
 from xml.sax.handler import ContentHandler, EntityResolver
 
+from pages import *
 import utils
 
 class VersionError(Exception):
@@ -45,8 +46,8 @@ class SkedContentHandler(ContentHandler):
     WAITING_DATA = 3
     DONE = 4
 
-    def __init__(self, db, callback = None):
-        self._db = db
+    def __init__(self, page_manager, callback = None):
+        self._pm = page_manager
         self._state = SkedContentHandler.READY
         self._callback = callback
         
@@ -77,7 +78,7 @@ class SkedContentHandler(ContentHandler):
     def endElement(self, name):
         if self._state == SkedContentHandler.WAITING_DATA \
         and name == "entry":
-            self._db.set_key("pag_" + self._pagename, self._pagedata, False)
+            self._pm.save(Page(self._pagename, self._pagedata), False)
             self._state = SkedContentHandler.WAITING_ENTRY
             if self._callback:
                 SkedContentHandler._callback()
@@ -91,8 +92,6 @@ class SkedContentHandler(ContentHandler):
         if self._state == SkedContentHandler.WAITING_DATA:
             self._pagedata = self._pagedata + data
 
-    def get_state(self):
-        return self._state
 
 
 class SkedEntityResolver(EntityResolver):
@@ -102,63 +101,39 @@ class SkedEntityResolver(EntityResolver):
         return None
 
 
-def import_xml_data(db, fp, callback = None):
-    """ Import XML data from a stream 'fp' into the database 'db'. 'callback'
+def import_xml_data(page_manager, fp, callback = None):
+    """ Import XML data from a stream 'fp' into the page manager. 'callback'
     will be called for each entry imported. """
 
     parser = sax.make_parser()
-    parser.setContentHandler(SkedContentHandler(db, callback))
+    parser.setContentHandler(SkedContentHandler(page_manager, callback))
     parser.setEntityResolver(SkedEntityResolver())
     parser.parse(fp)
 
 
-def import_xml_file(db, fname, callback = None):
-    """ Import XML data from a file 'fname' into the database 'db'. 'callback'
-    will be called for each entry imported. """
+def import_xml_file(page_manager, fname, callback = None):
+    """ Import XML data from a file 'fname' into the given page manager. 
+    'callback' will be called for each entry imported. """
     
     fp = open(fname, "rb")
-    import_xml_data(db, fp, callback)
+    import_xml_data(page_manager, fp, callback)
     fp.close()
 
 
-class XMLExporter(object):
-    """Exports Sked databases as XML data to streams. By now, only text entries
-    are supported."""
-    
-    def __init__(self, db, fp):
-        """Creates a new data exporter. 'db' is a Sked database and 'fp' is 
-        some file handler."""
-        
-        self._db = db
-        self._fp = fp
-
-    def write_all(self, prefix, callback = None):
-        """Writes all entries begining with 'prefix' to the output. 'callback'
-        is called for each written entry with no arguments. """
-        
-        self._fp.write('<?xml version="1.0" encoding="utf-8"?>\n' \
-                       '<!DOCTYPE skeddata SYSTEM "sked.dtd">\n'  \
-                       '<skeddata version="1.0">\n')
-        
-        plen = len(prefix)
-        for tmp in self._db.pairs():
-            if tmp[0].startswith(prefix):
-                name = tmp[0][plen:]
-                self._fp.write(" <entry name=%s>%s</entry>\n" % (\
-                    saxutils.quoteattr(name).encode("utf-8"), \
-                    saxutils.escape(tmp[1]).encode("utf-8")))
-                if callback != None: callback()
-
-        self._fp.write("</skeddata>\n")
-
-
-def export_xml_file(db, fname, prefix, callback = None):
-    """Exports the entries begining with 'prefix' from the database 'db' to
-    the file named 'fname' with no compression or encryption. For each entry
-    exported, 'callback' will be called with no arguments.
+def export_xml_file(page_manager, fname, callback = None):
+    """ Exports the pages from the page manager to the file named 'fname'
+    with no compression or encryption. For each entry exported, 'callback'
+    will be called with no arguments.
     """
 
     fp = open(fname, "w")
-    exp = XMLExporter(db, fp)
-    exp.write_all(prefix, callback)
+    fp.write('<?xml version="1.0" encoding="utf-8"?>\n'
+        '<!DOCTYPE skeddata SYSTEM "sked.dtd">\n'
+        '<skeddata version="1.0">\n')
+    for page in page_manager.iterate():
+        fp.write(" <entry name=%s>%s</entry>\n" % (
+            saxutils.quoteattr(page.name).encode("utf-8"),
+            saxutils.escape(page.text).encode("utf-8")))
+        if callback != None: callback()
+    fp.write("</skeddata>\n")
     fp.close()

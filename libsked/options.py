@@ -86,11 +86,14 @@ class OptionManager:
             
     def get_color(self, key):
         try:
-            c = gdk.color_parse(self.get_str(key))
+            s = self.get_str(key)
+            if s == None and self._defs.has_key(key):
+                s = self._defs[key]
+            if s == None:
+                return None
+            return gdk.color_parse(s)
         except ValueError:
-            if self._defs.has_key(key):
-                c = gdk.color_parse(self._defs[key])    # for invalid colors.
-        return c
+            return None
 
     def set_color(self, key, color):
         self.set_str(key, "#%.2X%.2X%.2X" %

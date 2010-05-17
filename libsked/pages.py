@@ -22,6 +22,9 @@
 Page management module.
 """
 
+import re
+
+
 class PageManager(object):
     _ENCODING = "utf-8"
     _PREFIX = "page:"
@@ -84,7 +87,22 @@ class Page(object):
 
     @staticmethod
     def _normalize_name(name):
-        return name.strip().lower().encode("utf-8")
+        name = name.strip().lower()
+        # force dates to the YYYY-MM-DD format.
+        match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{1,4})", name)
+        if match != None:
+            d = int(match.group(1))
+            m = int(match.group(2))
+            y = int(match.group(3))
+            name = u"%04d-%02d-%02d" % (y, m, d)
+        else:
+            match = re.search("([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})", name)
+            if match != None:
+                y = int(match.group(1))
+                m = int(match.group(2))
+                d = int(match.group(3))
+                name = u"%04d-%02d-%02d" % (y, m, d)
+        return name.encode("utf-8")
 
     def _set_name(self, name):
         self._name = name

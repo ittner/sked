@@ -48,9 +48,11 @@ pages.append(Page(u"XML Chars 1 ><>&\"", u"XML &amp; Chars ><>&\""))
 pages.append(Page(u"XML Chars 2 &amp; && 2 ><>&\"",
     u"XML &amp; Chars &&& ! <!-- --> ><>&\"aa '"))
 
-
-
-
+# Pages named with dates
+pages.append(Page("13/02/2010", "nanana"))
+pages.append(Page("2010-01-1", "nanana"))
+pages.append(Page("3/10/1990", "nanana"))
+pages.append(Page("13/01/2010", "nanana"))
 
 # Create a new database
 db = EncryptedDatabase(db_fname)
@@ -139,6 +141,18 @@ if pm.load("teST ").name != "Test": raise Exception("bad name normalization")
 pm.delete("tesT")
 if pm.exists("teSt"):
     raise Exception("delete error")
+
+# Test normalized dates too.
+pm.save(Page("03/02/1983", "Date normalization"))
+if pm.load("1983-2-3 ").name != "03/02/1983": raise Exception("bad dates")
+if pm.load(" 1983-02-3 ").name != "03/02/1983": raise Exception("bad dates")
+if pm.load("3/2/1983 ").name != "03/02/1983": raise Exception("bad dates")
+if pm.load("3/02/1983 ").name != "03/02/1983": raise Exception("bad dates")
+if pm.load("3/02/1983 ").name != "03/02/1983": raise Exception("bad dates")
+
+pm.delete("1983-02-03")
+if pm.exists("03/02/1983"):
+    raise Exception("delete error (date)")
 
 # The database have len(pages) now.
 

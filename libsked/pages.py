@@ -42,14 +42,15 @@ class PageManager(object):
             return None
         return self._decode_page(rec)
 
-    def save(self, page):
+    def save(self, page, sync = True):
         """ Saves the page to the database. Name is always taken from
-        the 'name' property. """
+        the 'name' property. If 'sync' is False, the database will not
+        be flushed/sinc()ed. """
         if page.text == None or page.text == u"":
             self.delete(page.name)
         else:
             self.db.set_key(PageManager._PREFIX + page.normalized_name,
-                [ page.name, page.text, page.cursor_pos ])
+                [ page.name, page.text, page.cursor_pos ], sync)
 
     def delete(self, pagename):
         """ Deletes the given page from the database. """

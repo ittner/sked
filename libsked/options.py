@@ -26,8 +26,10 @@ from gtk import gdk
 
 class OptionManager:
     """
-    Class for handling appliation's options.
+    Handles application options, including persistence.
     """
+    
+    DB_KEY = "options"
 
     def __init__(self, db, defaults = {}):
         self._db = db
@@ -41,10 +43,10 @@ class OptionManager:
             self._defs[k] = defaults[k]
             
     def save(self):
-        self._db.set_key("options", self._opts)
+        self._db.set_key(OptionManager.DB_KEY, self._opts)
     
     def load(self):
-        s = self._db.get_key("options")
+        s = self._db.get_key(OptionManager.DB_KEY)
         if s:
             self._opts = s
 

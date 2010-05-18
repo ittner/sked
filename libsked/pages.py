@@ -73,7 +73,7 @@ class PageManager(object):
         return p
 
     def _db_key(self, pagename):
-        return PageManager._PREFIX + Page._normalize_name(pagename)
+        return PageManager._PREFIX + Page.normalize_name(pagename)
 
 
 
@@ -86,7 +86,7 @@ class Page(object):
         self.text = text or u""
 
     @staticmethod
-    def _normalize_name(name):
+    def normalize_name(name):
         name = name.strip().lower()
         # force dates to the YYYY-MM-DD format.
         match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{1,4})", name)
@@ -106,7 +106,7 @@ class Page(object):
 
     def _set_name(self, name):
         self._name = name
-        self.normalized_name = Page._normalize_name(name)
+        self.normalized_name = Page.normalize_name(name)
 
     def _get_name(self):
         return self._name

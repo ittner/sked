@@ -41,14 +41,14 @@ import os               # Operating system stuff
 import re               # Regular expressions
 import webbrowser       # System web browser
 import datetime         # Date validation
-import cPickle          # For options only
 
 import utils
 import database
 import interface
 import xmlio
+from pages import *
+from options import *
 from history import HistoryManager
-from model import *
 
 
 # Main application class -------------------------------------------------
@@ -97,6 +97,7 @@ class SkedApp(interface.BaseDialog):
     def __init__(self, db):
         #try:
             self.db = db
+            self.pm = PageManager(db)
             self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
             self.formatTimerID = None
             self.saveTimerID = None
@@ -106,7 +107,7 @@ class SkedApp(interface.BaseDialog):
             self.redol = []
             self.last_undo_cnt = 0;
             self.window_state = 0
-            self.history = HistoryManager(self, u"history", True)
+            self.history = HistoryManager(self, "history", True)
             self.history_model = gtk.ListStore(gobject.TYPE_STRING)
             self.history.set_model(self.history_model)
             self.gsearch_model = gtk.ListStore(gobject.TYPE_STRING)
@@ -116,14 +117,14 @@ class SkedApp(interface.BaseDialog):
         #        u"An initialization error has occurred. Namárië.")
         #    self.quit()
             
-    def start(self, page=None):
+    def start(self, pagename=None):
         self.curpage = None
         self.restore_window_geometry()
         self.update_options()
-        if page == None:
+        if pagename == None:
             self.on_cmd_date_change()
         else:
-            self.hl_change_page(page)
+            self.hl_change_page(pagename)
         self._update_back_forward()
         self._update_undo_redo()
         self.window.show()
@@ -327,7 +328,7 @@ class SkedApp(interface.BaseDialog):
             return
         try:
             self.set_status(u'Exporting to "' + fname + u'". Please wait...')
-            xmlio.export_xml_file(self.db, fname, u"pag_")
+            xmlio.export_xml_file(self.pm, fname)
             self.set_status(u'Done')
         except:
             interface.error_dialog(dlg, u"Failed to write the file. Please " \
@@ -370,7 +371,7 @@ class SkedApp(interface.BaseDialog):
             return
         try:
             self.set_status(u'Importing from "' + fname + u'". Please wait...')
-            xmlio.import_xml_file(self.db, fname)
+            xmlio.import_xml_file(self.pm, fname)
             self.set_status(u'Done')
             # Reload current page (it can be replaced after importing).
             self.reload_current_page()
@@ -406,20 +407,20 @@ class SkedApp(interface.BaseDialog):
         
     def on_cmd_date_change(self, widget = None, data = None):
         self.reset_timers()
-        page = self.get_date_str()
-        if self.curpage != None and self.curpage.upper() != page.upper():
-            self.backl.append(self.curpage)
+        pagename = self.get_date_str()
+        if self.curpage != None and self.curpage.normalized_name != pagename:
+            self.backl.append(self.curpage.normalized_name)
         self.forwardl = []
-        self.change_page(page)
+        self.change_page(pagename)
         self.update_calendar()
         self._update_back_forward()
         
     def on_cmd_delete(self, widget = None, data = None):
         self.reset_timers()
-        page = self.curpage
-        if page == None: return
+        if self.curpage == None: return
+        pagename = self.curpage.name
         ret = interface.confirm_yes_no(self.window, \
-            u"Delete the page \"" + page + u"\" forever?")
+            u"Delete the page \"" + pagename + u"\" forever?")
         if ret:
             self.enqueue_undo()
             if len(self.backl) > 0:
@@ -427,8 +428,8 @@ class SkedApp(interface.BaseDialog):
             else:
                 lastpage = "index"
             self.hl_change_page(lastpage)
-            self.db.del_key(self.page_name(page))
-            if page == lastpage:
+            self.pm.delete(pagename)
+            if pagename == lastpage:
                 self.set_text("")
         
     def on_cmd_exit(self, widget = None, data = None):
@@ -612,12 +613,11 @@ class SkedApp(interface.BaseDialog):
         
     def on_cmd_insert_page(self, widget = None, data = None):
         dlg = interface.InsertPageTextDialog(self)
-        page = dlg.run()
-        if page:
-            pkey = self.page_name(page)
-            pair = self.db.get_pair(pkey)
+        pagename = dlg.run()
+        if pagename:
+            page = self.pm.load(pagename)
             if pair:
-                self.insert_text_cursor(pair[1])
+                self.insert_text_cursor(page.text)
 
     def on_cmd_underline(self, widget = None, data = None):
         self.insert_formatting("_", "_")
@@ -628,19 +628,19 @@ class SkedApp(interface.BaseDialog):
     def on_cmd_back(self, widget = None, data = None):
         if len(self.backl) > 0:
             self.reset_timers()
-            page = self.backl.pop()
-            self.forwardl.append(self.curpage)
-            self.change_page(page)
+            pagename = self.backl.pop()
+            self.forwardl.append(self.curpage.normalized_name)
+            self.change_page(pagename)
             self.mark_page_on_calendar()
         self._update_back_forward()
 
     def on_cmd_forward(self, widget = None, data = None):
         if len(self.forwardl) > 0:
             self.reset_timers()
-            page = self.forwardl.pop()
+            pagename = self.forwardl.pop()
             if self.curpage != None:
-                self.backl.append(self.curpage)
-            self.change_page(page)
+                self.backl.append(self.curpage.normalized_name)
+            self.change_page(pagename)
             self.mark_page_on_calendar()
         self._update_back_forward()
         
@@ -662,15 +662,22 @@ class SkedApp(interface.BaseDialog):
 
     def on_cmd_rename_page(self, widget = None, data = None):
         dlg = interface.RenamePageDialog(self)
-        newpage = dlg.run()
-        if newpage != None:
-            cpagename = self.page_name(self.curpage)
-            self.db.set_key(self.page_name(newpage), self.get_text())
-            self.hl_change_page(newpage)
+        newpagename = dlg.run()
+        if newpagename != None:
+            newpage = self.pm.load(newpagename)
+            if newpage != None and \
+            newpage.normalized_name == self.curpage.normalized_name:
+                self.curpage.name = newpagename
+                return
+            newpage = Page(newpagename, self.get_text())
+            oldpagename = self.curpage.name
+            self.pm.save(newpage)
+            self.hl_change_page(newpagename)
             if dlg.create_redirect:
-                self.db.set_key(cpagename, "Renamed to [[" + newpage + "]]\n")
+                self.pm.save(Page(oldpagename,
+                    "Renamed to [[" + newpage + "]]\n"))
             else:
-                self.db.del_key(cpagename)
+                self.pm.delete(oldpagename)
 
     def on_cmd_search_menu(self, widget = None, event = None):
         self.mnSearchOptions.popup(None, None, None, 0, 0)
@@ -732,7 +739,7 @@ class SkedApp(interface.BaseDialog):
         self.reset_timers()
         self.set_timers()
         if self.curpage:
-            self.set_status(u'Page "' + self.curpage + u'" changed')
+            self.set_status(u'Page "' + self.curpage.name + u'" changed')
 
     def _on_text_delete(self, widget = None, s = None, e = None, dt = None):
         # big amount of text being deleted? Prepare for undo!
@@ -984,7 +991,7 @@ class SkedApp(interface.BaseDialog):
 
         link_re = ur"(\[\[ *)(.+?)( *\]\])" # [[Link]]
         for match in re.finditer(link_re, tx):
-            if self.has_page(match.group(2)):
+            if self.pm.exists(match.group(2)):
                 style = "link"
             else:
                 style = "newlink"
@@ -1004,14 +1011,14 @@ class SkedApp(interface.BaseDialog):
 
         link_re = ur"([0-3]?[0-9])\/([01]?[0-9])\/([0-9]{1,4})"
         for match in re.finditer(link_re, tx):
-            if self.has_page(self.normalize_date_page_name(match.group(0))):
+            if self.pm.exists(self.normalize_page_name(match.group(0))):
                 self._apply_tag_on_group(match, "datelink", 0)
             else:
                 self._apply_tag_on_group(match, "newdatelink", 0)
 
         link_re = ur"([0-9]{1,4})-([01]?[0-9])-([0-3]?[0-9])"
         for match in re.finditer(link_re, tx):
-            if self.has_page(match.group(0)):
+            if self.pm.exists(match.group(0)):
                 self._apply_tag_on_group(match, "datelink", 0)
             else:
                 self._apply_tag_on_group(match, "newdatelink", 0)
@@ -1027,94 +1034,77 @@ class SkedApp(interface.BaseDialog):
         year, month, day = self.calendar.get_date()
         return "%04d-%02d-%02d" % (year, month + 1, day)
 
-    def hl_change_page(self, page):
+    def hl_change_page(self, pagename):
         # Higher level page changer. Handles calendar, back/fwd buttons, etc.
         self.reset_timers()
-        if page == "":
-            page = "index"
-        if self.curpage != None and self.curpage.upper() != page.upper():
-            self.backl.append(self.curpage)
+        if pagename == "":
+            pagename = "Index"
+        #if self.curpage != None and self.curpage.upper() != page.upper():
+        #    self.backl.append(self.curpage)
         self.forwardl = []
-        self.change_page(page)
+        self.change_page(pagename)
         self._update_back_forward()
         self.mark_page_on_calendar()
 
-    def change_page(self, page):
+    def change_page(self, pagename):
         self.reset_timers()
         self.save_current_page()
-        page = self.normalize_date_page_name(page)
-        pair = self.db.get_pair(self.page_name(page), None)
-        if pair:
-            page = pair[0][4:]  # pag_pageName
-            text = pair[1]
-        else:
-            text = ""
-        self.history.add(page)
+        pagename = self.normalize_page_name(pagename)
+        page = self.pm.load(pagename)
+        if not page:
+            page = Page(pagename, "")
+        self.history.add(page.name)
         self.curpage = page
-        self.txPageName.set_text(self.curpage)
-        self.set_text(text)
+        self.txPageName.set_text(self.curpage.name)
+        self.set_text(page.text)
         self.format_text()
-        self.set_status(page)
+        self.set_status(page.name)
         
     def save_current_page(self):
         if self.curpage != None:
             #self.enqueue_undo()  ## Buggy ##
-            tx = self.get_text()
-            if tx != u"":
-                self.db.set_key(self.page_name(self.curpage), tx)
-            else:
-                self.db.del_key(self.page_name(self.curpage))
-            self.set_status(u'Page "' + self.curpage + u'" saved')
+            self.curpage.text = self.get_text()
+            self.pm.save(self.curpage)
+            self.set_status(u'Page "' + self.curpage.name + u'" saved')
 
     def reload_current_page(self):
         """ Reloads current page from DB.  Changes will be discarted. """
-        page = self.normalize_date_page_name(self.curpage)
-        pair = self.db.get_pair(self.page_name(page), None)
-        if pair:
-            page = pair[0][4:]  # pag_pageName
-            text = pair[1]
-            self.curpage = page
-            self.txPageName.set_text(self.curpage)
-            self.set_text(text)
-            self.format_text()
+        self.curpage = self.pm.load(self.curpage.name)
+        if self.curpage == None:
+            self.curpage = Page(self.curpage.name)
+        self.txPageName.set_text(self.curpage.name)
+        self.set_text(self.curpage.text)
+        self.format_text()
 
-    def change_page_link(self, page):
+    def change_page_link(self, pagename):
         self.reset_timers()
-        page = self.normalize_date_page_name(page)
-        if self.curpage != None and not self.has_page(page):
-            self.db.set_key(self.page_name(page), \
-                "[[" + self.curpage + "]]\n===" + page + "===\n")
-        self.hl_change_page(page)
+        pagename = self.normalize_page_name(pagename)
+        if self.curpage != None and not self.pm.exists(pagename):
+            newpage = Page(pagename, 
+                "[[" + self.curpage.name + "]]\n===" + pagename + "===\n")
+            self.pm.save(newpage)
+        self.hl_change_page(pagename)
     
-    def normalize_date_page_name(self, page):
-        match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{1,4})", page)
+    def normalize_page_name(self, pagename):
+        pagename = pagename.strip()
+        match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{1,4})", pagename)
         if match != None:
             d = int(match.group(1))
             m = int(match.group(2))
             y = int(match.group(3))
             return u"%04d-%02d-%02d" % (y, m, d)
-        match = re.search("([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})", page)
+        match = re.search("([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})", pagename)
         if match != None:
             y = int(match.group(1))
             m = int(match.group(2))
             d = int(match.group(3))
             return u"%04d-%02d-%02d" % (y, m, d)
-        return page
+        return pagename
 
-    def has_page(self, page):
-        return self.db.has_key(self.page_name(page))
-        
-    def page_name(self, page):
-        # Gets an utf-8 encoded string-or-unicode-string and return a the page
-        # name as an utf-8 encoded prefixed string. Sounds confuse for you? :)
-        if not isinstance(page, unicode):
-            page = page.decode("utf-8")
-        return "pag_" + self.normalize_date_page_name(page)
-        
     def mark_page_on_calendar(self):
         if self.curpage != None:
-            page = self.normalize_date_page_name(self.curpage)
-            match = re.search("([0-9]{4})-([01][0-9])-([0-3][0-9])", page)
+            pagename = self.curpage.normalized_name
+            match = re.search("([0-9]{4})-([01][0-9])-([0-3][0-9])", pagename)
             self.calendar.handler_block(self.date_change_sigid)
             if match == None:
                 self.calendar.select_day(0)
@@ -1143,8 +1133,8 @@ class SkedApp(interface.BaseDialog):
         self.calendar.freeze()
         self.calendar.clear_marks()
         for day in range(1, mdays[month] + 1):
-            name = "%04d-%02d-%02d" % (year, month + 1, day)
-            if self.has_page(name):
+            pagename = "%04d-%02d-%02d" % (year, month + 1, day)
+            if self.pm.exists(pagename):
                 self.calendar.mark_day(day)
         self.calendar.thaw()
 
@@ -1174,7 +1164,8 @@ def main():
         if pwd != None:
             db.create(pwd)
             try:
-                xmlio.import_xml_file(db, utils.data_path("help.xml"))
+                pm = PageManager(db)
+                xmlio.import_xml_file(pm, utils.data_path("help.xml"))
                 jump_to_page = "index"
             except:
                 pass

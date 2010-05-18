@@ -388,7 +388,7 @@ class InsertPageTextDialog(BaseDialog):
     def __init__(self, skapp):
         self.app = skapp
         self.parent = skapp.window
-        self.history = HistoryManager(self.app, u"insert_history", True)
+        self.history = HistoryManager(self.app, "insert_history", True)
         self.hmodel = gtk.ListStore(gobject.TYPE_STRING)
         self._load_interface()
 
@@ -410,7 +410,7 @@ class InsertPageTextDialog(BaseDialog):
             val = self.dlg.run()
             if val == gtk.RESPONSE_OK:
                 page = self.txPageName.get_text().decode("utf-8")
-                if self.app.has_page(page):
+                if self.app.pm.exists(page):
                     self.dlg.destroy()
                     self.history.add(page)
                     self.history.save()
@@ -430,7 +430,7 @@ class RenamePageDialog(BaseDialog):
         self.app = skapp
         self.parent = skapp.window
         self.curpage = self.app.curpage
-        self.history = HistoryManager(self.app, u"rename_history", True)
+        self.history = HistoryManager(self.app, "rename_history", True)
         self.hmodel = gtk.ListStore(gobject.TYPE_STRING)
         self._load_interface()
         self.page_name = None
@@ -450,23 +450,23 @@ class RenamePageDialog(BaseDialog):
         self.hmodel.clear()
         for item in self.history.get_items():
             self.hmodel.append([item])
-        self.lbCurrentName.set_text(self.curpage)
-        self.txNewName.set_text(self.curpage)
+        self.lbCurrentName.set_text(self.curpage.name)
+        self.txNewName.set_text(self.curpage.name)
         self.dlg.set_transient_for(self.parent)
         self.dlg.set_modal(True)
         while True:
             val = self.dlg.run()
             if val == gtk.RESPONSE_OK:
-                page = self.txNewName.get_text().decode("utf-8")
-                pname = self.app.page_name(page).upper()
-                cname = self.app.page_name(self.curpage).upper()
-                if (not self.app.has_page(page)) or cname == pname:
+                newpagename = self.txNewName.get_text().decode("utf-8")
+                newpage = self.app.pm.load(newpagename)
+                if newpage == None or \
+                newpage.normalized_name == self.curpage.normalized_name:
                     self.dlg.destroy()
-                    self.history.add(page)
+                    self.history.add(newpagename)
                     self.history.save()
-                    self.page_name = page
+                    self.page_name = newpagename
                     self.create_redirect = self.cbCreateRedirect.get_active()
-                    return page
+                    return newpagename
                 else:
                     error_dialog(self.dlg, u"Page already exists.")
             elif val == gtk.RESPONSE_CANCEL:

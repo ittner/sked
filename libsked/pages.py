@@ -138,3 +138,6 @@ class Page(object):
         return self._text
 
     text = property(_get_text, _set_text)
+
+    def __repr__(self):
+        return "Page:'" + self.normalized_name + "'"

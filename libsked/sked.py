@@ -401,12 +401,8 @@ class SkedApp(interface.BaseDialog):
             self.txNote.get_editable())
         
     def on_cmd_date_change(self, widget = None, data = None):
-        self.reset_timers()
-        pagename = self.get_date_str()
-        self.bfm.go(pagename)
-        self.change_page(pagename)
-        self.update_calendar()
-        self._update_back_forward()
+        self.hl_change_page(self.get_date_str())
+        self.txNote.grab_focus()
         
     def on_cmd_delete(self, widget = None, data = None):
         self.reset_timers()
@@ -543,6 +539,7 @@ class SkedApp(interface.BaseDialog):
     
     def on_cmd_goto(self, widget = None, data = None):
         self.hl_change_page(self.txPageName.get_text().decode("utf-8"))
+        self.txNote.grab_focus()
         
     def on_cmd_header1(self, widget = None, data = None):
         self.insert_formatting("===", "===")
@@ -562,6 +559,7 @@ class SkedApp(interface.BaseDialog):
         page = model.get_value(iter, 0)
         if page != None:
             self.hl_change_page(page)
+            self.txNote.grab_focus()
 
     def on_cmd_history_tg(self, widget = None, data = None):
         show_history = self.tgHistory.get_active()

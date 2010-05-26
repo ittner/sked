@@ -578,7 +578,7 @@ class SkedApp(interface.BaseDialog):
         pagename = dlg.run()
         if pagename:
             page = self.pm.load(pagename)
-            if pair:
+            if page:
                 self.insert_text_cursor(page.text)
 
     def on_cmd_underline(self, widget = None, data = None):

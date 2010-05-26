@@ -461,9 +461,6 @@ class SkedApp(interface.BaseDialog):
     def on_cmd_lsearch_hide(self, widget = None, data = None):
         self.bxLocalSearch.set_property("visible", False)
         
-    def on_cmd_lsearch_tg(self, widget = None, data = None):
-        pass
-        
     def on_lsearch_keypress(self, widget = None, event = None, data = None):
         if widget == self.txLocalSearch and event.type == gdk.KEY_PRESS \
         and event.keyval == gtk.keysyms.Escape:

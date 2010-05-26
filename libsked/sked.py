@@ -433,27 +433,37 @@ class SkedApp(interface.BaseDialog):
         self.quit()
         
     def on_cmd_lsearch_next(self, widget = None, data = None):
-        tx = self.txLocalSearch.get_text().decode("utf-8")
+        # TextIter.forward_search() would be perfect for this, but currently
+        # it lacks an option for case-insensitive search.
+        search_term = self.txLocalSearch.get_text().decode("utf-8").lower()
+        text = self.get_text().lower()
         iiter = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
-        ret = iiter.forward_search(tx, 0)
-        if not ret:
-            siter, eiter = self.txBuffer.get_bounds()
-            ret = siter.forward_search(tx, 0)
-        if ret:
-            self.txBuffer.select_range(ret[1], ret[0])
-            self.txNote.scroll_to_iter(ret[0], 0.0)
+        new_pos = text.find(search_term, iiter.get_offset())
+        if new_pos < 0:
+            new_pos = text.find(search_term)
+        if new_pos > -1:
+            end_pos = new_pos + len(search_term)
+            start_iter = self.txBuffer.get_iter_at_offset(new_pos)
+            end_iter = self.txBuffer.get_iter_at_offset(end_pos)
+            self.txBuffer.select_range(end_iter, start_iter)
+            self.txNote.scroll_to_iter(start_iter, 0.0)
 
     def on_cmd_lsearch_prev(self, widget = None, data = None):
-        tx = self.txLocalSearch.get_text().decode("utf-8")
+        # TextIter.backward_search() would be perfect for this, but currently
+        # it lacks an option for case-insensitive search.
+        search_term = self.txLocalSearch.get_text().decode("utf-8").lower()
+        text = self.get_text().lower()
         iiter = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
-        ret = iiter.backward_search(tx, 0)
-        if not ret:
-            siter, eiter = self.txBuffer.get_bounds()
-            ret = eiter.backward_search(tx, 0)
-        if ret:
-            self.txBuffer.select_range(ret[0], ret[1])
-            self.txNote.scroll_to_iter(ret[0], 0.0)
-        
+        new_pos = text.rfind(search_term, 0, iiter.get_offset() - 1)
+        if new_pos < 0:
+            new_pos = text.rfind(search_term)
+        if new_pos > -1:
+            end_pos = new_pos + len(search_term)
+            start_iter = self.txBuffer.get_iter_at_offset(new_pos)
+            end_iter = self.txBuffer.get_iter_at_offset(end_pos)
+            self.txBuffer.select_range(end_iter, start_iter)
+            self.txNote.scroll_to_iter(start_iter, 0.0)
+
     def on_cmd_lsearch_show(self, widget = None, data = None):
         self.bxLocalSearch.set_property("visible", True)
         self.txLocalSearch.grab_focus()

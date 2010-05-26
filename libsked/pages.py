@@ -28,6 +28,9 @@ import re
 class PageManager(object):
     _ENCODING = "utf-8"
     _PREFIX = "page:"
+    SEARCH_ALL = 1
+    SEARCH_ANY = 2
+    SEARCH_EXACT = 3
 
     def __init__(self, db):
         """ Creates a new page manager using the given database. """
@@ -64,6 +67,73 @@ class PageManager(object):
         for rec in self.db.pairs():
             if rec[0].startswith(PageManager._PREFIX):
                 yield self._decode_page(rec[1])
+
+    def search(self, terms, mode = SEARCH_ALL, case_sensitive = False,
+        full_text = False, return_set = True, callback = None):
+        """ Search for pages. 'terms' is a Unicode string with the search
+        terms, 'mode' is one of
+            SEARCH_ALL, to find pages with all search terms,
+            SEARCH_ANY, to find pages with any of the search terms, or,
+            SEARCH_EXACT, to find pages with the exact phrase.
+        Unless SEARCH_EXACT is given, this method will interpret 'terms' as
+        a series of search terms separated with a space (ie u"term1 term2").
+        'case_sensitive' is a boolean for case sensitivity, 'full_text', if
+        True, forces this method to search the full page text (instead of
+        searching the names only), 'return_set', a boolean, instructs this
+        method to return a set with the page-objects found. Unless is None,
+        'callback' will be called for each page found, giving it as the only
+        argument.
+        
+        BUGS: Very, very slow.
+        """
+        
+        # Prepare search terms
+        terms = terms.strip()
+        if len(terms) < 1:
+            raise ValueError("No search terms were given")
+        if not case_sensitive:
+            terms = terms.lower()
+        if mode == PageManager.SEARCH_ALL or mode == PageManager.SEARCH_ANY:
+            term_list = re.split('\s+', terms)
+        elif mode == PageManager.SEARCH_EXACT:
+            term_list = [ terms ]
+        else:
+            raise ValueError("Bad search mode", mode)
+            
+        retset = set()
+        for page in self.iterate():
+            # Prepare current page terms
+            if case_sensitive:
+                name = page.name
+                if full_text: text = page.text
+            else:
+                name = page.name.lower()
+                if full_text: text = page.text.lower()
+
+            # Search
+            match = False
+            if mode == self.SEARCH_ALL:
+                match = True
+                for word in term_list:
+                    if name.find(word) < 0 and (full_text == False or text.find(word) < 0):
+                        match = False
+                        break
+            elif mode == self.SEARCH_ANY:
+                for word in term_list:
+                    if name.find(word) > -1 or (full_text and text.find(word) > -1):
+                        match = True
+                        break
+            elif mode == self.SEARCH_EXACT:
+                word = term_list[0]
+                if name.find(word) > -1 or (full_text and text.find(word) > -1):
+                    match = True
+
+            if match:
+                if callback != None: callback(page)
+                if return_set: retset.add(page) 
+
+        if return_set:
+            return retset
 
     def _decode_page(self, dbrecord):
         p = Page()

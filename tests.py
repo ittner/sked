@@ -1,6 +1,8 @@
 #!/usr/bin/python
 #-*- coding: utf-8 -*-
 
+# TODO: Sort these tests.
+
 import random
 
 from libsked.database import EncryptedDatabase
@@ -269,4 +271,93 @@ for p in pages:
 
 db2.close()
 db2.release_lock()
+
+
+
+# Test search system
+
+db = EncryptedDatabase(db_fname)
+if not db.get_lock():
+    raise Exception("db.get_lock")
+if not db.try_open(db_pwd):
+    raise Exception("Password error (right)")
+if not db.is_ready():
+    raise Exception("db not ready")
+
+pm = PageManager(db)
+
+# Delete all pages
+for p in pm.iterate():
+    pm.delete(p.name)
+for p in pm.iterate():
+    raise Exception("No pages were expected here")
+
+pm.save(Page(u"test lowercase", u"lowercase text"))
+pm.save(Page(u"TEST UPPERCASE", u"UPPERCASE TEXT"))
+pm.save(Page(u"test acentuação minúsculas", u"text unicode minúsculas"))
+pm.save(Page(u"test ACENTUAÇÃO MAIÚSCULAS", u"TEXT UNICODE MAIÚSCULAS"))
+pm.save(Page(u"Nothing", u"test Text text TEXT"))
+pm.save(Page(u"None", u"test Text text TEXT"))
+pm.save(Page(u"Foo Ni!",         u"Baz Oba Tic pack"))
+pm.save(Page(u"Bar Ni! Ni!",     u"Bar Eba tic pick"))
+pm.save(Page(u"Baz Ni! Ni! Ni!", u"Foo eba Tac puck"))
+
+
+res = pm.search(u"test", pm.SEARCH_ALL, False, False, True, None)
+if len(res) != 4: raise Exception("Search fail", res)
+
+res = pm.search(u"test", pm.SEARCH_ANY, False, False, True, None)
+if len(res) != 4:  raise Exception("Search fail", res)
+
+res = pm.search(u"test", pm.SEARCH_EXACT, False, False, True, None)
+if len(res) != 4:  raise Exception("Search fail", res)
+
+res = pm.search(u"acentuação", pm.SEARCH_ALL, False, False, True, None)
+if len(res) != 2:  raise Exception("Search fail", res)
+
+res = pm.search(u"TEST", pm.SEARCH_ALL, True, False, True, None)
+if len(res) != 1:  raise Exception("Search fail", res)
+
+res = pm.search(u"text", pm.SEARCH_ALL, False, True, True, None)
+if len(res) != 6: raise Exception("Search fail", res)
+
+res = pm.search(u"úscULas", pm.SEARCH_ALL, False, False, True, None)
+if len(res) != 2: raise Exception("Search fail", res)
+
+res = pm.search(u"úsculas", pm.SEARCH_ALL, True, False, True, None)
+if len(res) != 1: raise Exception("Search fail", res)
+
+res = pm.search(u"NotHinG NoNe", pm.SEARCH_ALL, False, False, True, None)
+if len(res) != 0: raise Exception("Search fail", res)
+
+res = pm.search(u"NotHinG NoNe", pm.SEARCH_ANY, False, False, True, None)
+if len(res) != 2: raise Exception("Search fail", res)
+
+res = pm.search(u"Ni!", pm.SEARCH_EXACT, False, False, True, None)
+if len(res) != 3: raise Exception("Search fail", res)
+
+res = pm.search(u"Ni! Ni!", pm.SEARCH_EXACT, False, False, True, None)
+if len(res) != 2: raise Exception("Search fail", res)
+
+res = pm.search(u"Ni! Ni! Ni!", pm.SEARCH_EXACT, False, False, True, None)
+if len(res) != 1: raise Exception("Search fail", res)
+
+res = pm.search(u"tic eba", pm.SEARCH_ALL, False, True, True, None)
+if len(res) != 1: raise Exception("Search fail", res)
+
+res = pm.search(u"tic eba", pm.SEARCH_ANY, False, True, True, None)
+if len(res) != 3: raise Exception("Search fail", res)
+
+res = pm.search(u"foo Ni!", pm.SEARCH_ALL, False, False, True, None)
+if len(res) != 1: raise Exception("Search fail", res)
+
+res = pm.search(u"foo Ni!", pm.SEARCH_ALL, False, True, True, None)
+if len(res) != 2: raise Exception("Search fail", res)
+
+def myprint(obj): print(obj)
+res = pm.search(u"ni!", pm.SEARCH_ANY, False, False, False, myprint)
+
+
+db.close()
+db.release_lock()
 

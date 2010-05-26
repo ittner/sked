@@ -963,7 +963,7 @@ class SkedApp(interface.BaseDialog):
 
         link_re = ur"([0-3]?[0-9])\/([01]?[0-9])\/([0-9]{1,4})"
         for match in re.finditer(link_re, tx):
-            if self.pm.exists(self.normalize_page_name(match.group(0))):
+            if self.pm.exists(self.reformat_page_name(match.group(0))):
                 self._apply_tag_on_group(match, "datelink", 0)
             else:
                 self._apply_tag_on_group(match, "newdatelink", 0)
@@ -999,7 +999,7 @@ class SkedApp(interface.BaseDialog):
     def change_page(self, pagename):
         self.reset_timers()
         self.save_current_page()
-        pagename = self.normalize_page_name(pagename)
+        pagename = self.reformat_page_name(pagename)
         page = self.pm.load(pagename)
         if not page:
             page = Page(pagename, "")
@@ -1036,14 +1036,14 @@ class SkedApp(interface.BaseDialog):
 
     def change_page_link(self, pagename):
         self.reset_timers()
-        pagename = self.normalize_page_name(pagename)
+        pagename = self.reformat_page_name(pagename)
         if self.curpage != None and not self.pm.exists(pagename):
             newpage = Page(pagename, 
                 "[[" + self.curpage.name + "]]\n===" + pagename + "===\n")
             self.pm.save(newpage)
         self.hl_change_page(pagename)
     
-    def normalize_page_name(self, pagename):
+    def reformat_page_name(self, pagename):
         pagename = pagename.strip()
         match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{1,4})", pagename)
         if match != None:

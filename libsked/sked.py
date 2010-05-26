@@ -48,7 +48,7 @@ import interface
 import xmlio
 from pages import *
 from options import *
-from history import HistoryManager
+from history import *
 
 
 # Main application class -------------------------------------------------
@@ -96,10 +96,9 @@ class SkedApp(interface.BaseDialog):
             self.db = db
             self.pm = PageManager(db)
             self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
+            self.bfm = BackForwardManager(self.opt.get_int("max_history"))
             self.formatTimerID = None
             self.saveTimerID = None
-            self.backl = []
-            self.forwardl = []
             self.undol = []
             self.redol = []
             self.last_undo_cnt = 0;
@@ -155,7 +154,6 @@ class SkedApp(interface.BaseDialog):
     def update_options(self):
         self.format_time = 1000 * self.opt.get_int("format_time")
         self.save_time = 1000 * self.opt.get_int("save_time")
-        self.max_history = self.opt.get_int("max_history")
         self.undo_levels = self.opt.get_int("undo_levels")
         self._update_sidebar()
         self._set_edit_buttons()
@@ -405,9 +403,7 @@ class SkedApp(interface.BaseDialog):
     def on_cmd_date_change(self, widget = None, data = None):
         self.reset_timers()
         pagename = self.get_date_str()
-        if self.curpage != None and self.curpage.normalized_name != pagename:
-            self.backl.append(self.curpage.normalized_name)
-        self.forwardl = []
+        self.bfm.go(pagename)
         self.change_page(pagename)
         self.update_calendar()
         self._update_back_forward()
@@ -420,10 +416,7 @@ class SkedApp(interface.BaseDialog):
             u"Delete the page \"" + pagename + u"\" forever?")
         if ret:
             self.enqueue_undo()
-            if len(self.backl) > 0:
-                lastpage = self.backl.pop()
-            else:
-                lastpage = "index"
+            lastpage = self.bfm.back() or "Index"
             self.hl_change_page(lastpage)
             self.pm.delete(pagename)
             if pagename == lastpage:
@@ -595,20 +588,15 @@ class SkedApp(interface.BaseDialog):
         self.insert_formatting("[[", "]]")
 
     def on_cmd_back(self, widget = None, data = None):
-        if len(self.backl) > 0:
-            self.reset_timers()
-            pagename = self.backl.pop()
-            self.forwardl.append(self.curpage.normalized_name)
+        pagename = self.bfm.back()
+        if pagename:
             self.change_page(pagename)
             self.mark_page_on_calendar()
         self._update_back_forward()
 
     def on_cmd_forward(self, widget = None, data = None):
-        if len(self.forwardl) > 0:
-            self.reset_timers()
-            pagename = self.forwardl.pop()
-            if self.curpage != None:
-                self.backl.append(self.curpage.normalized_name)
+        pagename = self.bfm.forward()
+        if pagename:
             self.change_page(pagename)
             self.mark_page_on_calendar()
         self._update_back_forward()
@@ -760,12 +748,8 @@ class SkedApp(interface.BaseDialog):
         
     def _update_back_forward(self):
         # Updates the forward/back buttons and menus.
-        if len(self.backl) > self.max_history:
-            self.backl = self.backl[-self.max_history:]
-        if len(self.forwardl) > self.max_history:
-            self.forwardl = self.forwardl[-self.max_history:]
-        b = len(self.backl) > 0
-        f = len(self.forwardl) > 0
+        f = self.bfm.can_forward()
+        b = self.bfm.can_back()
         self.btForward.set_sensitive(f)
         self.btBack.set_sensitive(b)
         self.mnForward.set_sensitive(f)
@@ -1008,9 +992,7 @@ class SkedApp(interface.BaseDialog):
         self.reset_timers()
         if pagename == "":
             pagename = "Index"
-        #if self.curpage != None and self.curpage.upper() != page.upper():
-        #    self.backl.append(self.curpage)
-        self.forwardl = []
+        self.bfm.go(pagename)
         self.change_page(pagename)
         self._update_back_forward()
         self.mark_page_on_calendar()

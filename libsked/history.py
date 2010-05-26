@@ -23,11 +23,12 @@
 History manager.
 """
 
+from pages import Page
 
-class HistoryManager:
+class HistoryManager(object):
     """
-    Class for handling history items. Used for the main history, back, forward,
-    last page inserted, etc.
+    Class for handling history items. Used for the main history, last page
+    inserted, etc.
     """
 
     def __init__(self, skapp, dbkey = None, unique = False):
@@ -90,3 +91,42 @@ class HistoryManager:
 
     def _trim(self):
         self._items = self._items[:self._maxitems]
+
+
+
+class BackForwardManager(object):
+    
+    def __init__(self, max_items):
+        self.max_items = max_items
+        self._hst = [ ]
+        self._pos = -1
+
+    def go(self, pagename):
+        if len(self._hst) == 0:
+            self._hst.append(pagename)
+            self._pos = 0
+            return
+        self._hst = self._hst[0:self._pos+1]
+        if Page.normalize_name(self._hst[-1]) != Page.normalize_name(pagename):
+            self._hst.append(pagename)
+            if len(self._hst) > self.max_items:
+                self._hst = self._hst[-self.max_items:]
+            self._pos = len(self._hst) - 1
+
+    def back(self):
+        if self.can_back():
+            self._pos -= 1
+            return self._hst[self._pos]
+        return None
+
+    def forward(self):
+        if self.can_forward():
+            self._pos += 1
+            return self._hst[self._pos]
+        return None
+
+    def can_back(self):
+        return self._pos > 0
+        
+    def can_forward(self):
+        return self._pos < len(self._hst) - 1

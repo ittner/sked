@@ -54,9 +54,6 @@ from history import HistoryManager
 # Main application class -------------------------------------------------
 
 class SkedApp(interface.BaseDialog):
-    ANY_WORD = 1    # Search modes
-    ALL_WORDS = 2
-    EXACT_PHRASE = 3
     DEF_PREFS = {
         "window_x"  : 0,
         "window_y"  : 0,
@@ -86,7 +83,7 @@ class SkedApp(interface.BaseDialog):
         "new_link_font" : "Sans 10",
         "url_link_font" : "Sans 10",
         "ft_search"     : False,
-        "search_mode"   : ALL_WORDS,
+        "search_mode"   : PageManager.SEARCH_ALL,
         "show_calendar" : True,
         "show_history"  : True,
         "show_gsearch"  : False,
@@ -181,9 +178,9 @@ class SkedApp(interface.BaseDialog):
         ft_search = self.opt.get_bool("ft_search")
         self.mnFullText.set_property("active", ft_search)
         search_mode = self.opt.get_int("search_mode")
-        if search_mode == SkedApp.ANY_WORD:
+        if search_mode == PageManager.SEARCH_ANY:
             self.mnAnyWord.set_property("active", True)
-        elif search_mode == SkedApp.EXACT_PHRASE:
+        elif search_mode == PageManager.SEARCH_EXACT:
             self.mnExactPhrase.set_property("active", True)
         else:   # Default. Also, any invalid option will get here.
             self.mnAllWords.set_property("active", True)
@@ -479,13 +476,13 @@ class SkedApp(interface.BaseDialog):
         self.opt.set_bool("ft_search", ft_search)
         
     def on_cmd_search_mode(self, widget = None, data = None):
-        mode = SkedApp.ALL_WORDS    # default.
+        mode = PageManager.SEARCH_ALL       # default.
         if self.mnAnyWord.get_property("active") == True:
-            mode = SkedApp.ANY_WORD
+            mode = PageManager.SEARCH_ANY
         elif self.mnAllWords.get_property("active") == True:
-            mode = SkedApp.ALL_WORDS
+            mode = PageManager.SEARCH_ALL
         elif self.mnExactPhrase.get_property("active") == True:
-            mode = SkedApp.EXACT_PHRASE
+            mode = PageManager.SEARCH_EXACT
         self.opt.set_int("search_mode", mode)
 
     def on_cmd_gsearch_tg(self, widget = None, data = None):
@@ -498,65 +495,30 @@ class SkedApp(interface.BaseDialog):
             self.tgGlobalSearch.set_active(True)
         #self.tgHistory.set_active(False)
         self.txGlobalSearch.grab_focus()
-        
+
+    def _gsearch_add_page_and_update(self, page):
+        self.gsearch_model.append([ page.name ])
+        # TODO: Handle UI update here.
+
     def on_cmd_gsearch(self, widget = None, data = None):
-        ## Big, ugly and sloooooooow! Optimization needed!!
-        text = self.txGlobalSearch.get_text().decode("utf-8")
-        text = text.strip().upper()
-        if self.mnAnyWord.get_property("active") == True:
-            mode = SkedApp.ANY_WORD
-            slist = re.split('\s+', text)
-        elif self.mnAllWords.get_property("active") == True:
-            mode = SkedApp.ALL_WORDS
-            slist = re.split('\s+', text)
-        elif self.mnExactPhrase.get_property("active") == True:
-            mode = SkedApp.EXACT_PHRASE
-            slist = [ text ]
-        else:
-            interface.error_dialog(self.window, \
-                "You must select a search mode.")
-            return
-        if len(slist) == 0 or slist[0] == "":
-            interface.error_dialog(self.window, \
+        terms = self.txGlobalSearch.get_text().decode("utf-8").strip()
+        if len(terms) == 0:
+            interface.error_dialog(self.window,
                 "You must supply a search string.")
             return
-        fts = self.mnFullText.get_active()
+        if self.mnAnyWord.get_property("active") == True:
+            mode = PageManager.SEARCH_ANY
+        elif self.mnAllWords.get_property("active") == True:
+            mode = PageManager.SEARCH_ALL
+        elif self.mnExactPhrase.get_property("active") == True:
+            mode = PageManager.SEARCH_EXACT
+        else:
+            interface.error_dialog(self.window,
+                "You must select a search mode.")
+            return
         self.gsearch_model.clear()
-        for key, data in self.db.pairs():
-            if not key.startswith("pag_"):
-                continue
-            page = key[4:]
-            upage = page.upper()
-            if fts:
-                data = data.upper()
-            if mode == SkedApp.ANY_WORD:
-                for word in slist:
-                    if upage.find(word) != -1:
-                        self.gsearch_model.append([page])
-                        break
-                    if fts:
-                        if data.find(word) != -1:
-                            self.gsearch_model.append([page])
-                            break
-            elif mode == SkedApp.ALL_WORDS:
-                has = True
-                for word in slist:
-                    if upage.find(word) == -1:
-                        if fts:
-                            if data.find(word) == -1:
-                                has = False
-                                break
-                        else:
-                            has = False
-                            break
-                if has:
-                    self.gsearch_model.append([page])
-            else:
-                if upage.find(slist[0]) != -1:
-                    self.gsearch_model.append([page])
-                elif fts:
-                    if data.find(slist[0]) != -1:
-                        self.gsearch_model.append([page])
+        self.pm.search(terms, mode, False, self.mnFullText.get_active(),
+            False, self._gsearch_add_page_and_update)
 
     def on_cmd_sort_lines(self, widget = None, data = None):
         smark = self.txBuffer.get_selection_bound()

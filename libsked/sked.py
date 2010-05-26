@@ -1006,27 +1006,35 @@ class SkedApp(interface.BaseDialog):
         if not page:
             page = Page(pagename, "")
         self.history.add(page.name)
+        self.set_page(page)
+
+    def set_page(self, page):
         self.curpage = page
         self.txPageName.set_text(self.curpage.name)
         self.set_text(page.text)
         self.format_text()
+        cursor_iter = self.txBuffer.get_iter_at_offset(page.cursor_pos)
+        self.txBuffer.place_cursor(cursor_iter)
+        self.txNote.scroll_to_iter(cursor_iter, 0.0)
         self.set_status(page.name)
-        
+
+    def capture_page_state(self):
+        # Captures current interface state to 'curpage'
+        if not self.curpage: return
+        self.curpage.text = self.get_text()
+        self.curpage.cursor_pos = self.txBuffer.get_property("cursor-position")
+
     def save_current_page(self):
-        if self.curpage != None:
-            #self.enqueue_undo()  ## Buggy ##
-            self.curpage.text = self.get_text()
-            self.pm.save(self.curpage)
-            self.set_status(u'Page "' + self.curpage.name + u'" saved')
+        if not self.curpage: return
+        #self.enqueue_undo()  ## Buggy ##
+        self.capture_page_state()
+        self.pm.save(self.curpage)
+        self.set_status(u'Page "' + self.curpage.name + u'" saved')
 
     def reload_current_page(self):
         """ Reloads current page from DB.  Changes will be discarted. """
-        self.curpage = self.pm.load(self.curpage.name)
-        if self.curpage == None:
-            self.curpage = Page(self.curpage.name)
-        self.txPageName.set_text(self.curpage.name)
-        self.set_text(self.curpage.text)
-        self.format_text()
+        page = self.pm.load(self.curpage.name) or Page(self.curpage.name)
+        self.set_page(page)
 
     def change_page_link(self, pagename):
         self.reset_timers()

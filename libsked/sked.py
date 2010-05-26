@@ -463,6 +463,7 @@ class SkedApp(interface.BaseDialog):
 
     def on_cmd_lsearch_hide(self, widget = None, data = None):
         self.bxLocalSearch.set_property("visible", False)
+        self.txNote.grab_focus()
         
     def on_lsearch_keypress(self, widget = None, event = None, data = None):
         if widget == self.txLocalSearch and event.type == gdk.KEY_PRESS \

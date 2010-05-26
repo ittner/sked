@@ -354,9 +354,9 @@ if len(res) != 1: raise Exception("Search fail", res)
 res = pm.search(u"foo Ni!", pm.SEARCH_ALL, False, True, True, None)
 if len(res) != 2: raise Exception("Search fail", res)
 
-def myprint(obj): print(obj)
-res = pm.search(u"ni!", pm.SEARCH_ANY, False, False, False, myprint)
-
+retlist = []
+pm.search(u"ni!", pm.SEARCH_ANY, False, False, False, retlist.append)
+if len(retlist) != 3: raise Exception("Search fail", retlist)
 
 db.close()
 db.release_lock()

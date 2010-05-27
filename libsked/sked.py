@@ -1010,10 +1010,10 @@ class SkedApp(interface.BaseDialog):
         self.curpage = page
         self.txPageName.set_text(self.curpage.name)
         self.set_text(page.text)
-        self.format_text()
         cursor_iter = self.txBuffer.get_iter_at_offset(page.cursor_pos)
         self.txBuffer.place_cursor(cursor_iter)
-        self.txNote.scroll_to_iter(cursor_iter, 0.0)
+        self.txNote.scroll_to_mark(self.txBuffer.get_insert(), 0.25)
+        self.format_text()
         self.set_status(page.name)
 
     def capture_page_state(self):

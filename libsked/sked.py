@@ -1088,13 +1088,11 @@ class SkedApp(interface.BaseDialog):
         else:
             mdays = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
 
-        self.calendar.freeze()
         self.calendar.clear_marks()
         for day in range(1, mdays[month] + 1):
             pagename = "%04d-%02d-%02d" % (year, month + 1, day)
             if self.pm.exists(pagename):
                 self.calendar.mark_day(day)
-        self.calendar.thaw()
 
 
 def main():

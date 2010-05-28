@@ -211,3 +211,8 @@ class Page(object):
 
     def __repr__(self):
         return "Page:'" + self.normalized_name + "'"
+
+    def clone(self):
+        p = Page(self.name, self.text)
+        p.cursor_pos = self.cursor_pos
+        return p

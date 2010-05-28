@@ -51,6 +51,54 @@ from options import *
 from history import *
 
 
+class UndoRedoManager(object):
+
+    def __init__(self, max_levels = 64):
+        self.max_levels = max_levels
+        self.clear()
+
+    def clear(self):
+        self._undol = [ ]
+        self._redol = [ ]
+
+    def clear_redo(self):
+        self._redol = [ ]
+
+    def enqueue(self, page):
+        if len(self._undol) > 0 and self._undol[-1] == page.text:
+            return
+        self.clear_redo()
+        self._undol.append(page.clone())
+        if len(self._undol) > self.max_levels:
+            self._undol = self._undol[-self.max_levels:]
+
+    def undo(self, current = None):
+        if self.can_undo():
+            pg = self._undol.pop()
+            if len(self._redol) == 0 or self._redol[-1].text != pg.text:
+                self._redol.append(pg)
+            if current and self._redol[-1].text != current.text:
+                self._redol.append(current.clone())
+            return pg
+        return None
+
+    def redo(self, current = None):
+        if self.can_redo():
+            pg = self._redol.pop()
+            if len(self._undol) == 0 or self._undol[-1].text != pg.text:
+                self._undol.append(pg)
+            if current and self._undol[-1].text != current.text:
+                self._undol.append(current.clone())
+            return pg
+        return None
+
+    def can_undo(self):
+        return len(self._undol) > 0
+
+    def can_redo(self):
+        return len(self._redol) > 0
+
+
 # Main application class -------------------------------------------------
 
 class SkedApp(interface.BaseDialog):
@@ -62,7 +110,7 @@ class SkedApp(interface.BaseDialog):
         "window_state" : 0, # can be gdk.WINDOW_STATE_MAXIMIZED | ICONIFIED
         "format_time"   : 2,
         "save_time"     : 15,
-        "undo_levels"   : 16,
+        "undo_levels"   : 64,
         "show_edit_buttons" : True,
         "std_color"     : "#000000",
         "header1_color" : "#000000",
@@ -97,11 +145,10 @@ class SkedApp(interface.BaseDialog):
             self.pm = PageManager(db)
             self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
             self.bfm = BackForwardManager(self.opt.get_int("max_history"))
+            self.urm = UndoRedoManager(self.opt.get_int("undo_levels"))
+            self.last_undo_cnt = 0
             self.formatTimerID = None
             self.saveTimerID = None
-            self.undol = []
-            self.redol = []
-            self.last_undo_cnt = 0;
             self.window_state = 0
             self.history = HistoryManager(self, "history", True)
             self.history_model = gtk.ListStore(gobject.TYPE_STRING)
@@ -154,7 +201,6 @@ class SkedApp(interface.BaseDialog):
     def update_options(self):
         self.format_time = 1000 * self.opt.get_int("format_time")
         self.save_time = 1000 * self.opt.get_int("save_time")
-        self.undo_levels = self.opt.get_int("undo_levels")
         self._update_sidebar()
         self._set_edit_buttons()
         self.set_text_tags()
@@ -411,7 +457,8 @@ class SkedApp(interface.BaseDialog):
         ret = interface.confirm_yes_no(self.window, \
             u"Delete the page \"" + pagename + u"\" forever?")
         if ret:
-            self.enqueue_undo()
+            self.urm.clear()
+            self.last_undo_cnt = 0
             lastpage = self.bfm.back() or "Index"
             self.hl_change_page(lastpage)
             self.pm.delete(pagename)
@@ -609,12 +656,9 @@ class SkedApp(interface.BaseDialog):
         wnd.show()
         
     def on_cmd_redo(self, widget = None, data = None):
-        if len(self.redol) > 0:
-            ls = self.redol.pop()
-            self.enqueue_undo()
-            self.hl_change_page(ls[0])
-            self.set_text(ls[1])
-        self.format_text()
+        page = self.urm.redo()
+        if page:
+            self.set_page(page)
 
     def on_cmd_rename_page(self, widget = None, data = None):
         dlg = interface.RenamePageDialog(self)
@@ -650,12 +694,9 @@ class SkedApp(interface.BaseDialog):
         self.hl_change_page("%04d-%02d-%02d" % (dt.year, dt.month, dt.day))
         
     def on_cmd_undo(self, widget = None, data = None):
-        if len(self.undol) > 0:
-            ls = self.undol.pop()
-            self.enqueue_redo()
-            self.hl_change_page(ls[0])
-            self.set_text(ls[1])
-        self.format_text()
+        page = self.urm.undo()
+        if page:
+            self.set_page(page)
 
     def on_cmd_yesterday(self, widget = None, data = None):
         dt = datetime.datetime.today() - datetime.timedelta(1)
@@ -688,19 +729,19 @@ class SkedApp(interface.BaseDialog):
         return False
         
     def _on_text_change(self, widget = None, data = None):
-        # Add an undo-point if the text was changed 32 times.
+        # Add an undo-point if the text was changed 10 times.
         self.last_undo_cnt += 1
-        if self.last_undo_cnt >= 32:
-            self.enqueue_undo()
+        if self.last_undo_cnt >= 10:
+            self.store_undo_state()
+            self.last_undo_cnt = 0
         self.reset_timers()
         self.set_timers()
-        if self.curpage:
-            self.set_status(u'Page "' + self.curpage.name + u'" changed')
+        self.set_status(u'Page "' + self.curpage.name + u'" changed')
 
     def _on_text_delete(self, widget = None, s = None, e = None, dt = None):
         # big amount of text being deleted? Prepare for undo!
-        if abs(s.get_offset() - e.get_offset()) > 32:
-            self.enqueue_undo()
+        if abs(s.get_offset() - e.get_offset()) > 10:
+            self.store_undo_state()
         
     def _on_format_timer(self):
         self.format_text()
@@ -755,37 +796,12 @@ class SkedApp(interface.BaseDialog):
         self.mnBack.set_sensitive(b)
     
     def _update_undo_redo(self):
-        u = len(self.undol) > 0
-        r = len(self.redol) > 0
+        u = self.urm.can_undo()
+        r = self.urm.can_redo()
         self.btUndo.set_sensitive(u)
         self.btRedo.set_sensitive(r)
         self.mnUndo.set_sensitive(u)
         self.mnRedo.set_sensitive(r)
-
-    def enqueue_undo(self):
-        self.last_undo_cnt = 0
-        ls = [ self.curpage, self.get_text() ]
-        if len(self.undol) > 0:
-            ols = self.undol[-1]
-            if ols[0] != ls[0] or ols[1] != ls[1]:
-                self.undol.append(ls)
-        else:
-            self.undol.append(ls)
-        if len(self.undol) > self.undo_levels:
-            self.undol = self.undol[-self.undo_levels:]
-        self._update_undo_redo()
-        
-    def enqueue_redo(self):
-        ls = [ self.curpage, self.get_text() ]
-        if len(self.redol) > 0:
-            ols = self.redol[-1]
-            if ols[0] != ls[0] or ols[1] != ls[1]:
-                self.redol.append(ls)
-        else:
-            self.redol.append(ls)
-        if len(self.redol) > self.undo_levels:
-            self.redol = self.redol[-self.undo_levels:]
-        self._update_undo_redo()
 
     def get_text(self):
         start, end = self.txBuffer.get_bounds()
@@ -986,6 +1002,11 @@ class SkedApp(interface.BaseDialog):
         year, month, day = self.calendar.get_date()
         return "%04d-%02d-%02d" % (year, month + 1, day)
 
+    def store_undo_state(self):
+        self.capture_page_state()
+        self.urm.enqueue(self.curpage)
+        self._update_undo_redo()
+
     def hl_change_page(self, pagename):
         # Higher level page changer. Handles calendar, back/fwd buttons, etc.
         self.reset_timers()
@@ -994,6 +1015,7 @@ class SkedApp(interface.BaseDialog):
         self.bfm.go(pagename)
         self.change_page(pagename)
         self._update_back_forward()
+        self._update_undo_redo()
         self.mark_page_on_calendar()
 
     def change_page(self, pagename):
@@ -1005,6 +1027,8 @@ class SkedApp(interface.BaseDialog):
             page = Page(pagename, "")
         self.history.add(page.name)
         self.set_page(page)
+        self.urm.clear()
+        self.last_undo_cnt = 0
 
     def set_page(self, page):
         self.curpage = page
@@ -1015,6 +1039,7 @@ class SkedApp(interface.BaseDialog):
         self.txNote.scroll_to_mark(self.txBuffer.get_insert(), 0.25)
         self.format_text()
         self.set_status(page.name)
+        self._update_undo_redo()
 
     def capture_page_state(self):
         # Captures current interface state to 'curpage'
@@ -1024,7 +1049,6 @@ class SkedApp(interface.BaseDialog):
 
     def save_current_page(self):
         if not self.curpage: return
-        #self.enqueue_undo()  ## Buggy ##
         self.capture_page_state()
         self.pm.save(self.curpage)
         self.set_status(u'Page "' + self.curpage.name + u'" saved')

@@ -22,9 +22,13 @@
 Main application module.
 """
 
+import pygtk
+try:
+    pygtk.require("2.0")
+except:
+    print "This programs requires PyGTK 2.10 or later"
+    exit()
 
-import pygtk            # GTK+ stuff
-pygtk.require('2.0')
 import gtk
 from gtk import gdk
 import gobject
@@ -352,7 +356,7 @@ class SkedApp(interface.BaseDialog):
                 dlg.destroy()
                 return
 
-        if not interface.confirm_yes_no(self.window, u"The database will " \
+        if not interface.confirm_yes_no(self.window, u"The database will "
             "be exported without encryption. Do you want to proceed?"):
             return
         try:
@@ -360,8 +364,8 @@ class SkedApp(interface.BaseDialog):
             xmlio.export_xml_file(self.pm, fname)
             self.set_status(u'Done')
         except:
-            interface.error_dialog(dlg, u"Failed to write the file. Please " \
-                "check if the file is not being used and if you have " \
+            interface.error_dialog(dlg, u"Failed to write the file. Please "
+                "check if the file is not being used and if you have "
                 "sufficient access rights.")
         # Done.
         
@@ -394,8 +398,8 @@ class SkedApp(interface.BaseDialog):
                 dlg.destroy()
                 return
 
-        if not interface.confirm_yes_no(self.window, u"Entries loaded from " \
-            "the file will replace entries with the same name on database. " \
+        if not interface.confirm_yes_no(self.window, u"Entries loaded from "
+            "the file will replace entries with the same name on database. "
             "Do you want to proceed?"):
             return
         try:
@@ -405,8 +409,8 @@ class SkedApp(interface.BaseDialog):
             # Reload current page (it can be replaced after importing).
             self.reload_current_page()
         except:
-            interface.error_dialog(dlg, u"Failed to read the file. Please " \
-                "check if the XML file is well formed and if you have " \
+            interface.error_dialog(dlg, u"Failed to read the file. Please "
+                "check if the XML file is well formed and if you have "
                 "sufficient access rights.")
         # Done.
 
@@ -442,8 +446,8 @@ class SkedApp(interface.BaseDialog):
         self.reset_timers()
         if self.curpage == None: return
         pagename = self.curpage.name
-        ret = interface.confirm_yes_no(self.window, \
-            u"Delete the page \"" + pagename + u"\" forever?")
+        ret = interface.confirm_yes_no(self.window,
+            u'Delete the page "' + pagename + u'" forever?')
         if ret:
             self.urm.clear()
             self.last_undo_cnt = 0
@@ -1110,11 +1114,11 @@ def main():
     db = database.EncryptedDatabase()
     if not db.get_lock():
         interface.error_dialog(None, "Sked failed to get exclusive "
-            + "access to its database. It usually happens when there "
-            + "is another instance running or it could not create "
-            + "files in your HOME directory. If the previous instance "
-            + "was closed in some unusual way (eg. by a power failure), "
-            + "you must delete the file " + db.lock_path
+            "access to its database. It usually happens when there "
+            "is another instance running or it could not create "
+            "files in your HOME directory. If the previous instance "
+            "was closed in some unusual way (eg. by a power failure), "
+            "you must delete the file " + db.lock_path
             + " before proceeding.")
         return
 
@@ -1143,7 +1147,7 @@ def main():
         firstime = True
         while not db.try_open(pwd):
             if not firstime:
-                interface.error_dialog(None, \
+                interface.error_dialog(None,
                     "Wrong password. Please try again.")
             dlg = interface.PasswordDialog()
             firstime = False

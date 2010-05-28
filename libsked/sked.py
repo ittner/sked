@@ -30,13 +30,6 @@ from gtk import gdk
 import gobject
 import pango
 
-#try:    # Check for Gtk+ spellcheking
-#    import gtkspell
-#    HAS_SPELL = True
-#except:
-#    HAS_SPELL = False
-HAS_SPELL = False   # <--- Fix format/spellcheck conflict first.
-
 import os               # Operating system stuff
 import re               # Regular expressions
 import webbrowser       # System web browser
@@ -284,11 +277,6 @@ class SkedApp(interface.BaseDialog):
         self.ui.connect_signals(self)
         self._status_bar_ctx = None
         
-        if HAS_SPELL:
-            self.spell = gtkspell.Spell(self.txNote)
-        else:
-            self.spell = None
-
         self.cbPageName.set_model(self.history_model)
         self.cbPageName.set_text_column(0)
 
@@ -990,8 +978,6 @@ class SkedApp(interface.BaseDialog):
                 self._apply_tag_on_group(match, "datelink", 0)
             else:
                 self._apply_tag_on_group(match, "newdatelink", 0)
-        if self.spell:
-            self.spell.recheck_all()
 
     def _apply_tag_on_group(self, match, tag, group):
         start = self.txBuffer.get_iter_at_offset(match.start(group))

@@ -43,22 +43,45 @@ class NotReadyError(Exception):
     pass
 
 
-def _hash_sha256_str(sa, sb = ""):
+def _hash_sha256_str(*args):
     md = hashlib.sha256()
-    md.update(sa)
-    md.update(sb)
+    for s in args:
+        md.update(s)
     return md.hexdigest()
 
 def _normalize_pwd(pwd):
     return pwd.encode("utf-8")
 
 def make_key(pwd):
-    # Key strengthing to slow down dictionary based attacks.
+    """
+    Oracle Berkeley DB uses a very simple string-to-key function: the first
+    128 bits of the SHA1 hash of the concatenation of the password, a hard
+    coded magic number, and the password again. This happens in version 5.0
+    and should not change in a near future. It is possible to improve the
+    security by using a proper S2K algorithm before passing the password to
+    the database.
+
+    To use a secure, salted, S2K algorithm like PBKDF2, we need to store the
+    salt somewhere outside the database, adding a undesired complexity layer
+    to the application. So we resort to a less secure, non-salted, algorithm.
+    It is better than nothing...
+
+    Our algorithm hashes the concatenation of the ASCII representation of an
+    integer 'i' (without leading zeros) and the password (encoded in UTF-8),
+    repeating the process 4242 times, with 'i' ranging from 0 to 4241 (closed
+    interval).We use the SHA-256 hash function to get a 256 bits long key
+    encoded as a lowercase hex string with any leading zeros. This new
+    password is also a valid ASCII string, so it may be passed to the standard
+    DB4 utilities, if needed for some maintenance work (an utility to get the
+    password is provided in the file printkey.py).
+    """
+
     npwd = _normalize_pwd(pwd)
-    enckey = _hash_sha256_str(npwd)
-    for i in range(1, 42):
-        enckey = _hash_sha256_str(npwd, enckey)
-    return enckey
+    md = hashlib.sha256()
+    for i in range(0, 4242):
+        md.update(str(i))
+        md.update(npwd)
+    return md.hexdigest().lower().encode("utf-8")
 
 
 class EncryptedDatabase(object):

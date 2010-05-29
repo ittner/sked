@@ -597,7 +597,7 @@ class SkedApp(interface.BaseDialog):
         model, iter = widget.get_selection().get_selected()
         page = model.get_value(iter, 0)
         if page != None:
-            self.hl_change_page(page)
+            self.hl_change_page(page.decode("utf-8"))
             self.txNote.grab_focus()
 
     def on_cmd_history_tg(self, widget = None, data = None):

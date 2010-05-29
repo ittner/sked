@@ -32,7 +32,7 @@ As an extra, GZIP compression is used to shrink the database size.
 REQUIREMENTS
 
   * Python >= 2.5
-  * PyGTK+ >= 2.8
+  * PyGTK+ >= 2.10
 
 
 
@@ -52,7 +52,7 @@ XML and import it back. The procedure is:
 
   1. In the menu "File", select "Export..." and give a file name to export
      the current database to a XML file;
-  2. Remove the old database (stored in ~/.local/share/sked/sked.db or 
+  2. Remove the old database (stored in ~/.local/share/sked/sked2.db or 
      ~/.sked.db for older versions);
   3. Upgrade Sked;
   4. Open the new version. Sked will create a new database;
@@ -76,9 +76,6 @@ KNOW BUGS
   * Find and replace is a no-op;
   * The application leaves stray lockfiles in the event of an OS crash or
     power failure;
-  * Some formatting codes are overlapping. This must be fixed with a proper
-    parser;
-  * Undo/Redo commands have some quirks.
 
 
 

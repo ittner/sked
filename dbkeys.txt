@@ -1,6 +1,6 @@
 Database keys used in Sked.
 
-pag_*           Pages
+page:*          Pages
 options         Main options
 history         Main history
 insert_history  Page insert history

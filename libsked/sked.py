@@ -1054,6 +1054,7 @@ class SkedApp(interface.BaseDialog):
         if self.curpage != None and not self.pm.exists(pagename):
             newpage = Page(pagename, 
                 "[[" + self.curpage.name + "]]\n===" + pagename + "===\n")
+            newpage.cursor_pos = len(newpage.text)
             self.pm.save(newpage)
         self.hl_change_page(pagename)
     

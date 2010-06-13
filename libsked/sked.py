@@ -581,13 +581,13 @@ class SkedApp(interface.BaseDialog):
         self.txNote.grab_focus()
         
     def on_cmd_header1(self, widget = None, data = None):
-        self.insert_formatting("===", "===")
+        self.insert_formatting("=== ", " ===")
 
     def on_cmd_header2(self, widget = None, data = None):
-        self.insert_formatting("==", "==")
+        self.insert_formatting("== ", " ==")
         
     def on_cmd_header3(self, widget = None, data = None):
-        self.insert_formatting("=", "=")
+        self.insert_formatting("= ", " =")
 
     def on_cmd_history_go(self, widget = None, path = None, column = None):
         return self.on_cmd_listbox_go(widget, path, column)
@@ -1053,7 +1053,7 @@ class SkedApp(interface.BaseDialog):
         pagename = self.reformat_page_name(pagename)
         if self.curpage != None and not self.pm.exists(pagename):
             newpage = Page(pagename, 
-                "[[" + self.curpage.name + "]]\n===" + pagename + "===\n")
+                "[[" + self.curpage.name + "]]\n=== " + pagename + " ===\n")
             newpage.cursor_pos = len(newpage.text)
             self.pm.save(newpage)
         self.hl_change_page(pagename)

@@ -7,13 +7,15 @@ Build-Depends-Indep: python-support (>= 0.6.4), python2.6
 XS-Python-Version: current
 Standards-Version: 3.8.2
 Homepage: http://wikisked.sourceforge.net/
+Vcs-git: git://wikisked.git.sourceforge.net/gitroot/wikisked/wikisked/
+Vcs-browser: http://wikisked.git.sourceforge.net/
 
 Package: sked
 Architecture: all
 Depends: ${python:Depends}, python-gtk2 (>= 2.16.0)
 XB-Python-Version: ${python:Versions}
 Description: A wiki-based personal organizer, calendar, schedule application
-  Sked is a personal organizer, calendar, schedule and braindump application
-  with a wiki-like syntax for text formatting and organization. It's easier
-  think of it as the result of the merge of a calendar with a desktop wiki.
+ Sked is a personal organizer, calendar, schedule and braindump application
+ with a wiki-like syntax for text formatting and organization. It's easier
+ think of it as the result of the merge of a calendar with a desktop wiki.
 

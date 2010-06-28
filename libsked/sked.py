@@ -665,11 +665,10 @@ class SkedApp(interface.BaseDialog):
             oldpagename = self.curpage.name
             self.pm.save(newpage)
             self.hl_change_page(newpagename)
+            self.pm.delete(oldpagename)
             if dlg.create_redirect:
                 self.pm.save(Page(oldpagename,
-                    "Renamed to [[" + newpage + "]]\n"))
-            else:
-                self.pm.delete(oldpagename)
+                    "Renamed to [[" + newpagename + "]]\n"))
 
     def on_cmd_search_menu(self, widget = None, event = None):
         self.mnSearchOptions.popup(None, None, None, 0, 0)

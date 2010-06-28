@@ -660,6 +660,7 @@ class SkedApp(interface.BaseDialog):
             if newpage != None and \
             newpage.normalized_name == self.curpage.normalized_name:
                 self.curpage.name = newpagename
+                self.change_page(newpagename)
                 return
             newpage = Page(newpagename, self.get_text())
             oldpagename = self.curpage.name

@@ -1111,8 +1111,12 @@ class SkedApp(interface.BaseDialog):
 
 
 def main():
-    # Connect to the database.
-    db = database.EncryptedDatabase()
+    ddir = utils.get_xdg_data_home("sked")
+    dbpath = os.path.join(ddir, "sked2.db")
+    if not os.path.exists(ddir):
+        os.makedirs(ddir, 0700)
+    db = database.EncryptedDatabase(dbpath)
+
     if not db.get_lock():
         interface.error_dialog(None, "Sked failed to get exclusive "
             "access to its database. It usually happens when there "

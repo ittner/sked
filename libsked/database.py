@@ -90,16 +90,9 @@ class EncryptedDatabase(object):
     object.
     """
 
-    def __init__(self, path = None):
+    def __init__(self, path):
         self._db = None
-        if path:
-            ddir = os.path.split(path)[0]
-            self._path = path
-        else:
-            ddir = utils.get_xdg_data_home("sked")
-            self._path =  os.path.join(ddir, "sked2.db")
-        if not os.path.exists(ddir):
-            os.makedirs(ddir, 0700)
+        self._path = path
         self.lock_path = self._path + ".lock"
         self._ready = False
         self._lock_fd = None

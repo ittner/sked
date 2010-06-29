@@ -1110,9 +1110,12 @@ class SkedApp(interface.BaseDialog):
                 self.calendar.mark_day(day)
 
 
-def main():
-    ddir = utils.get_xdg_data_home("sked")
-    dbpath = os.path.join(ddir, "sked2.db")
+def main(dbpath = None):
+    # Selects the database path.
+    if dbpath == None:
+        dbpath = utils.get_xdg_data_home("sked/sked2.db")
+    dbpath = os.path.realpath(dbpath)
+    ddir = os.path.split(dbpath)[0]
     if not os.path.exists(ddir):
         os.makedirs(ddir, 0700)
     db = database.EncryptedDatabase(dbpath)

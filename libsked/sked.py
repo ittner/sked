@@ -136,7 +136,7 @@ class SkedApp(interface.BaseDialog):
         "last_directory": utils.get_home_dir()
     }
 
-    def __init__(self, db):
+    def __init__(self, db, extra_title = None):
         #try:
             self.db = db
             self.pm = PageManager(db)
@@ -152,6 +152,8 @@ class SkedApp(interface.BaseDialog):
             self.history.set_model(self.history_model)
             self.gsearch_model = gtk.ListStore(gobject.TYPE_STRING)
             self._load_interface()
+            if extra_title != None:
+                self.window.set_title(self.window.title + " - " + extra_title)
         #except Exception:
         #    interface.error_dialog(None, \
         #        u"An initialization error has occurred. Namárië.")
@@ -1112,8 +1114,10 @@ class SkedApp(interface.BaseDialog):
 
 def main(dbpath = None):
     # Selects the database path.
+    show_db_path = True
     if dbpath == None:
         dbpath = utils.get_xdg_data_home("sked/sked2.db")
+        show_db_path = False
     db = database.EncryptedDatabase(dbpath)
 
     if not db.get_lock():
@@ -1164,7 +1168,7 @@ def main(dbpath = None):
 
     if db.is_ready():
         try:
-            app = SkedApp(db)
+            app = SkedApp(db, db.path if show_db_path else None)
             app.start(jump_to_page)
             gtk.main()
         except Exception, e:

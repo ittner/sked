@@ -92,7 +92,10 @@ class EncryptedDatabase(object):
 
     def __init__(self, path):
         self._db = None
-        self._path = path
+        self._path = os.path.realpath(path)
+        ddir = os.path.split(self._path)[0]
+        if not os.path.exists(ddir):
+            os.makedirs(ddir, 0700)
         self.lock_path = self._path + ".lock"
         self._ready = False
         self._lock_fd = None

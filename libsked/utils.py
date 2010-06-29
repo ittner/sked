@@ -41,7 +41,7 @@ def get_xdg_data_home(appdir = ""):
     base = os.getenv("XDG_DATA_HOME")
     if base == None or base == '':
         base = os.path.join(get_home_dir(), ".local", "share")
-    return os.path.join(base, appdir)
+    return os.path.realpath(os.path.join(base, appdir))
 
 def data_path(fname = None):
     # Assumes that all libsked data files are in the package directory.

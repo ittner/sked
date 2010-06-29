@@ -163,10 +163,13 @@ class EncryptedDatabase(object):
         """Try to get exclusive access to the database."""
         # A very primitive (and buggy) locking system. We can't use the DB4
         # native locking bacause we need it before create the database.
-        if os.path.exists(self.lock_path) or self._lock_fd != None:
+        try:
+            if os.path.exists(self.lock_path) or self._lock_fd != None:
+                return False
+            self._lock_fd = open(self.lock_path, "a")
+            return True
+        except IOError, ex:
             return False
-        self._lock_fd = open(self.lock_path, "a")
-        return True
 
     def release_lock(self):
         """Releases exclusive access to database."""

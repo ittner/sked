@@ -100,6 +100,11 @@ class EncryptedDatabase(object):
         self._ready = False
         self._lock_fd = None
 
+    @property
+    def path(self):
+        """Returns the database path."""
+        return self._path
+
     def is_new(self):
         return not os.path.exists(self._path)
         

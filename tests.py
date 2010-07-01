@@ -3,6 +3,7 @@
 
 # TODO: Sort these tests.
 
+import os
 import random
 
 from libsked.database import EncryptedDatabase
@@ -79,7 +80,11 @@ if not db.try_open(db_pwd):
     raise Exception("Password error (right)")
 if not db.is_ready():
     raise Exception("db not ready")
-    
+
+# Test the 'path' property.
+if db.path != os.path.realpath(db_fname):
+    raise Exception("db.path != realpath(db_path)")
+
 # Write the test pages.
 pm = PageManager(db)
 for p in pages:

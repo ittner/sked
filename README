@@ -33,7 +33,7 @@ the $HOME directory.
 Sked internals were redesigned in version 0.3, preparing the code for some
 new features and interface changes in the future version 0.4. The database
 format was also changed, so, please read the section "Installation and upgrade"
-before upgrading your existing installation;
+before upgrading your existing installation. A summary of the changes include:
 
  - The local search function is now case-insensitive;
  - Some bugs in the undo/redo command were fixed;

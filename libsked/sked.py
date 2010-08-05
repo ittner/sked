@@ -961,7 +961,7 @@ class SkedApp(interface.BaseDialog):
             self._apply_tag_on_group(match, style, 2)
             self._apply_tag_on_group(match, "format", 3)
 
-        url_re = ur"(([a-zA-Z]+://|www\.)[^\s<>\"']+[^\s>\"'\).,;?!]+)" # url
+        url_re = ur"(([a-zA-Z]+://|www\.)[^\s<>\"'\[\]]+[^\s>\"'\)\[\].,;?!]+)" # url
         for match in re.finditer(url_re, tx):
             self._apply_tag_on_group(match, "url", 1)
 

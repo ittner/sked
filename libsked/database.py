@@ -226,6 +226,15 @@ class EncryptedDatabase(object):
             yield rec[0], data
             rec = cursor.next()
 
+    def keys(self):
+        if not self._ready:
+            raise NotReadyError
+        cursor = self._db.cursor()
+        rec = cursor.first()
+        while rec:
+            yield rec[0]
+            rec = cursor.next()
+
     def _make_pwd_hash(self, pwd):
         return _hash_sha256_str(_normalize_pwd(pwd))
         

@@ -225,8 +225,12 @@ class SkedApp(interface.BaseDialog):
             self.mnAnyWord.set_property("active", True)
         elif search_mode == PageManager.SEARCH_EXACT:
             self.mnExactPhrase.set_property("active", True)
+        elif search_mode == PageManager.SEARCH_LEVENSHTEIN:
+            self.mnLevenshtein.set_property("active", True)
         else:   # Default. Also, any invalid option will get here.
             self.mnAllWords.set_property("active", True)
+        self.mnFullText.set_property("sensitive",
+            search_mode != PageManager.SEARCH_LEVENSHTEIN)
             
     def on_window_state(self, widget, event, data = None):
         if widget == self.window:
@@ -275,6 +279,7 @@ class SkedApp(interface.BaseDialog):
         self.mnAnyWord = self.ui.get_object("mnAnyWordSearch")
         self.mnAllWords = self.ui.get_object("mnAllWordsSearch")
         self.mnExactPhrase = self.ui.get_object("mnExactPhraseSearch")
+        self.mnLevenshtein = self.ui.get_object("mnLevenshteinSearch")
 
         self.bxLocalSearch = self.ui.get_object("bxLocalSearch")
         self.txLocalSearch = self.ui.get_object("txLocalSearch")
@@ -313,6 +318,7 @@ class SkedApp(interface.BaseDialog):
         self.text_delete_sigid = self.txBuffer.connect("delete-range",
             self._on_text_delete)
     
+        self.mnLevenshtein.set_property("sensitive", HAVE_LEVENSHTEIN)
         display = gdk.display_manager_get().get_default_display()
         self.clipboard = gtk.Clipboard(display, "CLIPBOARD")
         self.set_text_tags()
@@ -521,6 +527,10 @@ class SkedApp(interface.BaseDialog):
             mode = PageManager.SEARCH_ALL
         elif self.mnExactPhrase.get_property("active") == True:
             mode = PageManager.SEARCH_EXACT
+        elif self.mnLevenshtein.get_property("active") == True:
+            mode = PageManager.SEARCH_LEVENSHTEIN
+        self.mnFullText.set_property("sensitive",
+            mode != PageManager.SEARCH_LEVENSHTEIN)
         self.opt.set_int("search_mode", mode)
 
     def on_cmd_gsearch_tg(self, widget = None, data = None):
@@ -550,9 +560,21 @@ class SkedApp(interface.BaseDialog):
             mode = PageManager.SEARCH_ALL
         elif self.mnExactPhrase.get_property("active") == True:
             mode = PageManager.SEARCH_EXACT
+        elif self.mnLevenshtein.get_property("active") == True:
+            mode = PageManager.SEARCH_LEVENSHTEIN
         else:
             interface.error_dialog(self.window,
                 "You must select a search mode.")
+            return
+        if mode == PageManager.SEARCH_LEVENSHTEIN:
+            if not HAVE_LEVENSHTEIN:
+                interface.error_dialog(self.window,
+                    "Similarity search is not available in your system")
+                return
+            results = self.pm.levenshtein_search(terms)
+            self.gsearch_model.clear()
+            for res in results:
+                self.gsearch_model.append([ res[0] ])
             return
         self.gsearch_model.clear()
         self.pm.search(terms, mode, False, self.mnFullText.get_active(),

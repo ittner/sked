@@ -48,6 +48,9 @@ before upgrading your existing installation. A summary of the changes include:
 
   * Python >= 2.5
   * PyGTK+ >= 2.10
+  * The name similarity search requires the module python-Levenshtein version
+    0.10.0 or later from http://pypi.python.org/pypi/python-Levenshtein/ or
+    your Linux distribution.
 
 
 == Installation and upgrade ==

@@ -103,9 +103,7 @@ class PageManager(object):
                         return results
         results = sorted(results, key=lambda result: result[2])
         results = results[0:max_results]
-        if callback:
-            if not callback(results):
-                return results
+        if callback: callback(results)
         return results
         
     def search(self, terms, mode = SEARCH_ALL, case_sensitive = False,

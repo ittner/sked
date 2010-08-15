@@ -24,6 +24,13 @@ Page management module.
 
 import re
 
+# Uses the module python-levenshtein for similarity searches, if available.
+HAVE_LEVENSHTEIN=False
+try:
+    import Levenshtein
+    HAVE_LEVENSHTEIN=True
+except: pass
+
 
 class PageManager(object):
     _ENCODING = "utf-8"
@@ -31,6 +38,7 @@ class PageManager(object):
     SEARCH_ALL = 1
     SEARCH_ANY = 2
     SEARCH_EXACT = 3
+    SEARCH_LEVENSHTEIN = 4
 
     def __init__(self, db):
         """ Creates a new page manager using the given database. """
@@ -68,6 +76,38 @@ class PageManager(object):
             if rec[0].startswith(PageManager._PREFIX):
                 yield self._decode_page(rec[1])
 
+    def levenshtein_search(self, term, max_results=30, callback=None):
+        """ Searches for pages with names near to the given term according
+        to the Levenshtein distance. This method returns a list of tuples
+        with the page name, the normalized name and the distance to the
+        search term, limited to 'max_results' items. 
+        
+        If 'callback' is given, it will be called with the current result
+        list as sole argument each time the result list is trimmed to the
+        limit. The search will be stopped unless the callback returns True.
+        """
+        
+        if not HAVE_LEVENSHTEIN: raise Exception("Module not available")
+        term = Page.normalize_name(term)
+        results = [ ]
+
+        for page in self.iterate():
+            results.append((page.name, page.normalized_name,
+                Levenshtein.distance(term, page.normalized_name)))
+            if len(results) > 2*max_results:
+                # Limit the list to max_results.
+                results = sorted(results, key=lambda result: result[2])
+                results = results[0:max_results]
+                if callback:
+                    if not callback(results):
+                        return results
+        results = sorted(results, key=lambda result: result[2])
+        results = results[0:max_results]
+        if callback:
+            if not callback(results):
+                return results
+        return results
+        
     def search(self, terms, mode = SEARCH_ALL, case_sensitive = False,
         full_text = False, return_set = True, callback = None):
         """ Search for pages. 'terms' is a Unicode string with the search

@@ -574,7 +574,7 @@ class SkedApp(interface.BaseDialog):
             results = self.pm.levenshtein_search(terms)
             self.gsearch_model.clear()
             for res in results:
-                self.gsearch_model.append([ res[0] ])
+                self.gsearch_model.append([ res ])
             return
         self.gsearch_model.clear()
         self.pm.search(terms, mode, False, self.mnFullText.get_active(),

@@ -397,14 +397,14 @@ if HAVE_LEVENSHTEIN:
     pm.save(Page(u"Levenshtein .......", u"No text"))
     
     results = pm.levenshtein_search("Levenshtein xxxxxxx", 20)
-    if results[0][0] != u"Levenshtein xxxxxxx":
-        raise Exception("Levenshtein search failed (1)", results[0])
-    if results[1][0] != u"Levenshtein xxxxxx.":
-        raise Exception("Levenshtein search failed (1)", results[1])
-    if results[2][0] != u"Levenshtein xxxxx..":
-        raise Exception("Levenshtein search failed (1)", results[2])
-    if results[3][0] != u"Levenshtein xxxx...":
-        raise Exception("Levenshtein search failed (1)", results[3])
+    if results[0] != u"Levenshtein xxxxxxx":
+        raise Exception("Levenshtein search failed (1)", results)
+    if results[1] != u"Levenshtein xxxxxx.":
+        raise Exception("Levenshtein search failed (2)", results)
+    if results[2] != u"Levenshtein xxxxx..":
+        raise Exception("Levenshtein search failed (3)", results)
+    if results[3] != u"Levenshtein xxxx...":
+        raise Exception("Levenshtein search failed (4)", results)
     
     db.close()
     db.release_lock()

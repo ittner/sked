@@ -76,35 +76,48 @@ class PageManager(object):
             if rec[0].startswith(PageManager._PREFIX):
                 yield self._decode_page(rec[1])
 
-    def levenshtein_search(self, term, max_results=30, callback=None):
-        """ Searches for pages with names near to the given term according
-        to the Levenshtein distance. This method returns a list of tuples
-        with the page name, the normalized name and the distance to the
-        search term, limited to 'max_results' items. 
-        
-        If 'callback' is given, it will be called with the current result
-        list as sole argument each time the result list is trimmed to the
-        limit. The search will be stopped unless the callback returns True.
+    def _iterate_names(self):
+        """ Private method to iterate through normalized page names of a
+        database. The names are normalized and returned as Unicode strings
+        (not as byte arrays), intended for use by search functions.
+        """
+        prefixlen = len(PageManager._PREFIX)
+        for key in self.db.keys():
+            if key.startswith(PageManager._PREFIX):
+                yield key[prefixlen:].decode(PageManager._ENCODING)
+
+    def levenshtein_search(self, term, max_results=30):
+        """ Searches for pages for names near to the given term according
+        to the Levenshtein distance. This method returns a list with up to
+        'max_results' page names sorted according to its similarity to the
+        search term.
         """
         
         if not HAVE_LEVENSHTEIN: raise Exception("Module not available")
-        term = Page.normalize_name(term)
-        results = [ ]
+        term = Page.normalize_name(term).decode("utf-8")
+        
+        # To avoid either giant result queues and too many small list sorting
+        # operations. The best value for this parameter is a bit heuristic.
+        optimal_queue_len = max(100, 3*max_results)
+        worst_result = 2**31    # Interval reasoning to discard bad results.
 
-        for page in self.iterate():
-            results.append((page.name, page.normalized_name,
-                Levenshtein.distance(term, page.normalized_name)))
-            if len(results) > 2*max_results:
-                # Limit the list to max_results.
-                results = sorted(results, key=lambda result: result[2])
-                results = results[0:max_results]
-                if callback:
-                    if not callback(results):
-                        return results
-        results = sorted(results, key=lambda result: result[2])
+        results = [ ]
+        for curname in self._iterate_names():
+            ldist = Levenshtein.distance(term, curname)
+            if ldist < worst_result:
+                results.append((curname, ldist))
+                if len(results) > optimal_queue_len:
+                    results = sorted(results, key=lambda result: result[1])
+                    results = results[0:max_results]
+                    worst_result = results[-1][1]
+        results = sorted(results, key=lambda result: result[1])
         results = results[0:max_results]
-        if callback: callback(results)
-        return results
+
+        # Get the real (non-normalized) names for the pages found.
+        retvals = [ ]
+        for temp in results:
+            retvals.append(self.load(temp[0]).name)
+        return retvals
         
     def search(self, terms, mode = SEARCH_ALL, case_sensitive = False,
         full_text = False, return_set = True, callback = None):

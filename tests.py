@@ -7,7 +7,7 @@ import os
 import random
 
 from libsked.database import EncryptedDatabase
-from libsked.pages import Page, PageManager
+from libsked.pages import Page, PageManager, HAVE_LEVENSHTEIN
 from libsked.options import OptionManager
 from libsked import xmlio
 from libsked import utils
@@ -365,4 +365,49 @@ if len(retlist) != 3: raise Exception("Search fail", retlist)
 
 db.close()
 db.release_lock()
+
+
+
+# Test the levenshtein search
+
+if HAVE_LEVENSHTEIN:
+    db = EncryptedDatabase(db_fname)
+    if not db.get_lock():
+        raise Exception("db.get_lock")
+    if not db.try_open(db_pwd):
+        raise Exception("Password error (right)")
+    if not db.is_ready():
+        raise Exception("db not ready")
+
+    pm = PageManager(db)
+
+    # Delete all pages
+    for p in pm.iterate():
+        pm.delete(p.name)
+    for p in pm.iterate():
+        raise Exception("No pages were expected here")
+
+    pm.save(Page(u"Levenshtein xxxxxxx", u"No text"))
+    pm.save(Page(u"Levenshtein xxxxxx.", u"No text"))
+    pm.save(Page(u"Levenshtein xxxxx..", u"No text"))
+    pm.save(Page(u"Levenshtein xxxx...", u"No text"))
+    pm.save(Page(u"Levenshtein xxx....", u"No text"))
+    pm.save(Page(u"Levenshtein xx.....", u"No text"))
+    pm.save(Page(u"Levenshtein x......", u"No text"))
+    pm.save(Page(u"Levenshtein .......", u"No text"))
+    
+    results = pm.levenshtein_search("Levenshtein xxxxxxx", 20)
+    if results[0][0] != u"Levenshtein xxxxxxx":
+        raise Exception("Levenshtein search failed (1)", results[0])
+    if results[1][0] != u"Levenshtein xxxxxx.":
+        raise Exception("Levenshtein search failed (1)", results[1])
+    if results[2][0] != u"Levenshtein xxxxx..":
+        raise Exception("Levenshtein search failed (1)", results[2])
+    if results[3][0] != u"Levenshtein xxxx...":
+        raise Exception("Levenshtein search failed (1)", results[3])
+    
+    db.close()
+    db.release_lock()
+else:
+    print("No Levenshtein module found. Similarity searches not available.")
 

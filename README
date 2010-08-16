@@ -27,30 +27,36 @@ analysis of the DB4's crypto implementation -- it is a standard 128 bit AES).
 Users wanting a stronger security level should use full volume encryption for
 the $HOME directory.
 
+== News ==
 
-== News for version 0.3 ==
+= News in the current version =
+
+  * The search system now allows finding entries with names near to a given
+    search term.
+
+= News in version 0.3 =
 
 Sked internals were redesigned in version 0.3, preparing the code for some
 new features and interface changes in the future version 0.4. The database
 format was also changed, so, please read the section "Installation and upgrade"
 before upgrading your existing installation. A summary of the changes include:
 
- - The local search function is now case-insensitive;
- - Some bugs in the undo/redo command were fixed;
- - The position of the cursor is saved now (thanks Vyacheslav Slobodyan for
-   this suggestion);
- - The wiki-code interpreter was improved to prevent misformating;
- - Now it is possible to disable the password protection of the database;
- - A small margin was added to the main text box for better readability;
+  * The local search function is now case-insensitive;
+  * Some bugs in the undo/redo command were fixed;
+  * The position of the cursor is saved now (thanks Vyacheslav Slobodyan for
+    this suggestion);
+  * The wiki-code interpreter was improved to prevent misformating;
+  * Now it is possible to disable the password protection of the database;
+  * A small margin was added to the main text box for better readability;
 
 
 == Requirements ==
 
   * Python >= 2.5
   * PyGTK+ >= 2.10
-  * The name similarity search requires the module python-Levenshtein version
-    0.10.0 or later from http://pypi.python.org/pypi/python-Levenshtein/ or
-    your Linux distribution.
+  * python-Levenshtein >= 0.10.0 is required for the name similarity search.
+    It is available in the most popular desktop Linux distributions and in
+    http://pypi.python.org/pypi/python-Levenshtein/
 
 
 == Installation and upgrade ==

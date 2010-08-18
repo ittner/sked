@@ -388,7 +388,8 @@ class InsertPageTextDialog(BaseDialog):
     def __init__(self, skapp):
         self.app = skapp
         self.parent = skapp.window
-        self.history = HistoryManager(self.app, "insert_history", True)
+        self.history = HistoryManager(skapp.db, "insert_history",
+            skapp.opt.get_int("max_history"), True)
         self.hmodel = gtk.ListStore(gobject.TYPE_STRING)
         self._load_interface()
 
@@ -430,7 +431,8 @@ class RenamePageDialog(BaseDialog):
         self.app = skapp
         self.parent = skapp.window
         self.curpage = self.app.curpage
-        self.history = HistoryManager(self.app, "rename_history", True)
+        self.history = HistoryManager(skapp.db, "rename_history",
+            skapp.opt.get_int("max_history"), True)
         self.hmodel = gtk.ListStore(gobject.TYPE_STRING)
         self._load_interface()
         self.page_name = None

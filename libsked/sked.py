@@ -147,7 +147,8 @@ class SkedApp(interface.BaseDialog):
             self.formatTimerID = None
             self.saveTimerID = None
             self.window_state = 0
-            self.history = HistoryManager(self, "history", True)
+            self.history = HistoryManager(self.db, "history",
+                self.opt.get_int("max_history"), True)
             self.history_model = gtk.ListStore(gobject.TYPE_STRING)
             self.history.set_model(self.history_model)
             self.gsearch_model = gtk.ListStore(gobject.TYPE_STRING)

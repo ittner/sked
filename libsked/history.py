@@ -31,18 +31,22 @@ class HistoryManager(object):
     inserted, etc.
     """
 
-    def __init__(self, skapp, name = None, unique = False):
-        self._maxitems = skapp.opt.get_int("max_history")
-        self._unique = unique
+    max_items = None
+
+    def __init__(self, db=None, name=None, max_items=None, unique=False):
+        self._db = db
         self.name = name
-        self._db = None
+        self.max_items = max_items
+        self._unique = unique
         self._model = None
         self._items = []
-        if self.name != None:
-            self._db = skapp.db
-            self._items = self._db.get_key(self.name, [])
-        self._refresh_model()
+        self.load()
 
+    def load(self):
+        """ (Re)load items from the database. """
+        if self.name != None and self._db != None:
+            self.set_items(self._db.get_key(self.name, []))
+        
     def save(self):
         self._trim()
         if self.name:
@@ -90,8 +94,13 @@ class HistoryManager(object):
                 self._model.append([item])
 
     def _trim(self):
-        self._items = self._items[:self._maxitems]
+        if self.max_items:
+            self._items = self._items[:self.max_items]
 
+    def set_items(self, items):
+        self._items = items
+        self._trim()
+        self._refresh_model()
 
 
 class BackForwardManager(object):

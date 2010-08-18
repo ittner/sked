@@ -1,6 +1,7 @@
 include README
 include COPYING
 include sked.desktop
+include sked.spec
 recursive-include debian *
 include libsked/*.ui
 include libsked/sked.dtd

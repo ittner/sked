@@ -101,4 +101,8 @@ class OptionManager:
         self.set_str(key, "#%.2X%.2X%.2X" %
             (color.red/256, color.green/256, color.blue/256))
 
+    def iterate(self):
+        keys = sorted(self._opts.keys())
+        for key in keys:
+            yield str(key), str(self._opts[key])
 

@@ -332,99 +332,10 @@ class SkedApp(interface.BaseDialog):
         abt.show()
         
     def on_cmd_export(self, widget = None, data = None):
-        # Should be in another class?
-        dlg = gtk.FileChooserDialog("Export data", None,
-            gtk.FILE_CHOOSER_ACTION_SAVE,
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-            gtk.STOCK_OK, gtk.RESPONSE_OK))
-            
-        dlg.set_default_response(gtk.RESPONSE_OK)
-        dir = self.opt.get_str("last_directory") or utils.get_home_dir()
-        dlg.set_current_folder(dir)
-        
-        filter = gtk.FileFilter()
-        filter.set_name("Non-encrypted XML files")
-        filter.add_pattern("*.xml")
-        dlg.add_filter(filter)
-       
-        # Add support for compressed XML files here.
-        while True:
-            ret = dlg.run()
-            if ret == gtk.RESPONSE_OK:
-                fname = dlg.get_filename()
-                prename, ext = os.path.splitext(fname)
-                if ext == "":
-                    fname = fname + ".xml"
-                if os.path.exists(fname):
-                    if not interface.confirm_file_overwrite(dlg, fname):
-                        continue
-                self.opt.set_str("last_directory", dlg.get_current_folder())
-                dlg.destroy()
-                break
-            else:
-                dlg.destroy()
-                return
-
-        if not interface.confirm_yes_no(self.window, u"The database will "
-            "be exported without encryption. Do you want to proceed?"):
-            return
-        try:
-            self.set_status(u'Exporting to "' + fname + u'". Please wait...')
-            xmlio.export_xml_file(fname, self.pm, self.opt, [ self.history,
-                HistoryManager(self.db, "insert_history"),
-                HistoryManager(self.db, "rename_history") ])
-            self.set_status(u'Done')
-        except:
-            interface.error_dialog(dlg, u"Failed to write the file. Please "
-                "check if the file is not being used and if you have "
-                "sufficient access rights.")
-        # Done.
+        SkedXmlDataHandler(self).export_data(widget, data)
         
     def on_cmd_import(self, widget = None, data = None):
-        # Should be in another class?
-        dlg = gtk.FileChooserDialog("Import data", None,
-            gtk.FILE_CHOOSER_ACTION_OPEN,
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-            gtk.STOCK_OK, gtk.RESPONSE_OK))
-
-        dlg.set_default_response(gtk.RESPONSE_OK)
-        dir = self.opt.get_str("last_directory") or utils.get_home_dir()
-        dlg.set_current_folder(dir)
-        
-        filter = gtk.FileFilter()
-        filter.set_name("Non-encrypted XML files")
-        filter.add_pattern("*.xml")
-        dlg.add_filter(filter)
-       
-        # Add support for compressed XML files here.
-        fname = None
-        while True:
-            ret = dlg.run()
-            if ret == gtk.RESPONSE_OK:
-                fname = dlg.get_filename()
-                self.opt.set_str("last_directory", dlg.get_current_folder())
-                dlg.destroy()
-                break
-            else:
-                dlg.destroy()
-                return
-
-        if not interface.confirm_yes_no(self.window, u"Entries loaded from "
-            "the file will replace entries with the same name on database. "
-            "Do you want to proceed?"):
-            return
-        try:
-            self.set_status(u'Importing from "' + fname + u'". Please wait...')
-            xmlio.import_xml_file(fname, self.db, self.pm, self.opt, True)
-            self.set_status(u'Done')
-            # Data may have changed, reload pages and history.
-            self.reload_current_page()
-            self.history.load()
-        except:
-            interface.error_dialog(dlg, u"Failed to read the file. Please "
-                "check if the XML file is well formed and if you have "
-                "sufficient access rights.")
-        # Done.
+        SkedXmlDataHandler(self).import_data(widget, data)
 
     def on_cmd_bold(self, widget = None, data = None):
         self.insert_formatting("*", "*")
@@ -1136,6 +1047,155 @@ class SkedApp(interface.BaseDialog):
             pagename = "%04d-%02d-%02d" % (year, month + 1, day)
             if self.pm.exists(pagename):
                 self.calendar.mark_day(day)
+
+
+class SkedXmlDataHandler(object):
+    """ Holder for several data handling routines.  Currently, only basic
+    XML file I/O routines are implemented.
+    TODO: Merge, syncing, status report, etc.
+    """
+
+    def __init__(self, sked_app):
+        self.app = sked_app
+        self.filefmt_chp = self._basic_file_filter("Sked XML, complete")
+        self.filefmt_p = self._basic_file_filter("Sked XML, pages only")
+        self.filefmt_c = self._basic_file_filter("Sked configuration")
+        self.filefmt_h = self._basic_file_filter("Sked history")
+
+    def _basic_file_filter(self, name):
+        filter = gtk.FileFilter()
+        filter.set_name(name)
+        filter.add_pattern("*.xml")
+        return filter
+
+    def _make_file_chooser_dlg(self, parent, to_save):
+        # Code common to several routines
+        if to_save: title, mode = "Export data", gtk.FILE_CHOOSER_ACTION_SAVE
+        else: title, mode = "Import data", gtk.FILE_CHOOSER_ACTION_OPEN
+
+        dlg = gtk.FileChooserDialog(title, parent, mode, (gtk.STOCK_CANCEL,
+            gtk.RESPONSE_CANCEL, gtk.STOCK_OK, gtk.RESPONSE_OK))
+        dlg.set_default_response(gtk.RESPONSE_OK)
+        dir = self.app.opt.get_str("last_directory") or utils.get_home_dir()
+        dlg.set_current_folder(dir)
+        dlg.add_filter(self.filefmt_chp)
+        dlg.add_filter(self.filefmt_p)
+        dlg.add_filter(self.filefmt_c)
+        dlg.add_filter(self.filefmt_h)
+        return dlg
+
+    def _list_exportable_histories(self):
+        # Returns a list of all exportable HistoryManager instances;
+        return [ self.app.history,
+            HistoryManager(self.app.db, "insert_history"),
+            HistoryManager(self.app.db, "rename_history") ]
+
+    def export_data(self, widget = None, data = None):
+        self.app.save_current_page()
+        self.app.opt.save()
+        self.app.history.save()
+        dlg = self._make_file_chooser_dlg(None, True)
+        while True:
+            ret = dlg.run()
+            if ret == gtk.RESPONSE_OK:
+                fname = dlg.get_filename()
+                prename, ext = os.path.splitext(fname)
+                if ext == "":
+                    fname = fname + ".xml"
+                if os.path.exists(fname):
+                    if not interface.confirm_file_overwrite(dlg, fname):
+                        continue
+                self.app.opt.set_str("last_directory",
+                    dlg.get_current_folder())
+                selected_fmt = dlg.get_property("filter")
+                dlg.destroy()
+                break
+            else:
+                dlg.destroy()
+                return
+        if not interface.confirm_yes_no(self.app.window, u"The data will "
+            "be exported without encryption. Do you want to proceed?"):
+            return
+        try:
+            if selected_fmt == self.filefmt_chp:
+                xmlio.export_xml_file(fname, self.app.pm, self.app.opt,
+                    self._list_exportable_histories())
+            elif selected_fmt == self.filefmt_p:
+                xmlio.export_xml_file(fname, self.app.pm, None, None)
+            elif selected_fmt == self.filefmt_c:
+                xmlio.export_xml_file(fname, None, self.app.opt, None)
+            elif selected_fmt == self.filefmt_h:
+                xmlio.export_xml_file(fname, None, None,
+                    self._list_exportable_histories())
+            else:
+                # May this ever happen?
+                interface.error_dialog(dlg, u"No file format was selected")
+                return
+        except:
+            interface.error_dialog(dlg, u"Failed to write the file. Please "
+                "check if the file is not being used and if you have "
+                "sufficient access rights.")
+            raise
+
+    def import_data(self, widget = None, data = None):
+        self.app.save_current_page()
+        self.app.opt.save()
+        self.app.history.save()
+        fname = None
+        dlg = self._make_file_chooser_dlg(None, False)
+        while True:
+            ret = dlg.run()
+            if ret == gtk.RESPONSE_OK:
+                fname = dlg.get_filename()
+                self.app.opt.set_str("last_directory",
+                    dlg.get_current_folder())
+                selected_fmt = dlg.get_property("filter")
+                dlg.destroy()
+                break
+            else:
+                dlg.destroy()
+                return
+        if not interface.confirm_yes_no(self.app.window, u"The entries "
+            "loaded from the file will replace entries with the same name "
+            "in the database. Do you want to proceed?"):
+            return
+        try:
+            if selected_fmt == self.filefmt_chp:
+                xmlio.import_xml_file(fname, self.app.db, self.app.pm,
+                    self.app.opt, True)
+            elif selected_fmt == self.filefmt_p:
+                xmlio.import_xml_file(fname, self.app.db, self.app.pm,
+                    None, False)
+            elif selected_fmt == self.filefmt_c:
+                xmlio.import_xml_file(fname, self.app.db, None,
+                    self.app.opt, False)
+            elif selected_fmt == self.filefmt_h:
+                # Why would somebody import an history?? Supporting for
+                # internal consistency only.
+                xmlio.import_xml_file(fname, self.app.db, None, None, True)
+            else:
+                # May this ever happen?
+                interface.error_dialog(dlg, u"No file format was selected")
+                return
+            # Data may have changed. Reload.
+            self.app.reload_current_page()
+            self.app.history.load()
+            self.app.opt.load()
+            self.app.update_options()
+        except xmlio.VersionError, e:
+            interface.error_dialog(dlg, u"The file selected was generated "
+                "by an unsupported version of Sked")
+        except xmlio.DataFormatError, e:
+            interface.error_dialog(dlg, u"The file appears to be corrupted. "
+                "Please check its contents with a text editor.")
+        except IOError, e:
+            interface.error_dialog(dlg, u"An I/O error has occured. Please "
+                "check if you have sufficient access rights to the file.")
+        except e:
+            interface.error_dialog(dlg, u"Failed to read the file. Please "
+                "check if the XML file is well formed and if you have "
+                "sufficient access rights.")
+            raise
 
 
 def main(dbpath = None):

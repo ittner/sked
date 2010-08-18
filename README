@@ -33,6 +33,8 @@ the $HOME directory.
 
   * The search system now allows finding entries with names near to a given
     search term.
+  * Sked can now export configuration and history to the XML files. It is
+    also possible to select what kind of data will be exported or imported.
 
 = News in version 0.3 =
 
@@ -80,6 +82,14 @@ import it back. The procedure is:
   4. Open the new version. Sked will create a new database;
   5. In the menu "File", select "Import..." and select the file give in the
      first step.
+
+Note: Sked versions 0.3 or older can not read the "complete" XML files (with
+history and configuration data) used by later versions. To export data to
+these versions, it is necessary to select the option "Sked XML, pages only"
+in the "Export" dialog box. If you exported a "complete" file by mistake and
+need to import it in a older Sked, you may: (1) import the file in a current
+version and export it again in the right format or (2) edit the files in a
+text editor to remove the new information.
 
 
 == To Do ==

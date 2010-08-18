@@ -246,7 +246,7 @@ for p in pages:
 # The database have len(pages) now.
 
 xml_fname = db_fname + "_test_export.xml"
-xmlio.export_xml_file(pm, xml_fname)
+xmlio.export_xml_file(xml_fname, pm, None, None)
 
 db.close()
 db.release_lock()
@@ -265,7 +265,7 @@ if not db2.is_ready():
     raise Exception("db2 not ready")
 
 pm2 = PageManager(db2)
-xmlio.import_xml_file(pm2, xml_fname)
+xmlio.import_xml_file(xml_fname, db2, pm2, None, None)
 
 for p in pages:
     newp = pm2.load(p.name)

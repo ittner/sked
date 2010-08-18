@@ -1,5 +1,21 @@
-<!ELEMENT skeddata (entry*)>
+<!--
+    Definition of a Sked portable data file, version 1.1
+
+    To make hand analysis of data files easier, this order is mandatory,
+    i.e. configuration (if given) must be the first element, followed by
+    any number of histories and any number of entries.
+-->
+
+<!ELEMENT skeddata (configuration?, history*, entry*) >
 <!ATTLIST skeddata version CDATA #REQUIRED>
+
+<!ELEMENT configuration (option*)>
+<!ELEMENT option (#PCDATA)>
+<!ATTLIST option name CDATA #REQUIRED>
+
+<!ELEMENT history (item*)>
+<!ATTLIST history name CDATA #REQUIRED>
+<!ELEMENT item (#PCDATA)>
 
 <!ELEMENT entry (#PCDATA)>
 <!ATTLIST entry name CDATA #REQUIRED>

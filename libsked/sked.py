@@ -370,7 +370,9 @@ class SkedApp(interface.BaseDialog):
             return
         try:
             self.set_status(u'Exporting to "' + fname + u'". Please wait...')
-            xmlio.export_xml_file(self.pm, fname)
+            xmlio.export_xml_file(fname, self.pm, self.opt, [ self.history,
+                HistoryManager(self.db, "insert_history"),
+                HistoryManager(self.db, "rename_history") ])
             self.set_status(u'Done')
         except:
             interface.error_dialog(dlg, u"Failed to write the file. Please "
@@ -413,10 +415,11 @@ class SkedApp(interface.BaseDialog):
             return
         try:
             self.set_status(u'Importing from "' + fname + u'". Please wait...')
-            xmlio.import_xml_file(self.pm, fname)
+            xmlio.import_xml_file(fname, self.db, self.pm, self.opt, True)
             self.set_status(u'Done')
-            # Reload current page (it can be replaced after importing).
+            # Data may have changed, reload pages and history.
             self.reload_current_page()
+            self.history.load()
         except:
             interface.error_dialog(dlg, u"Failed to read the file. Please "
                 "check if the XML file is well formed and if you have "
@@ -1166,7 +1169,8 @@ def main(dbpath = None):
             db.create(pwd)
             try:
                 pm = PageManager(db)
-                xmlio.import_xml_file(pm, utils.data_path("help.xml"))
+                xmlio.import_xml_file(utils.data_path("help.xml"), db, pm,
+                    None, False)
                 jump_to_page = "index"
             except:
                 pass

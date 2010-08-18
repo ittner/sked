@@ -31,22 +31,22 @@ class HistoryManager(object):
     inserted, etc.
     """
 
-    def __init__(self, skapp, dbkey = None, unique = False):
+    def __init__(self, skapp, name = None, unique = False):
         self._maxitems = skapp.opt.get_int("max_history")
         self._unique = unique
-        self._dbkey = dbkey
+        self.name = name
         self._db = None
         self._model = None
         self._items = []
-        if self._dbkey != None:
+        if self.name != None:
             self._db = skapp.db
-            self._items = self._db.get_key(self._dbkey, [])
+            self._items = self._db.get_key(self.name, [])
         self._refresh_model()
 
     def save(self):
         self._trim()
-        if self._dbkey:
-            self._db.set_key(self._dbkey, self._items)
+        if self.name:
+            self._db.set_key(self.name, self._items)
 
     def get_items(self):
         return self._items

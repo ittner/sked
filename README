@@ -35,6 +35,12 @@ the $HOME directory.
     search term.
   * Sked can now export configuration and history to the XML files. It is
     also possible to select what kind of data will be exported or imported.
+  * The commands to add formatting codes now toggles the tags in the borders
+    of the selection. The commands to add section headers also are a bit
+    more clever now, removing other header tags if necessary.
+  * When format commands are issued with some text selected, the cursor is
+    moved to the end of the selection, and the selection is removed. If no
+    text is selected, the cursor is placed between the format tags.
 
 = News in version 0.3 =
 

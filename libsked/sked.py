@@ -746,26 +746,38 @@ class SkedApp(interface.BaseDialog):
         self.txBuffer.handler_unblock(self.text_delete_sigid)
 
     def insert_formatting(self, before, after):
-        ##TODO: Fix this confuse code.
         smark = self.txBuffer.get_selection_bound()
         imark = self.txBuffer.get_insert()
         iiter = self.txBuffer.get_iter_at_mark(imark)
         siter = self.txBuffer.get_iter_at_mark(smark)
-        poff = iiter.compare(siter)     # Catapoff! ;)
-        if poff == 0:   # No selection.
+        poff = iiter.compare(siter)     # catapoff! ;)
+        if poff == 0:   # No selection: put the tokens and move the cursor.
             self.txBuffer.insert(iiter, before)
             # Previous iiter was invalidated. We need a new one.
             iiter = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
             ioff = iiter.get_offset()   # Cursor will back here.
             self.txBuffer.insert(self.txBuffer.get_iter_at_mark(smark), after)
             self.txBuffer.place_cursor(self.txBuffer.get_iter_at_offset(ioff))
+            self.format_text()
             return
-        if poff > 0:    # Inverse selection? Let's put it in the right order.
-            tmp_mark = smark
-            smark = imark
-            imark = tmp_mark
-        self.txBuffer.insert(self.txBuffer.get_iter_at_mark(imark), before)
-        self.txBuffer.insert(self.txBuffer.get_iter_at_mark(smark), after)
+        text = self.txBuffer.get_text(siter, iiter).decode("utf-8")
+        ttext = text.strip()
+        if ttext[0] == "=" and ttext[-1] == "=":
+            # Special procedure for handling section headers.
+            innertext = text.strip("= ")
+            newtext = before + innertext + after
+            if text.count("=") == newtext.count("="):
+                # Same title level? Remove it.
+                newtext = innertext
+        elif text.startswith(before) and text.endswith(after):
+            # "Toggles" the format code in the selection.
+            blen = len(before)
+            alen = len(after)
+            newtext = text[blen:-alen]
+        else:
+            newtext = before + text + after
+        self.txBuffer.delete(siter, iiter)
+        self.txBuffer.insert(siter, newtext)
         self.format_text()
     
     def insert_text_cursor(self, text):

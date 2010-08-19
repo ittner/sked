@@ -203,8 +203,9 @@ def export_xml_file(fname, page_manager, option_manager, histories):
     version="1.1".
     """
 
+    enc = "utf-8"
     fp = open(fname, "w")
-    fp.write('<?xml version="1.0" encoding="utf-8"?>\n'
+    fp.write('<?xml version="1.0" encoding="' + enc + '"?>\n'
         '<!DOCTYPE skeddata SYSTEM "sked.dtd">\n')
     if option_manager == None and histories == None:
         fp.write('<skeddata version="1.0">\n')
@@ -214,21 +215,21 @@ def export_xml_file(fname, page_manager, option_manager, histories):
         fp.write(' <configuration>\n')
         for name, value in option_manager.iterate():
             fp.write("  <option name=%s>%s</option>\n" % (
-                saxutils.quoteattr(name).encode("utf-8"),
-                saxutils.escape(value).encode("utf-8")))
+                saxutils.quoteattr(name).encode(enc),
+                saxutils.escape(value).encode(enc)))
         fp.write(' </configuration>\n')
     if histories != None:
         for hist in histories:
             fp.write(" <history name=%s>\n" % (
-                saxutils.quoteattr(hist.name).encode("utf-8")))
+                saxutils.quoteattr(hist.name).encode(enc)))
             for item in hist.get_items():
                 fp.write("  <item>%s</item>\n" % (
-                    saxutils.escape(item).encode("utf-8")))
+                    saxutils.escape(item).encode(enc)))
             fp.write(" </history>\n")
     if page_manager != None:
         for page in page_manager.iterate():
             fp.write(" <entry name=%s>%s</entry>\n" % (
-                saxutils.quoteattr(page.name).encode("utf-8"),
-                saxutils.escape(page.text).encode("utf-8")))
+                saxutils.quoteattr(page.name).encode(enc),
+                saxutils.escape(page.text).encode(enc)))
     fp.write("</skeddata>\n")
     fp.close()

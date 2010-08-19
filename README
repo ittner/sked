@@ -15,7 +15,7 @@ up editing operations: links and styles are unobtrusively inferred from the
 syntax, entries are automatically saved after a few seconds, almost all
 commands have keyboard shortcuts, and the last entries are kept in a history.
 Also, the wiki code is *not* hidden from the editing interface -- this makes
-editing easier, avoids the create/view/change cycle, and allows your to copy
+editing easier, avoids the create/view/change cycle, and allows you to copy
 and paste text among other applications without loss of information. An
 user-defined delay is given before the text reformatting, so its appearance
 will not change while you are typing.
@@ -24,7 +24,7 @@ All entries are stored in a compressed and encrypted Berkeley DB4 database in
 your $HOME directory. The encryption aims protect the information even from a
 skilled adversary (but I am not a cryptologist and have not done any extensive
 analysis of the DB4's crypto implementation -- it is a standard 128 bit AES).
-Users wanting a stronger security level should use full volume encryption for
+Users wanting a higher security level should use full volume encryption for
 the $HOME directory.
 
 == News ==
@@ -73,8 +73,8 @@ Sked is provided in several formats and the installation procedures varies.
 The .tar.gz package works for every supported operating system, but requires
 manual installation -- these packages must be unpacked in the final
 installation directory, like /opt/sked/. The installation of Debian packages
-is simpler -- just call them up on with dpkg or double-click it to install
-with your distribution's default installer.
+is simpler: just call them up with dpkg or double-click it to install with
+your distribution's default installer.
 
 A special caution is needed when upgrading from a previous version of Sked,
 since new versions may bring incompatible changes to the database format. The

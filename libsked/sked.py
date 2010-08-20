@@ -1102,13 +1102,14 @@ class SkedXmlDataHandler(object):
         filter.add_pattern("*.xml")
         return filter
 
-    def _make_file_chooser_dlg(self, parent, to_save):
+    def _make_file_chooser_dlg(self, to_save):
         # Code common to several routines
         if to_save: title, mode = "Export data", gtk.FILE_CHOOSER_ACTION_SAVE
         else: title, mode = "Import data", gtk.FILE_CHOOSER_ACTION_OPEN
 
-        dlg = gtk.FileChooserDialog(title, parent, mode, (gtk.STOCK_CANCEL,
-            gtk.RESPONSE_CANCEL, gtk.STOCK_OK, gtk.RESPONSE_OK))
+        dlg = gtk.FileChooserDialog(title, self.app.window, mode,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OK,
+            gtk.RESPONSE_OK))
         dlg.set_default_response(gtk.RESPONSE_OK)
         dir = self.app.opt.get_str("last_directory") or utils.get_home_dir()
         dlg.set_current_folder(dir)
@@ -1128,7 +1129,7 @@ class SkedXmlDataHandler(object):
         self.app.save_current_page()
         self.app.opt.save()
         self.app.history.save()
-        dlg = self._make_file_chooser_dlg(None, True)
+        dlg = self._make_file_chooser_dlg(True)
         while True:
             ret = dlg.run()
             if ret == gtk.RESPONSE_OK:
@@ -1176,7 +1177,7 @@ class SkedXmlDataHandler(object):
         self.app.opt.save()
         self.app.history.save()
         fname = None
-        dlg = self._make_file_chooser_dlg(None, False)
+        dlg = self._make_file_chooser_dlg(False)
         while True:
             ret = dlg.run()
             if ret == gtk.RESPONSE_OK:

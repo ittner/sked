@@ -31,6 +31,7 @@ import gobject
 import pango
 import re
 
+import libsked  # For VERSION
 from history import HistoryManager
 import utils
 import os.path
@@ -49,6 +50,7 @@ class AboutDialog(BaseDialog):
         self.parent = parent
         self.ui_init("about-dialog.ui")
         self.dlg = self.ui.get_object("dlgAbout")
+        self.dlg.set_version(libsked.VERSION)
         self.ui.connect_signals(self)
         
     def show(self):

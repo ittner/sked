@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
+import libsked
 
 setup(name="sked",
-    version="0.3",
+    version=libsked.VERSION,
     description="The wikish scheduler",
     author="Alexandre Erwin Ittner",
     author_email="alexandre@ittner.com.br",

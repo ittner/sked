@@ -546,7 +546,7 @@ class SkedApp(interface.BaseDialog):
         self.opt.set_bool("show_history", show_history)
 
     def on_cmd_home(self, widget = None, data = None):
-        self.hl_change_page("index")
+        self.hl_change_page("Index")
         
     def on_cmd_italic(self, widget = None, data = None):
         self.insert_formatting("//", "//")
@@ -1097,8 +1097,8 @@ class SkedXmlDataHandler(object):
         self.app = sked_app
         self.filefmt_chp = self._basic_file_filter("Sked XML, complete")
         self.filefmt_p = self._basic_file_filter("Sked XML, pages only")
-        self.filefmt_c = self._basic_file_filter("Sked configuration")
-        self.filefmt_h = self._basic_file_filter("Sked history")
+        self.filefmt_c = self._basic_file_filter("Sked XML, configuration")
+        self.filefmt_h = self._basic_file_filter("Sked XML, history")
 
     def _basic_file_filter(self, name):
         filter = gtk.FileFilter()
@@ -1247,7 +1247,7 @@ def main(dbpath = None):
 
     if not db.get_lock():
         interface.error_dialog(None, "Sked failed to get exclusive "
-            "access to its database. It usually happens when there "
+            "access to the database. It usually happens when there "
             "is another instance running or it could not create "
             "files in your HOME directory. If the previous instance "
             "was closed in some unusual way (eg. by a power failure), "
@@ -1270,7 +1270,7 @@ def main(dbpath = None):
                 pm = PageManager(db)
                 xmlio.import_xml_file(utils.data_path("help.xml"), db, pm,
                     None, False)
-                jump_to_page = "index"
+                jump_to_page = "Index"
             except:
                 pass
         else:
@@ -1302,7 +1302,7 @@ def main(dbpath = None):
         finally:
             db.close()
     else:
-        interface.error_dialog(None, u"Can't open the database. Namárië.")
+        interface.error_dialog(None, u"Can not open the database. Namárië.")
         db.release_lock()
         return
 

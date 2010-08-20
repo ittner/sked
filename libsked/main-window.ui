@@ -315,7 +315,7 @@
                     <child>
                       <object class="GtkMenuItem" id="mnFollowLink">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Follow link</property>
+                        <property name="label" translatable="yes">Follow _link</property>
                         <property name="use_underline">True</property>
                         <accelerator key="Return" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                         <signal name="activate" handler="on_cmd_follow_link"/>

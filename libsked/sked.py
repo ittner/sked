@@ -1025,8 +1025,12 @@ class SkedApp(interface.BaseDialog):
         self.reset_timers()
         pagename = self.reformat_page_name(pagename)
         if self.curpage != None and not self.pm.exists(pagename):
-            newpage = Page(pagename, 
-                "[[" + self.curpage.name + "]]\n=== " + pagename + " ===\n")
+            if re.search("([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})",
+                self.curpage.name):
+                hdr = self.curpage.name
+            else:
+                hdr = "[[" + self.curpage.name + "]]"
+            newpage = Page(pagename, hdr + "\n=== " + pagename + " ===\n")
             newpage.cursor_pos = len(newpage.text)
             self.pm.save(newpage)
         self.hl_change_page(pagename)

@@ -147,6 +147,7 @@ class SkedApp(interface.BaseDialog):
             self.formatTimerID = None
             self.saveTimerID = None
             self.window_state = 0
+            self.evtags = [ ]   # TextTags that triggers link events
             self.history = HistoryManager(self.db, "history",
                 self.opt.get_int("max_history"), True)
             self.history_model = gtk.ListStore(gobject.TYPE_STRING)
@@ -571,6 +572,21 @@ class SkedApp(interface.BaseDialog):
             self.mark_page_on_calendar()
         self._update_back_forward()
 
+    def on_cmd_follow_link(self, widget = None, data = None):
+        # Like self._on_link, but it is called 'from outside' and follows
+        # any link under the cursor.
+        iter = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
+
+        # Find all tags under the cursor which can trigger link events
+        tags_at_cursor = iter.get_tags()
+        link_tags = [ tag for tag in tags_at_cursor if tag in self.evtags ]
+
+        if len(link_tags) > 0:
+            # TODO: Fix whatever happens when links overlap.
+            return self._follow_link_at_iter(iter, link_tags[0])
+        self.set_status("No link to follow")
+        return False
+
     def on_cmd_forward(self, widget = None, data = None):
         pagename = self.bfm.forward()
         if pagename:
@@ -636,29 +652,33 @@ class SkedApp(interface.BaseDialog):
     def _on_link(self, tag, widget, event, iter):
         if tag == None:
             return False
-        if event.type == gtk.gdk.BUTTON_PRESS:
-            if event.button != 1:
-                return False    # Not the left button.
-            start = iter.copy()
-            # Search for the begining of the tag
-            while not start.begins_tag(tag):
-                start.backward_char()
-            end = iter.copy()
-            # Search for the end of the tag
-            while not end.ends_tag(tag):
-                end.forward_char()
-            link = self.txBuffer.get_text(start, end)
-            if link == None or link == "":
-                return True
-            link = link.decode("utf-8")
-            if isinstance(tag, gtk.TextTag) \
-            and tag.get_property("name") == "url":
-                utils.open_browser(link)
-            else:
-                self.change_page_link(link)
-            return True
-        return False
-        
+        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 1:
+            return self._follow_link_at_iter(iter, tag)
+        return False    # Not a left button click.
+
+    def _follow_link_at_iter(self, iter, tag):
+        # Follows a link at the position given by 'iter' marked with 'tag'.
+        # This method is called by all other high-level link triggering
+        # functions.
+        start = iter.copy()
+        # Search for the begining of the tag
+        while not start.begins_tag(tag):
+            start.backward_char()
+        end = iter.copy()
+        # Search for the end of the tag
+        while not end.ends_tag(tag):
+            end.forward_char()
+        link = self.txBuffer.get_text(start, end)
+        if link == None or link == "":
+            return False
+        link = link.decode("utf-8")
+        if isinstance(tag, gtk.TextTag) \
+        and tag.get_property("name") == "url":
+            utils.open_browser(link)
+        else:
+            self.change_page_link(link)
+        return True
+
     def _on_text_change(self, widget = None, data = None):
         # Add an undo-point if the text was changed 10 times.
         self.last_undo_cnt += 1
@@ -852,12 +872,14 @@ class SkedApp(interface.BaseDialog):
             tag = table.lookup(pair[0])
             if tag != None:
                 table.remove(tag)
-        evtags = ["link", "newlink", "url", "datelink", "newdatelink"]
+        evtagnames = ["link", "newlink", "url", "datelink", "newdatelink"]
+        self.evtags = [ ]
         for pair in tagdata:
             tagname = pair[0]
             tag = self.txBuffer.create_tag(tagname, **pair[1])
-            if tagname in evtags:
+            if tagname in evtagnames:
                 tag.connect("event", self._on_link)
+                self.evtags.append(tag)
 
     def format_text(self):
         tx = self.get_text()

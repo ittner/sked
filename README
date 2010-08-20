@@ -41,6 +41,7 @@ the $HOME directory.
   * When format commands are issued with some text selected, the cursor is
     moved to the end of the selection, and the selection is removed. If no
     text is selected, the cursor is placed between the format tags.
+  * It is now possible to follow links by pressing Control+Enter.
 
 = News in version 0.3 =
 

@@ -51,6 +51,10 @@ class AboutDialog(BaseDialog):
         self.ui_init("about-dialog.ui")
         self.dlg = self.ui.get_object("dlgAbout")
         self.dlg.set_version(libsked.VERSION)
+        try:
+            icon = gdk.pixbuf_new_from_file(utils.data_path("sked.png"))
+            self.dlg.set_logo(icon)
+        except: pass
         self.ui.connect_signals(self)
         
     def show(self):

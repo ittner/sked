@@ -29,7 +29,7 @@ the $HOME directory.
 
 == News ==
 
-= News in the current version =
+= News in version 0.4 =
 
   * The search system now allows finding entries with names near to a given
     search term.
@@ -102,10 +102,11 @@ text editor to remove the new information.
 == To Do ==
 
   * Port the user interface to use GtkActions;
+  * A multilingual interface;
   * Find a better file locking system;
-  * Add a DBus backend to handle multiple callings;
-  * Printing;
-  * Export entries as XHTML.
+  * Add a DBus backend to prevent and handle multiple instances;
+  * Better search system;
+  * Printing.
 
 
 == Know bugs ==

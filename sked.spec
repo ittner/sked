@@ -6,7 +6,7 @@
 
 Summary: The wikish scheduler
 Name: sked
-Version: 0.3
+Version: 0.4
 Release: 1
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+

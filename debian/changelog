@@ -1,3 +1,9 @@
+sked (0.4-1) karmic; urgency=low
+
+  * Updating package to Sked 0.4.
+
+ -- Alexandre Erwin Ittner <alexandre@ittner.com.br>  Fri, 20 Aug 2010 20:18:14 -0300
+
 sked (0.3-2~git2) karmic; urgency=low
 
   * Adding dependency to 'python-levenshtein' to enable similarity searches.

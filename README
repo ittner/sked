@@ -1,7 +1,6 @@
 === README ===
 
 Sked -- The wikish scheduler - http://wikisked.sourceforge.net/
-(c) 2006-10 Alexandre Erwin Ittner - alexandre@ittner.com.br
 
 
 == About ==
@@ -134,8 +133,6 @@ text editor to remove the new information.
     * No other text are allowed in the same line as the headers.
 
 
-
-
 == License ==
 
 This program is free software; you can redistribute it and/or modify it under
@@ -151,3 +148,8 @@ You should have received a copy of the GNU General Public License along with
 this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
+== Author and contact ==
+
+Sked was written by Alexandre Erwin Ittner <alexandre #at# ittner.com.br>.
+See http://wikisked.sourceforge.net/ for more information.

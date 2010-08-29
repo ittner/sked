@@ -67,9 +67,30 @@ class MacroManager(object):
 
     @staticmethod
     def _evaluate(format_string):
-        # TODO: Add tokens for non-date operations (page name, word
-        # replacements, number conversions, arithmetic operations, etc...)
-        return datetime.datetime.now().strftime(format_string)
+        """ Interpret the macro string. Currently available tokens are
+        the 'backslash notation' and the 'fmtime'.
+        """
+        remaining = format_string
+        new_str = ""
+        while True:
+            ndx = remaining.find("\\")
+            if ndx > -1 and ndx+1 < len(remaining):
+                token = remaining[ndx+1]
+                if token == "\\":
+                    repl = "\\"
+                elif token == "n":
+                    repl = "\n"
+                elif token == "t":
+                    repl = "\t"
+                # TODO: Add more tokens here
+                else:
+                    repl = ""
+                new_str = new_str + remaining[0:ndx] + repl
+                remaining = remaining[ndx+2:]
+            else:
+                new_str = new_str + remaining
+                break
+        return datetime.datetime.now().strftime(new_str)
 
     def find_and_evaluate(self, text_line):
         lline = text_line.lower()

@@ -28,6 +28,13 @@ the $HOME directory.
 
 == News ==
 
+= News in the current version =
+
+  * Sked now have keyboard macros for frequently used text fragments. These
+    macros are simple word expansions called by pressing Ctrl+Enter with the
+    cursor placed just after a macro. The replacement strings may have some
+    format tokens for the current date and time (the same used by 'fmtime').
+
 = News in version 0.4 =
 
   * The search system now allows finding entries with names near to a given

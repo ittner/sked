@@ -586,6 +586,7 @@ class SkedApp(interface.BaseDialog):
                 token_dict['P'] = prev_page
             else:
                 token_dict['P'] = "[[" + prev_page + "]]"
+        token_dict['c'] = self.clipboard.wait_for_text
         # Get text from the cursor to the start of line
         end = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
         start = end.copy()

@@ -67,10 +67,16 @@ class MacroManager(object):
 
     @staticmethod
     def _evaluate(format_string, token_dict=None):
-        """ Interpret the macro string. Currently available tokens are
-        the 'backslash notation' and the 'fmtime'.
+        r""" Interpret a macro string. Two kind of tokens are suported: the
+        ones provided by 'strftime' and a libc-like backslash notation.
+        Three backslash tokens are hardcoded ('\\', '\n', and '\t') and all
+        others are taken from the associative array 'token_dict'. If the
+        content of token_dict[some_token] is a string, it will be used
+        verbatim; if it is a callable object, it will be called and its
+        return value will be used if not None and convertible to an Unicode
+        string.
         """
-        remaining = format_string
+        remaining = datetime.datetime.now().strftime(format_string)
         new_str = ""
         while True:
             ndx = remaining.find("\\")
@@ -83,7 +89,14 @@ class MacroManager(object):
                 elif token == "t":
                     repl = "\t"
                 elif token_dict and token_dict.has_key(token):
-                    repl = token_dict[token]
+                    value = token_dict[token]
+                    if callable(value):
+                        try:
+                            ret = value()
+                            if ret: repl = unicode(ret)
+                        except: repl = ""
+                    else:
+                        repl = value
                 else:
                     repl = ""
                 new_str = new_str + remaining[0:ndx] + repl
@@ -91,7 +104,7 @@ class MacroManager(object):
             else:
                 new_str = new_str + remaining
                 break
-        return datetime.datetime.now().strftime(new_str)
+        return new_str
 
     def find_and_evaluate(self, text_line, token_dict=None):
         lline = text_line.lower()

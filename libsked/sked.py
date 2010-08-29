@@ -590,7 +590,7 @@ class SkedApp(interface.BaseDialog):
         # Get text from the cursor to the start of line
         end = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
         start = end.copy()
-        start.backward_line()
+        start.backward_lines(2)
         line = self.txBuffer.get_text(start, end)
         nline = self.macros.find_and_evaluate(line, token_dict)
         if nline:

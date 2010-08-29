@@ -46,6 +46,7 @@ import xmlio
 from pages import *
 from options import *
 from history import *
+from macros import *
 
 
 class UndoRedoManager(object):
@@ -133,6 +134,7 @@ class SkedApp(interface.BaseDialog):
         "show_history"  : True,
         "show_gsearch"  : False,
         "max_history"   : 50,
+        "macros"        : '{ "d":"%d/%m/%Y", "ad":"Accessed in %Y-%m-%d" }',
         "last_directory": utils.get_home_dir()
     }
 
@@ -143,6 +145,7 @@ class SkedApp(interface.BaseDialog):
             self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
             self.bfm = BackForwardManager(self.opt.get_int("max_history"))
             self.urm = UndoRedoManager(self.opt.get_int("undo_levels"))
+            self.macros = MacroManager.new_from_string(self.opt.get_str("macros"))
             self.last_undo_cnt = 0
             self.formatTimerID = None
             self.saveTimerID = None
@@ -571,6 +574,18 @@ class SkedApp(interface.BaseDialog):
             self.change_page(pagename)
             self.mark_page_on_calendar()
         self._update_back_forward()
+
+    def on_cmd_eval_macro(self, widget = None, data = None):
+        # Get text from the cursor to the start of line
+        end = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
+        start = end.copy()
+        start.backward_line()
+        line = self.txBuffer.get_text(start, end)
+        nline = self.macros.find_and_evaluate(line)
+        if nline:
+            self.txBuffer.delete(start, end)
+            self.txBuffer.insert(start, nline)
+            self.format_text()
 
     def on_cmd_follow_link(self, widget = None, data = None):
         # Like self._on_link, but it is called 'from outside' and follows

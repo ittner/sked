@@ -187,6 +187,15 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkMenuItem" id="mnEvaluateMacro">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Evaluate macro at cursor</property>
+                        <property name="use_underline">True</property>
+                        <accelerator key="space" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <signal name="activate" handler="on_cmd_eval_macro"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkMenuItem" id="mnInsertPage">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">_Insert page...</property>

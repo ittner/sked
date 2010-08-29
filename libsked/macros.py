@@ -74,7 +74,7 @@ class MacroManager(object):
     def find_and_evaluate(self, text_line):
         lline = text_line.lower()
         slline = lline.rstrip()
-        skeys = sorted(self._macros.keys())
+        skeys = sorted(self._macros.keys(), key=lambda name: -len(name))
         for k in skeys:
             if slline.endswith(k):
                 ndx = lline.rfind(k)

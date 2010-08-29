@@ -33,6 +33,7 @@ import re
 
 import libsked  # For VERSION
 from history import HistoryManager
+from macros import MacroManager
 import utils
 import os.path
 
@@ -72,6 +73,11 @@ class PreferencesDialog(BaseDialog):
     def __init__(self, parent):
         self.parent = parent
         self.opt = parent.opt
+        # We will edit the macros over our own instance of MacroManager,
+        # ensuring that all validations take place. After, we copy the
+        # changed macros back to the main MacroManager.
+        self.macros = parent.macros
+        self.temp_macros = MacroManager()
         self._load_interface()
         self._set_widget_values()
         
@@ -109,6 +115,26 @@ class PreferencesDialog(BaseDialog):
         self.fbNewLink = self.ui.get_object("fbNewLink")
         self.fbFormat = self.ui.get_object("fbFormat")
         self.fbURL = self.ui.get_object("fbURL")
+        self.btAddMacro = self.ui.get_object("btAddMacro")
+        self.btDeleteMacro = self.ui.get_object("btDeleteMacro")
+        self.txMacroName = self.ui.get_object("txMacroName")
+        self.txMacroValue = self.ui.get_object("txMacroValue")
+
+        self.lsMacros = self.ui.get_object("lsMacros")
+        self.macro_store = gtk.ListStore(str, str)
+
+        self.lsMacros.set_model(self.macro_store)
+        self.clMacroName = gtk.TreeViewColumn("Name")
+        self.clMacroValue = gtk.TreeViewColumn("Value")
+        self.lsMacros.append_column(self.clMacroName)
+        self.lsMacros.append_column(self.clMacroValue)
+        self.rdrMacroName = gtk.CellRendererText()
+        self.clMacroName.pack_start(self.rdrMacroName, True)
+        self.clMacroName.add_attribute(self.rdrMacroName, "text", 0)
+        self.rdrMacroValue = gtk.CellRendererText()
+        self.clMacroValue.pack_start(self.rdrMacroValue, True)
+        self.clMacroValue.add_attribute(self.rdrMacroValue, "text", 1)
+
         self.ui.connect_signals(self)
         
     def on_cmd_ok(self, widget = None, data = None):
@@ -119,6 +145,34 @@ class PreferencesDialog(BaseDialog):
     def on_cmd_cancel(self, widget = None, data = None):
         self.dlg.destroy()
         return False
+
+    def on_cmd_add_macro(self, widget = None, data = None):
+        name = self.txMacroName.get_text()
+        value = self.txMacroValue.get_text()
+        self.temp_macros.add(name, value)
+        self.txMacroName.set_text("")
+        self.txMacroValue.set_text("")
+        self.txMacroName.grab_focus()
+        self._update_macros_list_model()
+
+    def on_cmd_delete_macro(self, widget = None, data = None):
+        name = self.txMacroName.get_text()
+        self.temp_macros.remove(name)
+        self.txMacroName.set_text("")
+        self.txMacroValue.set_text("")
+        self.txMacroName.grab_focus()
+        self._update_macros_list_model()
+
+    def on_cmd_select_macro(self, widget = None, data = None):
+        model, iter = self.lsMacros.get_selection().get_selected()
+        if iter:
+            self.txMacroName.set_text(model.get_value(iter, 0))
+            self.txMacroValue.set_text(model.get_value(iter, 1))
+
+    def _update_macros_list_model(self):
+        self.macro_store.clear()
+        for name, value in self.temp_macros.iterate():
+            self.macro_store.append([name, value])
 
     def _set_widget_values(self):
         self.spFormatTime.set_value(self.opt.get_int("format_time"))
@@ -150,6 +204,10 @@ class PreferencesDialog(BaseDialog):
         self.fbFormat.set_font_name(self.opt.get_str("format_font"))
         self.fbURL.set_font_name(self.opt.get_str("url_link_font"))
         
+        for name, value in self.macros.iterate():
+            self.temp_macros.add(name, value)
+        self._update_macros_list_model()
+        
     def _save_widget_values(self):
         self.opt.set_int("format_time", self.spFormatTime.get_value_as_int())
         self.opt.set_int("save_time", self.spSaveTime.get_value_as_int())
@@ -179,6 +237,11 @@ class PreferencesDialog(BaseDialog):
         self.opt.set_str("new_link_font", self.fbNewLink.get_font_name())
         self.opt.set_str("format_font", self.fbFormat.get_font_name())
         self.opt.set_str("url_link_font", self.fbURL.get_font_name())
+
+        self.macros.clear()
+        for name, value in self.temp_macros.iterate():
+            self.macros.add(name, value)
+        self.opt.set_str("macros", self.macros.dump_string())
 
 
 class BasePasswordDialog(BaseDialog):

@@ -577,12 +577,21 @@ class SkedApp(interface.BaseDialog):
         self._update_back_forward()
 
     def on_cmd_eval_macro(self, widget = None, data = None):
+        token_dict = dict()
+        token_dict['a'] = self.curpage.name
+        prev_page = self.history.get_item(1)
+        if prev_page:
+            token_dict['p'] = prev_page
+            if re.search("([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})", prev_page):
+                token_dict['P'] = prev_page
+            else:
+                token_dict['P'] = "[[" + prev_page + "]]"
         # Get text from the cursor to the start of line
         end = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
         start = end.copy()
         start.backward_line()
         line = self.txBuffer.get_text(start, end)
-        nline = self.macros.find_and_evaluate(line)
+        nline = self.macros.find_and_evaluate(line, token_dict)
         if nline:
             self.txBuffer.delete(start, end)
             self.txBuffer.insert(start, nline)

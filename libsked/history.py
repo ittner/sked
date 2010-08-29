@@ -102,6 +102,11 @@ class HistoryManager(object):
         self._trim()
         self._refresh_model()
 
+    def get_item(self, index):
+        if abs(index) <= len(self._items):
+            return self._items[index]
+        return None
+
 
 class BackForwardManager(object):
     

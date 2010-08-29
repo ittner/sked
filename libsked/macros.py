@@ -66,7 +66,7 @@ class MacroManager(object):
             yield k, self._macros[k]
 
     @staticmethod
-    def _evaluate(format_string):
+    def _evaluate(format_string, token_dict=None):
         """ Interpret the macro string. Currently available tokens are
         the 'backslash notation' and the 'fmtime'.
         """
@@ -82,7 +82,8 @@ class MacroManager(object):
                     repl = "\n"
                 elif token == "t":
                     repl = "\t"
-                # TODO: Add more tokens here
+                elif token_dict and token_dict.has_key(token):
+                    repl = token_dict[token]
                 else:
                     repl = ""
                 new_str = new_str + remaining[0:ndx] + repl
@@ -92,7 +93,7 @@ class MacroManager(object):
                 break
         return datetime.datetime.now().strftime(new_str)
 
-    def find_and_evaluate(self, text_line):
+    def find_and_evaluate(self, text_line, token_dict=None):
         lline = text_line.lower()
         slline = lline.rstrip()
         skeys = sorted(self._macros.keys(), key=lambda name: -len(name))
@@ -101,6 +102,7 @@ class MacroManager(object):
                 ndx = lline.rfind(k)
                 if ndx > -1:
                     macro = self._macros[k]
-                    return text_line[0:ndx] + MacroManager._evaluate(macro)
+                    return text_line[0:ndx] + \
+                        MacroManager._evaluate(macro, token_dict)
         return None
 

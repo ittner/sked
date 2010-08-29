@@ -48,11 +48,16 @@ class MacroManager(object):
 
     def add(self, name, value):
         # TODO: Validate the %tokens in value
-        self._macros[name.strip().lower()] = value
+        name = name.strip().lower()
+        if name != "":
+            self._macros[name] = value
 
     def remove(self, name):
         if self._macros.has_key(name):
             del self._macros[name]
+
+    def clear(self):
+        self._macros = dict()
 
     def iterate(self):
         # Ensures alphabetical order

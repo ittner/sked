@@ -205,6 +205,7 @@ class SkedApp(interface.BaseDialog):
     def update_options(self):
         self.format_time = 1000 * self.opt.get_int("format_time")
         self.save_time = 1000 * self.opt.get_int("save_time")
+        self.macros.load_string(self.opt.get_str("macros"))
         self._update_sidebar()
         self._set_edit_buttons()
         self.set_text_tags()

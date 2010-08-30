@@ -134,7 +134,7 @@ class SkedApp(interface.BaseDialog):
         "show_history"  : True,
         "show_gsearch"  : False,
         "max_history"   : 50,
-        "macros"        : '{ "d":"%d/%m/%Y", "ad":"Accessed in %Y-%m-%d" }',
+        "macros"        : '{ "d":"%d/%m/%Y", "b":"Back to \\\\P", "f":"%F" }',
         "last_directory": utils.get_home_dir()
     }
 

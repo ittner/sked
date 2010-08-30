@@ -40,6 +40,7 @@ class SkedBuilder(build.build):
             else:
                 if line[0] == " " and not sline[0].isalpha():
                     ofp.write(".br\n")
+                sline = sline.replace("\\", "\\\\")
                 ofp.write(sline)
                 ofp.write("\n")
         ifp.close()

@@ -1097,9 +1097,9 @@ class SkedApp(interface.BaseDialog):
         year, month, day = self.calendar.get_date()
         if ((year % 4 == 0) and (year % 100 != 0)) \
         or ((year % 4 == 0) and (year % 100 == 0) and (year % 400 == 0)):
-            mdays = [ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
+            mdays = ( 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 )
         else:
-            mdays = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
+            mdays = ( 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 )
 
         self.calendar.clear_marks()
         for day in range(1, mdays[month] + 1):

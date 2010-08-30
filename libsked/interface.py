@@ -172,7 +172,7 @@ class PreferencesDialog(BaseDialog):
     def _update_macros_list_model(self):
         self.macro_store.clear()
         for name, value in self.temp_macros.iterate():
-            self.macro_store.append([name, value])
+            self.macro_store.append((name, value))
 
     def _set_widget_values(self):
         self.spFormatTime.set_value(self.opt.get_int("format_time"))

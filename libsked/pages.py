@@ -64,7 +64,7 @@ class PageManager(object):
             self.delete(page.name)
         else:
             self.db.set_key(PageManager._PREFIX + page.normalized_name,
-                [ page.name, page.text, page.cursor_pos ], sync)
+                ( page.name, page.text, page.cursor_pos ), sync)
 
     def delete(self, pagename):
         """ Deletes the given page from the database. """

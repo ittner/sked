@@ -139,30 +139,25 @@ class SkedApp(interface.BaseDialog):
     }
 
     def __init__(self, db, extra_title = None):
-        #try:
-            self.db = db
-            self.pm = PageManager(db)
-            self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
-            self.bfm = BackForwardManager(self.opt.get_int("max_history"))
-            self.urm = UndoRedoManager(self.opt.get_int("undo_levels"))
-            self.macros = MacroManager.new_from_string(self.opt.get_str("macros"))
-            self.last_undo_cnt = 0
-            self.formatTimerID = None
-            self.saveTimerID = None
-            self.window_state = 0
-            self.evtags = [ ]   # TextTags that triggers link events
-            self.history = HistoryManager(self.db, "history",
-                self.opt.get_int("max_history"), True)
-            self.history_model = gtk.ListStore(gobject.TYPE_STRING)
-            self.history.set_model(self.history_model)
-            self.gsearch_model = gtk.ListStore(gobject.TYPE_STRING)
-            self._load_interface()
-            if extra_title != None:
-                self.window.set_title(self.window.title + " - " + extra_title)
-        #except Exception:
-        #    interface.error_dialog(None, \
-        #        u"An initialization error has occurred. Namárië.")
-        #    self.quit()
+        self.db = db
+        self.pm = PageManager(db)
+        self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
+        self.bfm = BackForwardManager(self.opt.get_int("max_history"))
+        self.urm = UndoRedoManager(self.opt.get_int("undo_levels"))
+        self.macros = MacroManager.new_from_string(self.opt.get_str("macros"))
+        self.last_undo_cnt = 0
+        self.formatTimerID = None
+        self.saveTimerID = None
+        self.window_state = 0
+        self.evtags = [ ]   # TextTags that triggers link events
+        self.history = HistoryManager(self.db, "history",
+            self.opt.get_int("max_history"), True)
+        self.history_model = gtk.ListStore(gobject.TYPE_STRING)
+        self.history.set_model(self.history_model)
+        self.gsearch_model = gtk.ListStore(gobject.TYPE_STRING)
+        self._load_interface()
+        if extra_title != None:
+            self.window.set_title(self.window.title + " - " + extra_title)
             
     def start(self, pagename=None):
         self.curpage = None

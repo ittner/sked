@@ -779,7 +779,7 @@
                 <child>
                   <object class="GtkLabel" id="label8">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">&lt;small&gt;Keyboard macros are shortcuts for frequently used text fragments with optional replacement tokens (including the 'backslash' and 'fmtime' notations). See the help for more information.&lt;/small&gt;</property>
+                    <property name="label" translatable="yes">&lt;small&gt;Keyboard macros are shortcuts for frequently used text fragments with optional tokens in the 'backslash' and 'strftime' notations. See the documentation for details.&lt;/small&gt;</property>
                     <property name="use_markup">True</property>
                     <property name="justify">center</property>
                     <property name="wrap">True</property>

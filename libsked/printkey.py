@@ -27,9 +27,11 @@ dictionary attacks. This application prints the generated keys for use
 with the db4-utils suite (db4.x_dump, db4.x_verify, etc.).
 """
 
+import sys
 import database
 import getpass
 
-print(__doc__)
-print("Database key: " + database.make_key(getpass.getpass()))
+if __name__ == '__main__':
+    print(__doc__)
+    print("Database key: " + database.make_key(getpass.getpass()))
 

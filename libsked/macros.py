@@ -91,10 +91,11 @@ class MacroManager(object):
                 elif token_dict and token_dict.has_key(token):
                     value = token_dict[token]
                     if callable(value):
+                        repl = ""
                         try:
                             ret = value()
                             if ret: repl = unicode(ret)
-                        except: repl = ""
+                        except: pass
                     else:
                         repl = value
                 else:

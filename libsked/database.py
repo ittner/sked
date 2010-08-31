@@ -29,6 +29,7 @@ import os
 import zlib
 import cPickle as pickle
 import hashlib
+import random
 
 import utils
 
@@ -238,11 +239,18 @@ class EncryptedDatabase(object):
             rec = cursor.next()
 
     def _make_pwd_hash(self, pwd):
-        return _hash_sha256_str(_normalize_pwd(pwd))
+        if not self._pwd_salt:
+            # It is just a salt, "random" seems ok.
+            self._pwd_salt = str(random.random())
+        return _hash_sha256_str(self._pwd_salt, _normalize_pwd(pwd))
         
     def _set_pwd_hash(self, pwd):
-        # We need this to change the password later. For security, we
-        # won't keep it in plain text in the memory (or, at least, not
-        # in 'our' side of the Python VM)
+        # Since Python lacks any locked memory or other kind of memory we
+        # can control, we try to help the VM to forget the password ASAP.
+        # We don't keep any reference to the plain-text password (at least,
+        # not in 'our' side of the VM) and hope that it will be soon GC'ed.
+        # The salt thing is not that good, but it may show some value if
+        # we are unlucky enough to get the password written to the swap.
+        self._pwd_salt = None   # Resets the salt.
         self._pwd_hash = self._make_pwd_hash(pwd)
 

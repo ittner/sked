@@ -1043,7 +1043,7 @@
     <child>
       <object class="GtkRadioMenuItem" id="mnLevenshteinSearch">
         <property name="visible">True</property>
-        <property name="label" translatable="yes">_Name similarity</property>
+        <property name="label" translatable="yes">Name _similarity</property>
         <property name="use_underline">True</property>
         <property name="draw_as_radio">True</property>
         <property name="group">mnAnyWordSearch</property>

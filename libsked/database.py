@@ -30,6 +30,7 @@ import zlib
 import cPickle as pickle
 import hashlib
 import random
+from pathlock import any_lock_system
 
 import utils
 
@@ -89,6 +90,8 @@ class EncryptedDatabase(object):
     """Implements a Sked secure database over a Berkeley DB4.x encrypted 
     database. Key MUST be a valid Unicode string, data may be any python
     object.
+    TODO: Implement automatic database verification if the new path
+    locking system says us that it is necessary.
     """
 
     def __init__(self, path):
@@ -97,9 +100,8 @@ class EncryptedDatabase(object):
         ddir = os.path.split(self._path)[0]
         if not os.path.exists(ddir):
             os.makedirs(ddir, 0700)
-        self.lock_path = self._path + ".lock"
+        self._lock = any_lock_system(self._path)
         self._ready = False
-        self._lock_fd = None
 
     @property
     def path(self):
@@ -168,25 +170,15 @@ class EncryptedDatabase(object):
 
     def get_lock(self):
         """Try to get exclusive access to the database."""
-        # A very primitive (and buggy) locking system. We can't use the DB4
-        # native locking bacause we need it before create the database.
-        try:
-            if os.path.exists(self.lock_path) or self._lock_fd != None:
-                return False
-            self._lock_fd = open(self.lock_path, "a")
-            return True
-        except IOError, ex:
-            return False
+        return self._lock.get_lock()
 
     def release_lock(self):
         """Releases exclusive access to database."""
-        if self._lock_fd:
-            self._lock_fd.close()
-            self._lock_fd = None
-        try:
-            os.remove(self.lock_path)
-        except:
-            pass
+        return self._lock.release_lock()
+
+    @property
+    def lock_path(self):
+        return self._lock.lock_path
 
     def check_password(self, pwd):
         return self._pwd_hash == self._make_pwd_hash(pwd)

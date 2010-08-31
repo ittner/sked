@@ -352,7 +352,6 @@ information on these formats, read "Importing and exporting data" above.
 
   * Port the user interface to use GtkActions;
   * A multilingual interface;
-  * Find a better file locking system;
   * Add a DBus backend to prevent and handle multiple instances;
   * Better search system;
   * Printing.

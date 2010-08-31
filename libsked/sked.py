@@ -1277,7 +1277,7 @@ def main(dbpath = None):
         return
 
     jump_to_page = None
-    if db.is_new():
+    if db.is_new:
         dlg = interface.NewPasswordDialog()
         dlg.set_title("Sked - New database")
         dlg.set_text("You are using this program for the first time. "
@@ -1313,7 +1313,7 @@ def main(dbpath = None):
                 db.release_lock()
                 return
 
-    if db.is_ready():
+    if db.is_ready:
         try:
             app = SkedApp(db, db.path if show_db_path else None)
             app.start(jump_to_page)

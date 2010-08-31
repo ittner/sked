@@ -61,10 +61,10 @@ pages.append(Page("13/01/2010", "nanana"))
 db = EncryptedDatabase(db_fname)
 if not db.get_lock():
     raise Exception("db.get_lock")
-if not db.is_new():
+if not db.is_new:
     raise Exception("db exists")
 db.create(db_pwd)
-if not db.is_ready():
+if not db.is_ready:
     raise Exception("Create error")
 db.close()
 db.release_lock()
@@ -78,7 +78,7 @@ if db.try_open("wrong" + db_pwd):
     raise Exception("Password error (wrong)")
 if not db.try_open(db_pwd):
     raise Exception("Password error (right)")
-if not db.is_ready():
+if not db.is_ready:
     raise Exception("db not ready")
 
 # Test the 'path' property.
@@ -108,7 +108,7 @@ if db.try_open(db_pwd):
     raise Exception("Password error (wrong 2)")
 if not db.try_open("new" + db_pwd):
     raise Exception("Password error (right 2)")
-if not db.is_ready():
+if not db.is_ready:
     raise Exception("db not ready")
 
 # Restore the old password
@@ -123,7 +123,7 @@ if not db.get_lock():
     raise Exception("db.get_lock")
 if not db.try_open(db_pwd):
     raise Exception("Password error (right)")
-if not db.is_ready():
+if not db.is_ready:
     raise Exception("db not ready")
 
 
@@ -175,7 +175,7 @@ if not db.get_lock():
     raise Exception("db.get_lock")
 if not db.try_open(db_pwd):
     raise Exception("Password error (right)")
-if not db.is_ready():
+if not db.is_ready:
     raise Exception("db not ready")
 
 pm = PageManager(db)
@@ -229,7 +229,7 @@ if not db.get_lock():
     raise Exception("db.get_lock")
 if not db.try_open(db_pwd):
     raise Exception("Password error (right)")
-if not db.is_ready():
+if not db.is_ready:
     raise Exception("db not ready")
 
 pm = PageManager(db)
@@ -258,10 +258,10 @@ db.release_lock()
 db2 =  EncryptedDatabase(db_fname + "_test_import.db")
 if not db2.get_lock():
     raise Exception("db2.get_lock")
-if not db2.is_new():
+if not db2.is_new:
     raise Exception("db2 exists")
 db2.create(db_pwd)
-if not db2.is_ready():
+if not db2.is_ready:
     raise Exception("db2 not ready")
 
 pm2 = PageManager(db2)
@@ -286,7 +286,7 @@ if not db.get_lock():
     raise Exception("db.get_lock")
 if not db.try_open(db_pwd):
     raise Exception("Password error (right)")
-if not db.is_ready():
+if not db.is_ready:
     raise Exception("db not ready")
 
 pm = PageManager(db)
@@ -376,7 +376,7 @@ if HAVE_LEVENSHTEIN:
         raise Exception("db.get_lock")
     if not db.try_open(db_pwd):
         raise Exception("Password error (right)")
-    if not db.is_ready():
+    if not db.is_ready:
         raise Exception("db not ready")
 
     pm = PageManager(db)

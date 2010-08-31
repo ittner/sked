@@ -105,9 +105,11 @@ class EncryptedDatabase(object):
         """Returns the database path."""
         return self._path
 
+    @property
     def is_new(self):
         return not os.path.exists(self._path)
         
+    @property
     def is_ready(self):
         return self._ready
 

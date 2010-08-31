@@ -136,12 +136,11 @@ class EncryptedDatabase(object):
         self._ready = True
 
     def change_pwd(self, newpwd):
-        # Creates a new database and re-encrypts everything
-        i = 0
-        newpath = self._path  + ".tmp"  # FIXME: Bad, very bad race condition
+        # Creates a new database and re-encrypts everything.
+        # FIXME: There is a race condition here.
+        newpath = self._path + str(random.random()) + ".tmp"
         while os.path.exists(newpath):
-            newpath = self._path  + ".tmp" + str(i)
-            i = i + 1
+            newpath = self._path + str(random.random()) + ".tmp"
 
         newdb = EncryptedDatabase(newpath)
         newdb.create(newpwd)

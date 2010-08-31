@@ -131,9 +131,11 @@ class PreferencesDialog(BaseDialog):
         self.rdrMacroName = gtk.CellRendererText()
         self.clMacroName.pack_start(self.rdrMacroName, True)
         self.clMacroName.add_attribute(self.rdrMacroName, "text", 0)
+        self.clMacroName.set_property("sizing", gtk.TREE_VIEW_COLUMN_AUTOSIZE)
         self.rdrMacroValue = gtk.CellRendererText()
         self.clMacroValue.pack_start(self.rdrMacroValue, True)
         self.clMacroValue.add_attribute(self.rdrMacroValue, "text", 1)
+        self.clMacroValue.set_property("sizing", gtk.TREE_VIEW_COLUMN_AUTOSIZE)
 
         self.ui.connect_signals(self)
         

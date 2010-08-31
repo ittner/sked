@@ -202,7 +202,13 @@ class EncryptedDatabase(object):
             raise NotReadyError
         self._db.put(key, zlib.compress(pickle.dumps(value, 2)))
         if sync:
-            self._db.sync()
+            self.sync()
+
+    def sync(self):
+        """ Writes all cached data to the disk. It is not perfect: we should
+        be using DB transactions too.
+        """
+        self._db.sync()
 
     def get_key(self, key, default = None):
         if not self._ready:

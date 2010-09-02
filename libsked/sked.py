@@ -48,6 +48,12 @@ from options import *
 from history import *
 from macros import *
 
+HAVE_DBUS = False
+try:
+    import skeddbus
+    HAVE_DBUS = True
+except: pass
+    
 
 class UndoRedoManager(object):
 
@@ -1266,6 +1272,17 @@ def main(dbpath = None):
         show_db_path = False
     db = database.EncryptedDatabase(dbpath)
 
+    # If this database is already open, shows it and exits. It is just a
+    # convenience for the user and, since Sked does some work outside the
+    # GLib/DBus main loop, it is not safe to use this system as a
+    # replacement for the database locking.
+    # DBus bus names have a very strict naming scheme, so, we use a hash
+    # instead the file path.
+    if HAVE_DBUS:
+        instance_name = database.hash_sha256_str(db.path)[0:32]
+        if skeddbus.ask_show_window(instance_name):
+            return
+
     if not db.get_lock():
         interface.error_dialog(None, "Sked failed to get exclusive "
             "access to the database. It usually happens when there "
@@ -1316,6 +1333,10 @@ def main(dbpath = None):
     if db.is_ready:
         try:
             app = SkedApp(db, db.path if show_db_path else None)
+            try:
+                if HAVE_DBUS:
+                    app.bus_ctl = skeddbus.SkedController(app, instance_name)
+            except: pass
             app.start(jump_to_page)
             gtk.main()
         except Exception, e:

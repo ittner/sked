@@ -82,6 +82,8 @@ from DEB or RPM packages. The following packages are required:
   * python-Levenshtein >= 0.10.0 is required for the name similarity search.
     It is available in the most popular desktop Linux distributions and in
     http://pypi.python.org/pypi/python-Levenshtein/
+  * python-dbus >= 0.83 is required for some usability features (e.g. handle
+    several instances gracefully)
 
 Note: Sked may work with Python 2.5.x, but it is necessary to install the
 module 'json' manually.
@@ -352,7 +354,6 @@ information on these formats, read "Importing and exporting data" above.
 
   * Port the user interface to use GtkActions;
   * A multilingual interface;
-  * Add a DBus backend to prevent and handle multiple instances;
   * Better search system;
   * Printing.
 

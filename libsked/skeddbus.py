@@ -29,7 +29,7 @@ APP_OBJECT = "/br/com/ittner/Sked"
 APP_INTERFACE = "br.com.ittner.Sked"
 
 
-class SkedController(dbus.service.Object):
+class Controller(dbus.service.Object):
     """ Sked controller class (currently only shows the main window). """
 
     def __init__(self, app, instance_name):

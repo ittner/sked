@@ -1335,7 +1335,7 @@ def main(dbpath = None):
             app = SkedApp(db, db.path if show_db_path else None)
             try:
                 if HAVE_DBUS:
-                    app.bus_ctl = skeddbus.SkedController(app, instance_name)
+                    app.bus_ctl = skeddbus.Controller(app, instance_name)
             except: pass
             app.start(jump_to_page)
             gtk.main()

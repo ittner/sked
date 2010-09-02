@@ -45,7 +45,7 @@ class NotReadyError(Exception):
     pass
 
 
-def _hash_sha256_str(*args):
+def hash_sha256_str(*args):
     md = hashlib.sha256()
     for s in args:
         md.update(s)
@@ -239,7 +239,7 @@ class EncryptedDatabase(object):
         if not self._pwd_salt:
             # It is just a salt, "random" seems ok.
             self._pwd_salt = str(random.random())
-        return _hash_sha256_str(self._pwd_salt, _normalize_pwd(pwd))
+        return hash_sha256_str(self._pwd_salt, _normalize_pwd(pwd))
         
     def _set_pwd_hash(self, pwd):
         # Since Python lacks any locked memory or other kind of memory we

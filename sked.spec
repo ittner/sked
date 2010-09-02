@@ -17,7 +17,7 @@ Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Alexandre Erwin Ittner <alexandre@ittner.com.br>
 Url: http://wikisked.sourceforge.net/
-Requires: python-levenshtein
+Requires: python-levenshtein, python-dbus
 BuildRequires: python
 
 %description

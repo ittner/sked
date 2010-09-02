@@ -1284,6 +1284,12 @@ def main(dbpath = None):
             gdk.notify_startup_complete()
             return
 
+    try:
+        gtk.init_check()
+    except:
+        print("Failed to connect to X server.")
+        return
+
     if not db.get_lock():
         interface.error_dialog(None, "Sked failed to get exclusive "
             "access to the database. It usually happens when there "

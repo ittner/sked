@@ -1281,6 +1281,7 @@ def main(dbpath = None):
     if HAVE_DBUS:
         instance_name = database.hash_sha256_str(db.path)[0:32]
         if skeddbus.ask_show_window(instance_name):
+            gdk.notify_startup_complete()
             return
 
     if not db.get_lock():

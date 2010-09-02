@@ -50,6 +50,8 @@ class MacroManager(object):
         # TODO: Validate the %tokens in value
         name = name.strip().lower()
         if name != "":
+            value = value.replace("\n", "\\n")
+            value = value.replace("\t", "\\t")
             self._macros[name] = value
 
     def remove(self, name):

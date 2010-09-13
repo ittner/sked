@@ -76,10 +76,9 @@ class PageManager(object):
             if rec[0].startswith(PageManager._PREFIX):
                 yield self._decode_page(rec[1])
 
-    def _iterate_names(self):
-        """ Private method to iterate through normalized page names of a
-        database. The names are normalized and returned as Unicode strings
-        (not as byte arrays), intended for use by search functions.
+    def iterate_names(self):
+        """ Iterate through normalized page names of a database. Returns the
+        names as Unicode strings (not as byte arrays).
         """
         prefixlen = len(PageManager._PREFIX)
         for key in self.db.keys():
@@ -102,7 +101,7 @@ class PageManager(object):
         worst_result = 2**31    # Interval reasoning to discard bad results.
 
         results = [ ]
-        for curname in self._iterate_names():
+        for curname in self.iterate_names():
             ldist = Levenshtein.distance(term, curname)
             if ldist < worst_result:
                 results.append((curname, ldist))

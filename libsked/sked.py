@@ -1268,7 +1268,7 @@ def main(dbpath = None):
     # Selects the database path.
     show_db_path = True
     if dbpath == None:
-        dbpath = utils.get_xdg_data_home("sked/sked2.db")
+        dbpath = database.get_default_database_path()
         show_db_path = False
     db = database.EncryptedDatabase(dbpath)
 

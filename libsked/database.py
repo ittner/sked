@@ -86,6 +86,10 @@ def make_key(pwd):
     return md.hexdigest().lower().encode("utf-8")
 
 
+def get_default_database_path():
+    """Returns the path of the default database. It may not exist yet."""
+    return utils.get_xdg_data_home("sked/sked2.db")
+
 class EncryptedDatabase(object):
     """Implements a Sked secure database over a Berkeley DB4.x encrypted 
     database. Key MUST be a valid Unicode string, data may be any python

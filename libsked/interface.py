@@ -94,6 +94,7 @@ class PreferencesDialog(BaseDialog):
         self.spUndoLevels = self.ui.get_object("spUndoLevels")
         self.spHistorySize = self.ui.get_object("spHistorySize")
         self.cbShowEdit = self.ui.get_object("cbShowEdit")
+        self.cbShowSidebar = self.ui.get_object("cbShowSidebar")
         self.cbShowCalendar = self.ui.get_object("cbShowCalendar")
         self.cbShowHistory = self.ui.get_object("cbShowHistory")
         self.cbShowGlobalSearch = self.ui.get_object("cbShowGlobalSearch")
@@ -176,12 +177,19 @@ class PreferencesDialog(BaseDialog):
         for name, value in self.temp_macros.iterate():
             self.macro_store.append((name, value))
 
+    def on_show_sidebar(self, widget = None, data = None):
+        show = self.cbShowSidebar.get_active()
+        self.cbShowCalendar.set_property("sensitive", show)
+        self.cbShowHistory.set_property("sensitive", show)
+        self.cbShowGlobalSearch.set_property("sensitive", show)
+
     def _set_widget_values(self):
         self.spFormatTime.set_value(self.opt.get_int("format_time"))
         self.spSaveTime.set_value(self.opt.get_int("save_time"))
         self.spUndoLevels.set_value(self.opt.get_int("undo_levels"))
         self.spHistorySize.set_value(self.opt.get_int("max_history"))
         self.cbShowEdit.set_active(self.opt.get_bool("show_edit_buttons"))
+        self.cbShowSidebar.set_active(self.opt.get_bool("show_sidebar"))
         self.cbShowCalendar.set_active(self.opt.get_bool("show_calendar"))
         self.cbShowHistory.set_active(self.opt.get_bool("show_history"))
         self.cbShowGlobalSearch.set_active(self.opt.get_bool("show_gsearch"))
@@ -206,6 +214,7 @@ class PreferencesDialog(BaseDialog):
         self.fbFormat.set_font_name(self.opt.get_str("format_font"))
         self.fbURL.set_font_name(self.opt.get_str("url_link_font"))
         
+        self.on_show_sidebar()
         for name, value in self.macros.iterate():
             self.temp_macros.add(name, value)
         self._update_macros_list_model()
@@ -216,6 +225,7 @@ class PreferencesDialog(BaseDialog):
         self.opt.set_int("undo_levels", self.spUndoLevels.get_value_as_int())
         self.opt.set_int("max_history", self.spHistorySize.get_value_as_int())
         self.opt.set_bool("show_edit_buttons", self.cbShowEdit.get_active())
+        self.opt.set_bool("show_sidebar", self.cbShowSidebar.get_active())
         self.opt.set_bool("show_calendar", self.cbShowCalendar.get_active())
         self.opt.set_bool("show_history", self.cbShowHistory.get_active())
         self.opt.set_bool("show_gsearch", self.cbShowGlobalSearch.get_active())

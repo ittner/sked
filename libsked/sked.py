@@ -136,6 +136,7 @@ class SkedApp(interface.BaseDialog):
         "url_link_font" : "Sans 10",
         "ft_search"     : False,
         "search_mode"   : PageManager.SEARCH_ALL,
+        "show_sidebar"  : True,
         "show_calendar" : True,
         "show_history"  : True,
         "show_gsearch"  : False,
@@ -213,6 +214,9 @@ class SkedApp(interface.BaseDialog):
         self.format_text()
         
     def _update_sidebar(self):
+        show_sidebar = self.opt.get_bool("show_sidebar")
+        self.sidebar.set_property("visible", show_sidebar)
+
         show_calendar = self.opt.get_bool("show_calendar")
         self.calendar.set_property("visible", show_calendar)
         self.tgCalendar.set_property("active", show_calendar)
@@ -257,6 +261,7 @@ class SkedApp(interface.BaseDialog):
         self.window = self.ui.get_object("wndMain")
         self.txNote = self.ui.get_object("NoteText")
         self.txBuffer = self.txNote.get_buffer()
+        self.sidebar = self.ui.get_object("bxSidebar")
         self.calendar = self.ui.get_object("Calendar")
         self.btSep1 = self.ui.get_object("btSep1")
         self.btUndo = self.ui.get_object("btUndo")
@@ -460,6 +465,13 @@ class SkedApp(interface.BaseDialog):
         self.opt.set_bool("show_gsearch", show_gsearch)
         
     def on_cmd_gsearch_mn(self, widget = None, data = None):
+        if self.opt.get_bool("show_sidebar") == False:
+            # If the user hide the sidebar, show it again but keep all other
+            # panels hidden.
+            self.opt.set_bool("show_sidebar", True)
+            self.opt.set_bool("show_calendar", False)
+            self.opt.set_bool("show_history", False)
+            self._update_sidebar()
         if self.tgGlobalSearch.get_active() == False:
             self.tgGlobalSearch.set_active(True)
         #self.tgHistory.set_active(False)

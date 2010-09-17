@@ -587,7 +587,7 @@
             <property name="border_width">3</property>
             <property name="spacing">3</property>
             <child>
-              <object class="GtkVBox" id="vbox3">
+              <object class="GtkVBox" id="bxSidebar">
                 <property name="width_request">250</property>
                 <property name="visible">True</property>
                 <property name="orientation">vertical</property>

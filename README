@@ -1,6 +1,6 @@
 === README ===
 
-Sked -- The wikish scheduler - http://wikisked.sourceforge.net/
+Sked -- The wikish schedule - http://wikisked.sourceforge.net/
 
 
 == About ==
@@ -35,6 +35,9 @@ the $HOME directory.
     macros are simple word expansions called by pressing Ctrl+Enter with the
     cursor placed just after a macro. The replacement strings may have some
     format tokens for automatic insertion of common data.
+  * It is now possible to hide the sidepanel.
+  * Sked now uses the DBus system to handle multiple instances (ie. it now
+    shows the current window instead of refusing to open).
 
 = News in version 0.4 =
 
@@ -85,8 +88,8 @@ from DEB or RPM packages. The following packages are required:
   * python-dbus >= 0.83 is required for some usability features (e.g. handle
     several instances gracefully)
 
-Note: Sked may work with Python 2.5.x, but it is necessary to install the
-module 'json' manually.
+Sked may be installed without python-Levenshtein or python-dbus, but the
+correspondent features will be disabled.
 
 
 
@@ -99,7 +102,7 @@ installation -- these archives must be unpacked in the final installation
 directory, like /opt/sked/, and you must create your own menu entries. The
 installation of Debian packages is simpler: just call them up with "dpkg" or
 double-click it to install with your distribution's default package manager.
-The installation from RPM packages are similar.
+An similar process my be used to install it from the RPM packages.
 
 It is also possible to install using the script "setup.py", but it is mainly
 intended to generate packages for Linux systems. For instructions, just call
@@ -124,8 +127,8 @@ See "Importing and exporting data" below for more information.
 
 == Usage ==
 
-Once installed, Sked adds a menu entry to the "Applications/Office" in your
-desktop environment in any contemporary general purpose Linux distro. If you
+Once installed, Sked adds an entry to the "Applications/Office" menu in the
+desktop environment of any contemporary general purpose Linux distro. If you
 have installed Sked manually, you must also create some desktop entry. It also
 happens on Windows -- since there is no automatic installation in Windows,
 you must create a shortcut somewhere.
@@ -143,14 +146,14 @@ the information in a single place frees you of wondering in which database
 your entries are saved, there is no much sense in not doing this. The
 database file is physically stored in the path dictated by "XDG_DATA_HOME",
 according to the FreeDesktop Base Directory Specification -- which translates
-to "~/.local/share/sked/" if you have not changed it.
+to "~/.local/share/sked/" unless you have changed it.
 
 Despite the centralized approach to the "default" database, it is possible to
 select an alternative database file through the command line (eg.
 "sked /some/other/database/file.db"). This is mainly intended to allow
 testing, maintenance, and experimentation without risking your real data. You
-may, of course, keep several "real" databases and select one of with this
-method.  It just happens that Sked was not designed to work this way --
+may, of course, keep several "real" databases and select one of them with this
+method, but it just happens that Sked was not designed to work this way and
 keeping several databases is not much different than keeping a lot of text
 files, one of the  problems that Sked was created to solve.
 
@@ -161,7 +164,7 @@ files, one of the  problems that Sked was created to solve.
 Everything in Sked is tailored for speed and agility -- it means automating
 whatever is possible and avoiding non-productive operations. When opened,
 Sked jumps to "today's page", which usually contains your daily appointments
-and links to other pages. The "Index" page is  intended to store your
+and links to other pages. The "Index" page is intended to store your
 non-daily links, like any desktop wiki, and can also be accessed through the
 "Home" button, the menus or keyboard shortcut (Alt+Home).
 
@@ -238,10 +241,11 @@ It is possible to export the Sked database to a XML file suitable for backup
 and long term storage -- this information may be imported in previous/later
 versions of Sked and reused by other applications.
 
-Usually you will export "complete" files (ie. including all pages, history
-and configuration options), but is also possible to selectively export only
-part of this data -- for example, you may want to export your configuration
-and import it in another database, keeping the pages and history intact.
+Usually you will export "complete" files (ie. files including all pages,
+history and configuration options), but is also possible to selectively
+export only part of this data -- for example, you may want to export your
+configuration and import it in another database, keeping the pages and
+history intact.
 
 It is also possible to selectively import data, despite the data available
 in the exported file. For example, if you have a complete file but only want
@@ -251,7 +255,7 @@ and all other data will be ignored.
 
 Since the XML files are NOT encrypted, all data stored will be readable by
 anyone with access to the files. You may want to use another encryption
-tool before transmitting/storing this files (eg. GnuPG).
+tool before transmitting/storing these files (eg. GnuPG).
 
 Note: Sked versions 0.3 or older can not read the "complete" XML files (with
 history and configuration data) used by later versions. To export data to
@@ -272,7 +276,7 @@ and press Ctrl+Space; the name will be replaced with the substitute string.
 It is possible to create a macro to enter your name and email when you type
 your initials, for example.
 
-Sked macros may also have "tokens", ie, small codes which are replaced by
+Sked macros may also have "tokens", ie., small codes which are replaced by
 some relevant information upon insertion. There are two kind of these tokens:
 text tokens (prefixed by "\") and date tokens (prefixed by "%").  The text
 tokens are listed bellow:
@@ -288,8 +292,8 @@ tokens are listed bellow:
 
 Date tokens format the current date and time according to the "strftime"
 syntax. This format is also used used by several other programs, so, it is
-possible that you recognize them. Below follows a list with some of these
-tokens -- Please note that this is just an excerpt of the manpage, there are
+possible that you already know them. Below follows a list with some of these
+tokens -- please note that this is just an excerpt of the manpage, there are
 many other tokens available. Check "strftime(3)" for more information.
 
     %F  Date in the ISO 8601 format (YYYY-MM-DD), recognized by Sked;
@@ -354,7 +358,7 @@ information on these formats, read "Importing and exporting data" above.
 
   * Port the user interface to use GtkActions;
   * A multilingual interface;
-  * Better search system;
+  * Better/faster search system;
   * Printing.
 
 

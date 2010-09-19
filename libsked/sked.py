@@ -105,6 +105,8 @@ class UndoRedoManager(object):
 
 # Main application class -------------------------------------------------
 
+INDEX_PAGE = "Index"
+
 class SkedApp(interface.BaseDialog):
     STARTUP_PAGE_TODAY = 0
     STARTUP_PAGE_INDEX = 1
@@ -148,7 +150,7 @@ class SkedApp(interface.BaseDialog):
         "macros"        : '{ "d":"%d/%m/%Y", "b":"Back to \\\\P", "f":"%F" }',
         "last_directory": utils.get_home_dir(),
         "startup_page"  : STARTUP_PAGE_TODAY,
-        "startup_other" : ""
+        "startup_other" : INDEX_PAGE
     }
 
     def __init__(self, db, extra_title = None):
@@ -179,7 +181,7 @@ class SkedApp(interface.BaseDialog):
         if pagename == None:
             sp = self.opt.get_int("startup_page")
             if sp == SkedApp.STARTUP_PAGE_INDEX:
-                pagename = "Index"
+                pagename = INDEX_PAGE
             elif sp == SkedApp.STARTUP_PAGE_OTHER:
                 op = self.opt.get_str("startup_other").strip()
                 if len(op) > 0:
@@ -399,7 +401,7 @@ class SkedApp(interface.BaseDialog):
         if ret:
             self.urm.clear()
             self.last_undo_cnt = 0
-            lastpage = self.bfm.back() or "Index"
+            lastpage = self.bfm.back() or INDEX_PAGE
             self.hl_change_page(lastpage)
             self.pm.delete(pagename)
             if pagename == lastpage:
@@ -577,7 +579,7 @@ class SkedApp(interface.BaseDialog):
         self.opt.set_bool("show_history", show_history)
 
     def on_cmd_home(self, widget = None, data = None):
-        self.hl_change_page("Index")
+        self.hl_change_page(INDEX_PAGE)
         
     def on_cmd_italic(self, widget = None, data = None):
         self.insert_formatting("//", "//")
@@ -1027,7 +1029,7 @@ class SkedApp(interface.BaseDialog):
         # Higher level page changer. Handles calendar, back/fwd buttons, etc.
         self.reset_timers()
         if pagename == "":
-            pagename = "Index"
+            pagename = INDEX_PAGE
         self.bfm.go(pagename)
         self.change_page(pagename)
         self._update_back_forward()
@@ -1341,7 +1343,7 @@ def main(dbpath = None):
                 pm = PageManager(db)
                 xmlio.import_xml_file(utils.data_path("help.xml"), db, pm,
                     None, False)
-                jump_to_page = "Index"
+                jump_to_page = INDEX_PAGE
             except:
                 pass
         else:

@@ -117,6 +117,10 @@ class PreferencesDialog(BaseDialog):
         self.btDeleteMacro = self.ui.get_object("btDeleteMacro")
         self.txMacroName = self.ui.get_object("txMacroName")
         self.txMacroValue = self.ui.get_object("txMacroValue")
+        self.rbOpenToday = self.ui.get_object("rbOpenToday")
+        self.rbOpenIndex = self.ui.get_object("rbOpenIndex")
+        self.rbOpenOther = self.ui.get_object("rbOpenOther")
+        self.txOpenPageName = self.ui.get_object("txOpenPageName")
 
         self.lsMacros = self.ui.get_object("lsMacros")
         self.macro_store = gtk.ListStore(str, str)
@@ -138,6 +142,11 @@ class PreferencesDialog(BaseDialog):
         self.ui.connect_signals(self)
         
     def on_cmd_ok(self, widget = None, data = None):
+        pagename = self.txOpenPageName.get_text().strip()
+        if self.rbOpenOther.get_active() and len(pagename) < 1:
+            error_dialog(self.dlg, "No page name was given")
+            self.txOpenPageName.grab_focus()
+            return
         self._save_widget_values()
         self.dlg.destroy()
         self.parent.update_options()
@@ -168,6 +177,10 @@ class PreferencesDialog(BaseDialog):
         if iter:
             self.txMacroName.set_text(model.get_value(iter, 0))
             self.txMacroValue.set_text(model.get_value(iter, 1))
+
+    def on_rbStartup(self, widget = None, data = None):
+        self.txOpenPageName.set_property("sensitive",
+            self.rbOpenOther.get_active())
 
     def _update_macros_list_model(self):
         self.macro_store.clear()
@@ -202,6 +215,16 @@ class PreferencesDialog(BaseDialog):
         self.fbFormat.set_font_name(self.opt.get_str("format_font"))
         self.fbURL.set_font_name(self.opt.get_str("url_link_font"))
         
+        self.txOpenPageName.set_text(self.opt.get_str("startup_other"))
+        sp = self.opt.get_int("startup_page")
+        if sp == self.parent.STARTUP_PAGE_INDEX:
+            self.rbOpenIndex.set_active(True)
+        elif sp == self.parent.STARTUP_PAGE_OTHER:
+            self.rbOpenOther.set_active(True)
+        else:
+            self.rbOpenToday.set_active(True)
+        self.on_rbStartup()
+
         for name, value in self.macros.iterate():
             self.temp_macros.add(name, value)
         self._update_macros_list_model()
@@ -233,6 +256,14 @@ class PreferencesDialog(BaseDialog):
         self.opt.set_str("new_link_font", self.fbNewLink.get_font_name())
         self.opt.set_str("format_font", self.fbFormat.get_font_name())
         self.opt.set_str("url_link_font", self.fbURL.get_font_name())
+
+        sp = self.parent.STARTUP_PAGE_TODAY
+        if self.rbOpenIndex.get_active():
+            sp = self.parent.STARTUP_PAGE_INDEX
+        elif self.rbOpenOther.get_active():
+            sp = self.parent.STARTUP_PAGE_OTHER
+        self.opt.set_int("startup_page", sp)
+        self.opt.set_str("startup_other", self.txOpenPageName.get_text())
 
         self.macros.clear()
         for name, value in self.temp_macros.iterate():

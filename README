@@ -38,6 +38,8 @@ the $HOME directory.
   * It is now possible to hide the sidepanel.
   * Sked now uses the DBus system to handle multiple instances (ie. it now
     shows the current window instead of refusing to open).
+  * It is possible to select which page will be open on startup (thanks
+    Vyacheslav Slobodyan for this suggestion).
 
 = News in version 0.4 =
 
@@ -163,10 +165,11 @@ files, one of the  problems that Sked was created to solve.
 
 Everything in Sked is tailored for speed and agility -- it means automating
 whatever is possible and avoiding non-productive operations. When opened,
-Sked jumps to "today's page", which usually contains your daily appointments
-and links to other pages. The "Index" page is intended to store your
-non-daily links, like any desktop wiki, and can also be accessed through the
-"Home" button, the menus or keyboard shortcut (Alt+Home).
+Sked jumps to the page of the day (unless another one was selected in the
+preferences), which usually contains your daily appointments and links to
+other pages. The "Index" page is intended to store your non-daily links,
+like any desktop wiki, and can also be accessed through the "Home" button,
+the menus or keyboard shortcut (Alt+Home).
 
 It is possible to change pages through the calendar (which creates and jumps
 through pages with standardized names in the format YYYY-MM-DD), the menu

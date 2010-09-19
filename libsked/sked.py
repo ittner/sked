@@ -106,6 +106,10 @@ class UndoRedoManager(object):
 # Main application class -------------------------------------------------
 
 class SkedApp(interface.BaseDialog):
+    STARTUP_PAGE_TODAY = 0
+    STARTUP_PAGE_INDEX = 1
+    STARTUP_PAGE_OTHER = 2
+    
     DEF_PREFS = {
         "window_x"  : 0,
         "window_y"  : 0,
@@ -142,7 +146,9 @@ class SkedApp(interface.BaseDialog):
         "show_gsearch"  : False,
         "max_history"   : 50,
         "macros"        : '{ "d":"%d/%m/%Y", "b":"Back to \\\\P", "f":"%F" }',
-        "last_directory": utils.get_home_dir()
+        "last_directory": utils.get_home_dir(),
+        "startup_page"  : STARTUP_PAGE_TODAY,
+        "startup_other" : ""
     }
 
     def __init__(self, db, extra_title = None):
@@ -171,9 +177,17 @@ class SkedApp(interface.BaseDialog):
         self.restore_window_geometry()
         self.update_options()
         if pagename == None:
-            self.on_cmd_date_change()
-        else:
+            sp = self.opt.get_int("startup_page")
+            if sp == SkedApp.STARTUP_PAGE_INDEX:
+                pagename = "Index"
+            elif sp == SkedApp.STARTUP_PAGE_OTHER:
+                op = self.opt.get_str("startup_other").strip()
+                if len(op) > 0:
+                    pagename = op
+        if pagename != None:
             self.hl_change_page(pagename)
+        else:
+            self.on_cmd_date_change()
         self._update_back_forward()
         self._update_undo_redo()
         self.window.show()

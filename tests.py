@@ -11,6 +11,7 @@ from libsked.pages import Page, PageManager, HAVE_LEVENSHTEIN
 from libsked.options import OptionManager
 from libsked import xmlio
 from libsked import utils
+from libsked import macros
 
 
 def remove_if_exists(fname):
@@ -554,6 +555,90 @@ class XmlIOTestCase(BasePMTestCase):
 
         db2.close()
         db2.release_lock()
+
+
+
+class MacrosTestCase(BaseSkedTestCase):
+    
+    def test_evaluation_simple(self):
+        mm = macros.MacroManager()
+        mm.add("a", "Error!")
+        mm.add("a", "AAAA")
+        mm.add("aa", "X")
+        mm.add("b", "B")
+        mm.add("c", "x\\nx")
+        self.assertEquals(mm.find_and_evaluate("zzz a"), "zzz AAAA")
+        self.assertEquals(mm.find_and_evaluate("zzz\na"), "zzz\nAAAA")
+        self.assertEquals(mm.find_and_evaluate("zzz\nb"), "zzz\nB")
+        self.assertEquals(mm.find_and_evaluate("zzz c"), "zzz x\nx")
+        self.assertEquals(mm.find_and_evaluate("zzz c  "), "zzz x\nx")
+        self.assertEquals(mm.find_and_evaluate("zzz c\n\n"), "zzz x\nx")
+        self.assertEquals(mm.find_and_evaluate("zzz\n\n"), None)
+
+    def test_evaluation_empty(self):
+        mm = macros.MacroManager()
+        mm.add("a", "Error!")
+        mm.remove("a")
+        self.assertEquals(mm.find_and_evaluate("zzz a"), None)
+        self.assertEquals(mm.find_and_evaluate("zzz\na"), None)
+        self.assertEquals(mm.find_and_evaluate("zzz\nb"), None)
+
+    def test_evaluation_dict(self):
+        def ret_b(): return "B"
+        mm = macros.MacroManager()
+        mm.add("a", "AA\\aAA")
+        mm.add("aa", "X")
+        mm.add("b", "X\\b")
+        mm.add("c", "x\\n\\b")
+        repl = {
+            "a": "X",
+            "b":  ret_b
+        }
+        self.assertEquals(mm.find_and_evaluate("zzz a", repl), "zzz AAXAA")
+        self.assertEquals(mm.find_and_evaluate("zzz\nb", repl), "zzz\nXB")
+        self.assertEquals(mm.find_and_evaluate("zzz c", repl), "zzz x\nB")
+
+    def test_evaluation_save_load(self):
+        mm = macros.MacroManager()
+        mm.add("a", "AAAA")
+        mm.add("aa", "X")
+        mm.add("b", "B")
+        mm.add("c", "x\\nx")
+        s = mm.dump_string()
+        mm2 = macros.MacroManager.new_from_string(s)
+        self.assertEquals(mm2.find_and_evaluate("zzz a"), "zzz AAAA")
+        self.assertEquals(mm2.find_and_evaluate("zzz\na"), "zzz\nAAAA")
+        self.assertEquals(mm2.find_and_evaluate("zzz\nb"), "zzz\nB")
+        self.assertEquals(mm2.find_and_evaluate("zzz c"), "zzz x\nx")
+
+    def test_load_iterate(self):
+        s = """ {
+            "a": "AAAA",
+            "b": "B",
+            "c": "x\\\\nx",
+            "d": "None"
+        } """
+        mm = macros.MacroManager.new_from_string(s)
+        d = dict()
+        for k, v in mm.iterate():
+            d[k] = v
+        self.assertEquals(d["a"], "AAAA")
+        self.assertEquals(d["b"], "B")
+        self.assertEquals(d["c"], "x\\nx")
+        self.assertEquals(d["d"], "None")
+
+    def test_iterate_order(self):
+        mm = macros.MacroManager()
+        mm.add("a", "X")
+        mm.add("c", "X")
+        mm.add("b", "X")
+        mm.add("aa", "X")
+        mm.add("xxxx", "X")
+        mm.add("ab", "X")
+        ret = [ ]
+        for k, v in mm.iterate():
+            ret.append(k)
+        self.assertEquals(ret, [ "a", "aa", "ab", "b", "c", "xxxx" ])
 
 
 if __name__ == '__main__':

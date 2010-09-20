@@ -6,7 +6,7 @@ import unittest
 import os
 import random
 
-from libsked.database import EncryptedDatabase
+from libsked import database
 from libsked.pages import Page, PageManager, HAVE_LEVENSHTEIN
 from libsked.options import OptionManager
 from libsked import xmlio
@@ -16,7 +16,6 @@ from libsked import utils
 def remove_if_exists(fname):
     if os.path.exists(fname):
         os.remove(fname)
-
 
 
 class BaseSkedTestCase(unittest.TestCase):
@@ -67,13 +66,39 @@ class PageTestCase(BaseSkedTestCase):
 
 
 
-class DatabaseInitTestCase(BaseSkedTestCase):
+class DatabaseLowLevelTestCase(BaseSkedTestCase):
 
     def setUp(self):
         remove_if_exists(self.DB_NAME)
 
+    def test_hash_functions(self):
+        self.assertEquals(database.hash_sha256_str(""), 
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bad hash result")
+        self.assertEquals(database.hash_sha256_str("test"), 
+            "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+            "bad hash result")
+            
+    def test_password_s2k_ascii(self):
+        self.assertEquals(database.make_key(""),
+            "d4457f2702abef71d5f048a59ad9f0eee83b6dd04426e69aecedf9318af64ed4",
+            "bad s2k result")
+        self.assertEquals(database.make_key("test"),
+            "a38491ab8207c39957e0d7259c2b5760c5c0c5b42d91d21e2e34366ad9e42a31",
+            "bad s2k result")
+
+    def test_password_s2k_unicode(self):
+        self.assertEquals(database.make_key(u"Paßwö®Ð"),
+            "614bc54de3bfc8260708cdc8c81298048e9232ced19c595dfa48752668dabe71",
+            "bad s2k result")
+        pwd = "Pa\xc3\x9fw\xc3\xb6\xc2\xae\xc3\x90"
+        pwd = pwd.decode("utf-8")
+        self.assertEquals(database.make_key(pwd),
+            "614bc54de3bfc8260708cdc8c81298048e9232ced19c595dfa48752668dabe71",
+            "bad s2k result")
+
     def test_creation(self):
-        db = EncryptedDatabase(self.DB_NAME)
+        db = database.EncryptedDatabase(self.DB_NAME)
         self.assertEquals(db.get_lock(), True, "Failed to get lock")
         self.assertEquals(db.is_new, True, "DB should be new")
         db.create(self.PASSWORD)
@@ -83,7 +108,7 @@ class DatabaseInitTestCase(BaseSkedTestCase):
 
     def test_open(self):
         self.test_creation()
-        db = EncryptedDatabase(self.DB_NAME)
+        db = database.EncryptedDatabase(self.DB_NAME)
         self.assertEquals(db.get_lock(), True, "Failed to get lock")
         self.assertEquals(db.is_new, False, "DB should exists now")
         self.assertEquals(db.try_open(u"wrong" + self.PASSWORD), False,
@@ -96,7 +121,7 @@ class DatabaseInitTestCase(BaseSkedTestCase):
 
     def test_reopen(self):
         self.test_creation()
-        db = EncryptedDatabase(self.DB_NAME)
+        db = database.EncryptedDatabase(self.DB_NAME)
         self.assertEquals(db.get_lock(), True, "Failed to get lock")
         self.assertEquals(db.is_new, False, "DB should exists now")
         self.assertEquals(db.try_open(u"wrong" + self.PASSWORD), False,
@@ -115,12 +140,11 @@ class DatabaseInitTestCase(BaseSkedTestCase):
         db.release_lock()
 
 
-
 class BaseDBAccessTestCase(BaseSkedTestCase):
 
     def setUp(self):
         remove_if_exists(self.DB_NAME)
-        self.db = EncryptedDatabase(self.DB_NAME)
+        self.db = database.EncryptedDatabase(self.DB_NAME)
         if not self.db.get_lock():
             raise Exception("Failed to get lock")
         if not self.db.is_new:
@@ -133,6 +157,9 @@ class BaseDBAccessTestCase(BaseSkedTestCase):
         self.db.close()
         self.db.release_lock()
         remove_if_exists(self.DB_NAME)
+
+
+class DatabaseAccessTestCase(BaseDBAccessTestCase):
 
     def test_data_read_write(self):
         for x in range(0, 200):
@@ -171,6 +198,47 @@ class BaseDBAccessTestCase(BaseSkedTestCase):
             v = str(x)
             nv = self.db.get_key(v)
             self.assertEquals(nv, v, "Corrupted data")
+
+    def test_check_password(self):
+        self.assertEquals(self.db.check_password(self.PASSWORD), True)
+        self.assertEquals(self.db.check_password("Wrong Password"), False)
+
+    def test_iterate_pairs(self):
+        keys = [ ]
+        for x in range(0, 200):
+            k = str(x)
+            self.db.set_key(k, "nothing")
+            keys.append(k)
+        newkeys = [ ]
+        for kv in self.db.pairs():
+            newkeys.append(kv[0])
+            self.assertEquals(kv[1], "nothing", "Corrupted data")
+        self.assertEquals(len(newkeys), len(keys), "Missing pairs")
+
+    def test_iterate_keys(self):
+        keys = [ ]
+        for x in range(0, 200):
+            k = str(x)
+            self.db.set_key(k, "nothing")
+            keys.append(k)
+        newkeys = [ ]
+        for k in self.db.keys():
+            newkeys.append(k)
+        self.assertEquals(len(newkeys), len(keys), "Missing keys")
+
+    def test_complex_object_serialization(self):
+        x1 = ( 1, 2, 3, "test", u"€1,99", None, True )
+        x2 = [ 1, 2, 3, "test", u"€1,99", None, True ]
+        x3 = [ [ [ 42 ] ] ]
+        x4 = [ "mice", "dolphins", "humans" ]
+        self.db.set_key("x1", x1)
+        self.db.set_key("x2", x2)
+        self.db.set_key("x3", x3)
+        self.db.set_key("x4", x4)
+        self.assertEquals(self.db.get_key("x1"), x1)
+        self.assertEquals(self.db.get_key("x2"), x2)
+        self.assertEquals(self.db.get_key("x3"), x3)
+        self.assertEquals(self.db.get_key("x4"), x4)
 
 
 
@@ -267,6 +335,17 @@ class PageManagerTestCase(BasePMTestCase):
                 self.assertEquals(self.pm.load(name), None,
                     "Failed to delete page")
 
+    def test_exists(self):
+        cases = self.PAGE_NAMES_TEXT + self.PAGE_NAMES_DATE
+        for tup in cases:
+            origname, othernames = tup[0], tup[1]
+            self.pm.save(Page(origname, "blerg"))
+            for name in othernames:
+                self.assertEquals(self.pm.exists(name), True)
+
+    def test_not_exists(self):
+        self.assertEquals(self.pm.exists("Acre"), False)
+
     def test_page_load_many(self):
         pages = _make_some_pages()
         for p in pages:
@@ -299,6 +378,17 @@ class PageManagerTestCase(BasePMTestCase):
         for p in self.pm.iterate():
             loaded.append(p)
         self.assertEquals(len(pages), len(loaded), "iterate() failed")
+
+    def test_iterate_names(self):
+        pages = _make_some_pages()
+        names = [ p.normalized_name for p in pages ]
+        for p in pages:
+            self.pm.save(p)
+        loaded = [ ]
+        for n in self.pm.iterate_names():
+            loaded.append(n)
+            self.assertEquals(n in names, True, "Unexpected name")
+        self.assertEquals(len(names), len(loaded), "iterate_names() failed")
 
     def test_page_rewrite(self):
         pages = _make_some_pages()
@@ -339,7 +429,7 @@ class PageManagerTestCase(BasePMTestCase):
 
 class SearchTestCase(BasePMTestCase):
 
-    def teste_search_system(self):
+    def test_search_system(self):
         self.pm.save(Page(u"test lowercase", u"lowercase text"))
         self.pm.save(Page(u"TEST UPPERCASE", u"UPPERCASE TEXT"))
         self.pm.save(Page(u"test acentuação minúsculas", u"text unicode minúsculas"))
@@ -405,7 +495,7 @@ class SearchTestCase(BasePMTestCase):
         self.pm.search(u"ni!", self.pm.SEARCH_ANY, False, False, False, retlist.append)
         self.assertEquals(len(retlist), 3, "Failed search with callbacks")
 
-    def teste_search_levenshtein(self):
+    def test_search_levenshtein(self):
         self.pm.save(Page(u"Levenshtein xxxxxxx", u"No text"))
         self.pm.save(Page(u"Levenshtein xxxxxx.", u"No text"))
         self.pm.save(Page(u"Levenshtein xxxxx..", u"No text"))
@@ -447,7 +537,7 @@ class XmlIOTestCase(BasePMTestCase):
             self.pm.save(p)
         xmlio.export_xml_file(self.XML_FNAME, self.pm, None, None)
 
-        db2 =  EncryptedDatabase(self.OTHER_DB_NAME)
+        db2 =  database.EncryptedDatabase(self.OTHER_DB_NAME)
         self.assertEquals(db2.get_lock(), True, "Cannot get lock on db2")
         self.assertEquals(db2.is_new, True, "db2 not new")
         db2.create(self.PASSWORD)

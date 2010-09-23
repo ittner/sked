@@ -31,8 +31,6 @@ class HistoryManager(object):
     inserted, etc.
     """
 
-    max_items = None
-
     def __init__(self, db=None, name=None, max_items=None, unique=False):
         self._db = db
         self.name = name
@@ -60,10 +58,6 @@ class HistoryManager(object):
             return self._items[0]
         return None
     
-    def pop(self):
-        return self._items.pop(0)
-        self._refresh_model()
-
     def add(self, item):
         if self._unique:
             uitem = item.upper()
@@ -73,10 +67,6 @@ class HistoryManager(object):
                     break
         self._items.insert(0, item)
         self._trim()
-        self._refresh_model()
-
-    def sort(self):
-        sort(self._items)
         self._refresh_model()
 
     def set_model(self, model):

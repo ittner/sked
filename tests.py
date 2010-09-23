@@ -615,7 +615,7 @@ class XmlIOTestCase(BasePMTestCase):
 
         for p in pages:
             np = pm2.load(p.name)
-            self.assertNotEquals(np.name, None, "Failed to reload page")
+            self.assertNotEquals(np, None, "Failed to reload page")
             self.assertEquals(np.name, p.name, "Corrupted name on import")
             self.assertEquals(np.text, p.text, "Corrupted text on import")
 

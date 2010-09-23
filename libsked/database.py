@@ -35,12 +35,6 @@ from pathlock import any_lock_system
 import utils
 
 
-class AccessDeniedError(Exception):
-    pass
-
-class CorruptedDatabaseError(Exception):
-    pass
-
 class NotReadyError(Exception):
     pass
 

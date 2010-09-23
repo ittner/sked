@@ -863,64 +863,64 @@ class SkedApp(interface.BaseDialog):
     def set_text_tags(self):
         tagdata = [
             # Note: Later tags have higher priority.
-            ['std', {
+            ('std', {
                 'font' : self.opt.get_str("std_font"),
                 'foreground' : self.opt.get_str("std_color")
-            }],
-            ['underline', {
+            }),
+            ('underline', {
                 'underline' : pango.UNDERLINE_SINGLE
-            }],
-            ['italic', {
+            }),
+            ('italic', {
                 'style' : pango.STYLE_ITALIC
-            }],
-            ['bold', {
+            }),
+            ('bold', {
                 'weight' : pango.WEIGHT_BOLD
-            }],
-            ['code', {
+            }),
+            ('code', {
                 'font' : self.opt.get_str("code_font"),
                 'foreground' : self.opt.get_str("code_color")
-            }],
-            ['url', {
+            }),
+            ('url', {
                 'font' : self.opt.get_str("url_link_font"),
                 'foreground' : self.opt.get_str("url_link_color"),
                 'underline' : pango.UNDERLINE_SINGLE
-            }],
-            ['newdatelink', {
+            }),
+            ('newdatelink', {
                 'font' : self.opt.get_str("new_link_font"),
                 'foreground' : self.opt.get_str("new_link_color"),
                 'underline' : pango.UNDERLINE_SINGLE
-            }],
-            ['datelink', {   # Duplicates 'link' tag for better priority handling.
+            }),
+            ('datelink', {   # Duplicates 'link' tag for better priority handling.
                 'font' : self.opt.get_str("link_font"),
                 'foreground' : self.opt.get_str("link_color"),
                 'underline' : pango.UNDERLINE_SINGLE
-            }],
-            ['newlink', {
+            }),
+            ('newlink', {
                 'font' : self.opt.get_str("new_link_font"),
                 'foreground' : self.opt.get_str("new_link_color"),
                 'underline' : pango.UNDERLINE_SINGLE
-            }],
-            ['link', {
+            }),
+            ('link', {
                 'font' : self.opt.get_str("link_font"),
                 'foreground' : self.opt.get_str("link_color"),
                 'underline' : pango.UNDERLINE_SINGLE
-            }],
-            ['h3', {
+            }),
+            ('h3', {
                 'font' : self.opt.get_str("header3_font"),
                 'foreground' : self.opt.get_str("header3_color")
-            }],
-            ['h2', {
+            }),
+            ('h2', {
                 'font' : self.opt.get_str("header2_font"),
                 'foreground' : self.opt.get_str("header2_color")
-            }],
-            ['h1', {
+            }),
+            ('h1', {
                 'font' : self.opt.get_str("header1_font"),
                 'foreground' : self.opt.get_str("header1_color")
-            }],
-            ['format', {
+            }),
+            ('format', {
                 'font' : self.opt.get_str("format_font"),
                 'foreground' : self.opt.get_str("format_color")
-            }]
+            })
         ]
         table = self.txBuffer.get_tag_table()
         for pair in tagdata:

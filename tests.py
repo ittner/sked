@@ -12,6 +12,7 @@ from libsked.options import OptionManager
 from libsked import xmlio
 from libsked import utils
 from libsked import macros
+from libsked import history
 
 
 def remove_if_exists(fname):
@@ -639,6 +640,149 @@ class MacrosTestCase(BaseSkedTestCase):
         for k, v in mm.iterate():
             ret.append(k)
         self.assertEquals(ret, [ "a", "aa", "ab", "b", "c", "xxxx" ])
+
+
+class HistoryTestCase(BaseDBAccessTestCase):
+
+    def test_access_methods(self):
+        h = history.HistoryManager(None)
+        h.add("1")
+        self.assertEquals(h.get_first(), "1")
+        h.add("2")
+        self.assertEquals(h.get_first(), "2")
+        self.assertEquals(h.get_item(0), "2")
+        self.assertEquals(h.get_item(1), "1")
+        self.assertEquals(h.get_items(), ["2", "1"])
+        h.set_items(["4", "5", "6"])
+        self.assertEquals(h.get_first(), "4")
+        self.assertEquals(h.get_item(1), "5")
+        self.assertEquals(h.get_item(2), "6")
+        self.assertEquals(h.get_item(3), None)
+
+    def test_max_size(self):
+        h = history.HistoryManager(None, None, 3)
+        h.add("trash")
+        h.add("1")
+        h.add("2")
+        h.add("3")
+        self.assertEquals(h.get_items(), ["3", "2", "1"])
+
+    def test_uniqueness(self):
+        h = history.HistoryManager(None, None, 3, True)
+        h.add("1")
+        h.add("2")
+        h.add("3")
+        h.add("2")
+        h.add("1")
+        self.assertEquals(h.get_items(), ["1", "2", "3"])
+
+    def test_uniqueness_case_insensitive(self):
+        # Ensure that history uniqueness are case insensitive for both
+        # ASCII and Unicode strings.
+        h = history.HistoryManager(None, None, 3, True)
+        h.add("TEST")
+        h.add(u"ATENÇÃO")
+        h.add("Test")
+        h.add(u"Atenção")
+        self.assertEquals(h.get_items(), [u"Atenção", "Test"])
+
+    def test_storage_format(self):
+        # This format should not change unoticed.
+        h = history.HistoryManager(self.db, "test1")
+        h.add("Item1")
+        h.add("Item2")
+        h.save()
+        l = self.db.get_key("test1")
+        self.assertEquals(l, ["Item2", "Item1"])
+
+    def test_save_load_roundtrip(self):
+        h1 = history.HistoryManager(self.db, "test1")
+        h1.add("Item1")
+        h1.add("Item2")
+        h1.add(u"Atenção")  # Must be Unicode safe
+        h1.save()
+        h2 = history.HistoryManager(self.db, "test1")
+        self.assertEquals(h2.get_items(), [u"Atenção", "Item2", "Item1"])
+
+
+
+class BackForwardTestCase(BaseSkedTestCase):
+    
+    def test_init_state(self):
+        bf = history.BackForwardManager(3)
+        self.assertEquals(bf.can_back(), False)
+        self.assertEquals(bf.can_forward(), False)
+        self.assertEquals(bf.back(), None)
+        self.assertEquals(bf.forward(), None)
+
+    def test_basic_interaction(self):
+        bf = history.BackForwardManager(3)
+        # Simulates a basic user interaction.
+        # User goes to some page...
+        bf.go("Page 1")
+        self.assertEquals(bf.can_back(), False)
+        self.assertEquals(bf.can_forward(), False)
+        # ... and then open another page.
+        bf.go("Page 2")
+        self.assertEquals(bf.can_back(), True)
+        self.assertEquals(bf.can_forward(), False)
+        # ... backs to the previous page...
+        self.assertEquals(bf.back(), "Page 1")
+        self.assertEquals(bf.can_back(), False)
+        self.assertEquals(bf.can_forward(), True)
+        # ... and forwards to the last page seen. 
+        self.assertEquals(bf.forward(), "Page 2")
+        self.assertEquals(bf.can_back(), True)
+        self.assertEquals(bf.can_forward(), False)
+
+    def test_sequences(self):
+        bf = history.BackForwardManager(5)
+        bf.go("Page 1")
+        bf.go("Page 2")
+        bf.go("Page 3")
+        bf.go("Page 4")
+        self.assertEquals(bf.back(), "Page 3")
+        self.assertEquals(bf.back(), "Page 2")
+        self.assertEquals(bf.forward(), "Page 3")
+
+    def test_end_of_list(self):
+        bf = history.BackForwardManager(5)
+        bf.go("Page 1")
+        bf.go("Page 2")
+        self.assertEquals(bf.back(), "Page 1")
+        self.assertEquals(bf.back(), None)
+        self.assertEquals(bf.back(), None)
+        self.assertEquals(bf.forward(), "Page 2")
+        self.assertEquals(bf.forward(), None)
+        self.assertEquals(bf.forward(), None)
+        self.assertEquals(bf.back(), "Page 1")
+
+    def test_uniqueness(self):
+        bf = history.BackForwardManager(5)
+        bf.go("Page 1")
+        bf.go("Page 2")
+        bf.go("Page 2")
+        bf.go("Page 2")
+        self.assertEquals(bf.back(), "Page 1")
+
+    def test_treeish_interaction(self):
+        bf = history.BackForwardManager(10)
+        bf.go("Page 1")
+        bf.go("Page 2")
+        bf.go("Page 3")
+        bf.go("Page 4")
+        self.assertEquals(bf.back(), "Page 3")
+        self.assertEquals(bf.back(), "Page 2")
+        bf.go("Page 10")
+        bf.go("Page 11")
+        self.assertEquals(bf.back(), "Page 10")
+        self.assertEquals(bf.back(), "Page 2")
+        self.assertEquals(bf.back(), "Page 1")
+        self.assertEquals(bf.can_back(), False)
+        self.assertEquals(bf.can_forward(), True)
+        self.assertEquals(bf.forward(), "Page 2")
+        self.assertEquals(bf.forward(), "Page 10")
+        self.assertEquals(bf.forward(), "Page 11")
 
 
 if __name__ == '__main__':

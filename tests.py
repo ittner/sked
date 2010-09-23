@@ -8,7 +8,7 @@ import random
 
 from libsked import database
 from libsked.pages import Page, PageManager, HAVE_LEVENSHTEIN
-from libsked.options import OptionManager
+from libsked import options
 from libsked import xmlio
 from libsked import utils
 from libsked import macros
@@ -242,6 +242,53 @@ class DatabaseAccessTestCase(BaseDBAccessTestCase):
         self.assertEquals(self.db.get_key("x3"), x3)
         self.assertEquals(self.db.get_key("x4"), x4)
 
+
+class OptionsTestCase(BaseDBAccessTestCase):
+    
+    def test_basic_operations(self):
+        opt = options.OptionManager(self.db)
+        opt.set_str("option1", "value1")
+        self.assertEquals(opt.get_str("option1"), "value1")
+        opt.set_str("option2", u"Üñï©øÐ€")
+        self.assertEquals(opt.get_str("option2"), u"Üñï©øÐ€")
+        opt.set_int("answer", 42)
+        self.assertEquals(opt.get_int("answer"), 42)
+        opt.set_bool("true", True)
+        opt.set_bool("false", False)
+        self.assertEquals(opt.get_bool("true"), True)
+        self.assertEquals(opt.get_bool("false"), False)
+
+    def test_color_parser(self):
+        opt = options.OptionManager(self.db)
+        opt.set_str("color1", "#000000")
+        c = opt.get_color("color1")
+        self.assert_(c.red == 0 and c.green == 0 and c.blue == 0)
+
+    def test_persistence(self):
+        opt1 = options.OptionManager(self.db)
+        opt1.set_str("option1", "value1")
+        opt1.set_str("option2", u"Üñï©øÐ€")
+        opt1.set_int("answer", 42)
+        opt1.set_bool("true", True)
+        opt1.set_bool("false", False)
+        opt1.save()
+        opt2 = options.OptionManager(self.db)
+        self.assertEquals(opt2.get_str("option1"), "value1")
+        self.assertEquals(opt2.get_str("option2"), u"Üñï©øÐ€")
+        self.assertEquals(opt2.get_int("answer"), 42)
+        self.assertEquals(opt2.get_bool("true"), True)
+        self.assertEquals(opt2.get_bool("false"), False)
+
+    def test_iteration_order(self):
+        opt = options.OptionManager(self.db)
+        opt.set_str("c", "x")
+        opt.set_str("aa", "x")
+        opt.set_str("b", "x")
+        opt.set_str("a", "x")
+        l = [ ]
+        for kv in opt.iterate():
+            l.append(kv)
+        self.assertEquals(l, [('a','x'), ('aa', 'x'), ('b', 'x'), ('c', 'x')])
 
 
 def _make_some_pages():

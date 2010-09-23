@@ -530,9 +530,9 @@ class RenamePageDialog(BaseDialog):
         self.history = HistoryManager(skapp.db, "rename_history",
             skapp.opt.get_int("max_history"), True)
         self.hmodel = gtk.ListStore(gobject.TYPE_STRING)
-        self._load_interface()
         self.page_name = None
-        self.create_redirect = False
+        self.create_redirect = skapp.opt.get_bool("rename_create_redirect")
+        self._load_interface()
 
     def _load_interface(self):
         self.ui_init("rename-page-dialog.ui")
@@ -543,6 +543,7 @@ class RenamePageDialog(BaseDialog):
         self.txNewName = self.cbeNewName.child
         self.cbeNewName.set_model(self.hmodel)
         self.cbeNewName.set_text_column(0)
+        self.cbCreateRedirect.set_active(self.create_redirect)
 
     def run(self):
         self.hmodel.clear()
@@ -564,6 +565,8 @@ class RenamePageDialog(BaseDialog):
                     self.history.save()
                     self.page_name = newpagename
                     self.create_redirect = self.cbCreateRedirect.get_active()
+                    self.app.opt.set_bool("rename_create_redirect",
+                        self.create_redirect)
                     return newpagename
                 else:
                     error_dialog(self.dlg, u"Page already exists.")

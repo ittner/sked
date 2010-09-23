@@ -147,6 +147,7 @@ class SkedApp(interface.BaseDialog):
         "show_history"  : True,
         "show_gsearch"  : False,
         "max_history"   : 50,
+        "rename_create_redirect" : False,
         "macros"        : '{ "d":"%d/%m/%Y", "b":"Back to \\\\P", "f":"%F" }',
         "last_directory": utils.get_home_dir(),
         "startup_page"  : STARTUP_PAGE_TODAY,

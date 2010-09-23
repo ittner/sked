@@ -584,7 +584,24 @@ class XmlIOTestCase(BasePMTestCase):
         pages = _make_some_pages()
         for p in pages:
             self.pm.save(p)
-        xmlio.export_xml_file(self.XML_FNAME, self.pm, None, None)
+
+        opt = options.OptionManager(self.db)
+        opt.set_str("test", "test"),
+        opt.set_str("complex", u"& <+-×÷> «acentuação»"),
+        opt.set_int("answer", 42)
+        opt.save()
+        saved_options = [ pair for pair in opt.iterate() ]
+
+        h1 = history.HistoryManager(self.db, "history1")
+        h1.add("Test page 1")
+        h1.add(u"Página com acentuação") 
+        h1.save()
+        h2 = history.HistoryManager(self.db, "history2")
+        h2.add("<Test & page 2>")
+        h2.add(u"Página com acentuação") 
+        h2.save()
+        saved_histories = [ h1.get_items(), h2.get_items() ]
+        xmlio.export_xml_file(self.XML_FNAME, self.pm, opt, [ h1, h2 ])
 
         db2 =  database.EncryptedDatabase(self.OTHER_DB_NAME)
         self.assertEquals(db2.get_lock(), True, "Cannot get lock on db2")
@@ -593,7 +610,8 @@ class XmlIOTestCase(BasePMTestCase):
         self.assertEquals(db2.is_ready, True, "db2 not ready")
 
         pm2 = PageManager(db2)
-        xmlio.import_xml_file(self.XML_FNAME, db2, pm2, None, None)
+        opt2 = options.OptionManager(db2)
+        xmlio.import_xml_file(self.XML_FNAME, db2, pm2, opt2, True)
 
         for p in pages:
             np = pm2.load(p.name)
@@ -601,6 +619,15 @@ class XmlIOTestCase(BasePMTestCase):
             self.assertEquals(np.name, p.name, "Corrupted name on import")
             self.assertEquals(np.text, p.text, "Corrupted text on import")
 
+        loaded_options = [ pair for pair in opt2.iterate() ]
+        self.assertEquals(loaded_options, saved_options, "Corrupted options")
+
+        loaded_histories = [
+            history.HistoryManager(db2, "history1").get_items(),
+            history.HistoryManager(db2, "history2").get_items()
+        ]
+        self.assertEquals(loaded_histories, saved_histories)
+        
         db2.close()
         db2.release_lock()
 

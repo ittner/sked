@@ -7,7 +7,7 @@ import os
 import random
 
 from libsked import database
-from libsked.pages import Page, PageManager, HAVE_LEVENSHTEIN
+from libsked import pages
 from libsked import options
 from libsked import xmlio
 from libsked import utils
@@ -30,18 +30,18 @@ class BaseSkedTestCase(unittest.TestCase):
 class PageTestCase(BaseSkedTestCase):
 
     def test_page_fields(self):
-        p = Page()
+        p = pages.Page()
         p.name = "nan a ana ana ana ana"
         p.text = str(range(0, 1000))
         p.cursor_pos = 42
 
     def test_page_fields_2(self):
-        p = Page("teste", "peste")
+        p = pages.Page("teste", "peste")
         self.assertEquals(p.name, "teste", "Failed to set name")
         self.assertEquals(p.text, "peste", "Failed to set text")
 
     def test_cursor_pos_change_ascii(self):
-        p = Page()
+        p = pages.Page()
         p.name = "Bazinga!"
         p.text = str(range(0, 1000))
         p.cursor_pos = 1000
@@ -49,7 +49,7 @@ class PageTestCase(BaseSkedTestCase):
         self.assertEquals(p.cursor_pos, len(p.text), "Bad cursor_pos")
 
     def test_cursor_pos_change_unicode(self):
-        p = Page()
+        p = pages.Page()
         p.name = u"Bazinga!"
         p.text = str(range(0, 1000))
         p.cursor_pos = 1000
@@ -57,12 +57,12 @@ class PageTestCase(BaseSkedTestCase):
         self.assertEquals(p.cursor_pos, len(p.text), "Bad cursor_pos")
 
     def test_normalized_name_ascii(self):
-        p = Page("Warning! ThiS iS A TeST ", "blurp")
+        p = pages.Page("Warning! ThiS iS A TeST ", "blurp")
         self.assertEquals(p.normalized_name, "warning! this is a test",
             "Failed to normalize ascii name")
 
     def test_normalized_name_unicode(self):
-        p = Page(u"Atenção! ISTo É um Teste ", "blurp")
+        p = pages.Page(u"Atenção! ISTo É um Teste ", "blurp")
         self.assertEquals(p.normalized_name, u"atenção! isto é um teste",
             "Failed to normalize unicode name")
 
@@ -293,28 +293,28 @@ class OptionsTestCase(BaseDBAccessTestCase):
 
 def _make_some_pages():
     # make some random pages. All them must have a unique name
-    pages = [ ]
-    pages.append(Page("a", "-"))
-    pages.append(Page("b", "-"))
-    pages.append(Page("c", "-"))
+    pagelist = [ ]
+    pagelist.append(pages.Page("a", "-"))
+    pagelist.append(pages.Page("b", "-"))
+    pagelist.append(pages.Page("c", "-"))
 
     for i in range(0, 1000):
-        pages.append(Page(u"Test page nº" + str(i), str(range(i, i+100))))
+        pagelist.append(pages.Page(u"Test page nº" + str(i), str(range(i, i+100))))
 
-    pages.append(Page("Very long page", str(range(0,100000))))
-    pages.append(Page(u"Unicode must work",
+    pagelist.append(pages.Page("Very long page", str(range(0,100000))))
+    pagelist.append(pages.Page(u"Unicode must work",
         u"Any valid char may be used ¹²³§ĸæß€þ/ø\nßḉ§£€»©µn”“aa·”“ŧ"))
-    pages.append(Page(u"Acentuação", u"Weiß    "))
-    pages.append(Page(u"XML Chars 1 ><>&\"", u"XML &amp; Chars ><>&\""))
-    pages.append(Page(u"XML Chars 2 &amp; && 2 ><>&\"",
+    pagelist.append(pages.Page(u"Acentuação", u"Weiß    "))
+    pagelist.append(pages.Page(u"XML Chars 1 ><>&\"", u"XML &amp; Chars ><>&\""))
+    pagelist.append(pages.Page(u"XML Chars 2 &amp; && 2 ><>&\"",
         u"XML &amp; Chars &&& ! <!-- --> ><>&\"aa '"))
 
     # Pages named with dates
-    pages.append(Page("13/02/2010", "nanana"))
-    pages.append(Page("2010-01-1", "nanana"))
-    pages.append(Page("3/10/1990", "nanana"))
-    pages.append(Page("13/01/2010", "nanana"))
-    return pages
+    pagelist.append(pages.Page("13/02/2010", "nanana"))
+    pagelist.append(pages.Page("2010-01-1", "nanana"))
+    pagelist.append(pages.Page("3/10/1990", "nanana"))
+    pagelist.append(pages.Page("13/01/2010", "nanana"))
+    return pagelist
 
 
 
@@ -322,14 +322,14 @@ class BasePMTestCase(BaseDBAccessTestCase):
 
     def setUp(self):
         BaseDBAccessTestCase.setUp(self)
-        self.pm = PageManager(self.db)
+        self.pm = pages.PageManager(self.db)
 
 
 class PageManagerTestCase(BasePMTestCase):
 
     def test_page_save_load(self):
         # Here 'P == NP' must be true :)
-        p = Page("Test", "blerg")
+        p = pages.Page("Test", "blerg")
         self.pm.save(p)
         np = self.pm.load(p.name)
         self.assertEquals(np.name, p.name, "Failed to load page name")
@@ -353,7 +353,7 @@ class PageManagerTestCase(BasePMTestCase):
     def test_page_load_normalized_names(self):
         for tup in self.PAGE_NAMES_TEXT:
             origname, othernames = tup[0], tup[1]
-            self.pm.save(Page(origname, "blerg"))
+            self.pm.save(pages.Page(origname, "blerg"))
             for name in othernames:
                 p = self.pm.load(name)
                 self.assertNotEquals(p, None,
@@ -364,7 +364,7 @@ class PageManagerTestCase(BasePMTestCase):
     def test_page_load_normalized_date_names(self):
         for tup in self.PAGE_NAMES_DATE:
             origname, othernames = tup[0], tup[1]
-            self.pm.save(Page(origname, "blerg"))
+            self.pm.save(pages.Page(origname, "blerg"))
             for name in othernames:
                 p = self.pm.load(name)
                 self.assertNotEquals(p, None,
@@ -377,7 +377,7 @@ class PageManagerTestCase(BasePMTestCase):
         for tup in cases:
             origname, othernames = tup[0], tup[1]
             for name in othernames:
-                self.pm.save(Page(origname, "blerg"))
+                self.pm.save(pages.Page(origname, "blerg"))
                 self.assertNotEquals(self.pm.load(name), None,
                     "Failed to create page to delete")
                 self.pm.delete(name)
@@ -388,7 +388,7 @@ class PageManagerTestCase(BasePMTestCase):
         cases = self.PAGE_NAMES_TEXT + self.PAGE_NAMES_DATE
         for tup in cases:
             origname, othernames = tup[0], tup[1]
-            self.pm.save(Page(origname, "blerg"))
+            self.pm.save(pages.Page(origname, "blerg"))
             for name in othernames:
                 self.assertEquals(self.pm.exists(name), True)
 
@@ -440,34 +440,34 @@ class PageManagerTestCase(BasePMTestCase):
         self.assertEquals(len(names), len(loaded), "iterate_names() failed")
 
     def test_page_rewrite(self):
-        pages = _make_some_pages()
-        for p in pages:
-            self.pm.save(Page(p.name, "Nothing"))
-        for p in pages:
-            self.pm.save(Page(p.name, p.name))
+        pagelist = _make_some_pages()
+        for p in pagelist:
+            self.pm.save(pages.Page(p.name, "Nothing"))
+        for p in pagelist:
+            self.pm.save(pages.Page(p.name, p.name))
         # Save some random pages
         for i in range(1, 100):
-            self.pm.save(random.choice(pages))
-        for p in pages:
+            self.pm.save(random.choice(pagelist))
+        for p in pagelist:
             self.pm.save(p)
-        for p in pages:
+        for p in pagelist:
             np = self.pm.load(p.name)
             self.assertNotEquals(np, None, "failed to load page")
             self.assertEquals(np.name, p.name, "corrupted page name")
             self.assertEquals(np.text, p.text, "corrupted page text")
 
     def test_page_rewrite_nonsync(self):
-        pages = _make_some_pages()
-        for p in pages:
-            self.pm.save(Page(p.name, "Nothing"), False)
-        for p in pages:
-            self.pm.save(Page(p.name, p.name), False)
+        pagelist = _make_some_pages()
+        for p in pagelist:
+            self.pm.save(pages.Page(p.name, "Nothing"), False)
+        for p in pagelist:
+            self.pm.save(pages.Page(p.name, p.name), False)
         # Save some random pages
         for i in range(1, 100):
-            self.pm.save(random.choice(pages), False)
-        for p in pages:
+            self.pm.save(random.choice(pagelist), False)
+        for p in pagelist:
             self.pm.save(p, False)
-        for p in pages:
+        for p in pagelist:
             np = self.pm.load(p.name)
             self.assertNotEquals(np, None, "failed to load page")
             self.assertEquals(np.name, p.name, "corrupted page name")
@@ -479,15 +479,15 @@ class PageManagerTestCase(BasePMTestCase):
 class SearchTestCase(BasePMTestCase):
 
     def test_search_system(self):
-        self.pm.save(Page(u"test lowercase", u"lowercase text"))
-        self.pm.save(Page(u"TEST UPPERCASE", u"UPPERCASE TEXT"))
-        self.pm.save(Page(u"test acentuação minúsculas", u"text unicode minúsculas"))
-        self.pm.save(Page(u"test ACENTUAÇÃO MAIÚSCULAS", u"TEXT UNICODE MAIÚSCULAS"))
-        self.pm.save(Page(u"Nothing", u"test Text text TEXT"))
-        self.pm.save(Page(u"None", u"test Text text TEXT"))
-        self.pm.save(Page(u"Foo Ni!",         u"Baz Oba Tic pack"))
-        self.pm.save(Page(u"Bar Ni! Ni!",     u"Bar Eba tic pick"))
-        self.pm.save(Page(u"Baz Ni! Ni! Ni!", u"Foo eba Tac puck"))
+        self.pm.save(pages.Page(u"test lowercase", u"lowercase text"))
+        self.pm.save(pages.Page(u"TEST UPPERCASE", u"UPPERCASE TEXT"))
+        self.pm.save(pages.Page(u"test acentuação minúsculas", u"text unicode minúsculas"))
+        self.pm.save(pages.Page(u"test ACENTUAÇÃO MAIÚSCULAS", u"TEXT UNICODE MAIÚSCULAS"))
+        self.pm.save(pages.Page(u"Nothing", u"test Text text TEXT"))
+        self.pm.save(pages.Page(u"None", u"test Text text TEXT"))
+        self.pm.save(pages.Page(u"Foo Ni!",         u"Baz Oba Tic pack"))
+        self.pm.save(pages.Page(u"Bar Ni! Ni!",     u"Bar Eba tic pick"))
+        self.pm.save(pages.Page(u"Baz Ni! Ni! Ni!", u"Foo eba Tac puck"))
 
         res = self.pm.search(u"test", self.pm.SEARCH_ALL, False, False, True, None)
         self.assertEquals(len(res), 4, str(res))
@@ -545,14 +545,14 @@ class SearchTestCase(BasePMTestCase):
         self.assertEquals(len(retlist), 3, "Failed search with callbacks")
 
     def test_search_levenshtein(self):
-        self.pm.save(Page(u"Levenshtein xxxxxxx", u"No text"))
-        self.pm.save(Page(u"Levenshtein xxxxxx.", u"No text"))
-        self.pm.save(Page(u"Levenshtein xxxxx..", u"No text"))
-        self.pm.save(Page(u"Levenshtein xxxx...", u"No text"))
-        self.pm.save(Page(u"Levenshtein xxx....", u"No text"))
-        self.pm.save(Page(u"Levenshtein xx.....", u"No text"))
-        self.pm.save(Page(u"Levenshtein x......", u"No text"))
-        self.pm.save(Page(u"Levenshtein .......", u"No text"))
+        self.pm.save(pages.Page(u"Levenshtein xxxxxxx", u"No text"))
+        self.pm.save(pages.Page(u"Levenshtein xxxxxx.", u"No text"))
+        self.pm.save(pages.Page(u"Levenshtein xxxxx..", u"No text"))
+        self.pm.save(pages.Page(u"Levenshtein xxxx...", u"No text"))
+        self.pm.save(pages.Page(u"Levenshtein xxx....", u"No text"))
+        self.pm.save(pages.Page(u"Levenshtein xx.....", u"No text"))
+        self.pm.save(pages.Page(u"Levenshtein x......", u"No text"))
+        self.pm.save(pages.Page(u"Levenshtein .......", u"No text"))
 
         results = self.pm.levenshtein_search("Levenshtein xxxxxxx", 20)
         self.assertEquals(results[0], u"Levenshtein xxxxxxx", "Levenshtein search failed (1)")
@@ -581,8 +581,8 @@ class XmlIOTestCase(BasePMTestCase):
         xmlio.import_xml_file(self.XML_FNAME, self.db, self.pm, None, None)
 
     def test_xml_roundtrip(self):
-        pages = _make_some_pages()
-        for p in pages:
+        pagelist = _make_some_pages()
+        for p in pagelist:
             self.pm.save(p)
 
         opt = options.OptionManager(self.db)
@@ -609,11 +609,11 @@ class XmlIOTestCase(BasePMTestCase):
         db2.create(self.PASSWORD)
         self.assertEquals(db2.is_ready, True, "db2 not ready")
 
-        pm2 = PageManager(db2)
+        pm2 = pages.PageManager(db2)
         opt2 = options.OptionManager(db2)
         xmlio.import_xml_file(self.XML_FNAME, db2, pm2, opt2, True)
 
-        for p in pages:
+        for p in pagelist:
             np = pm2.load(p.name)
             self.assertNotEquals(np, None, "Failed to reload page")
             self.assertEquals(np.name, p.name, "Corrupted name on import")

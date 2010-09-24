@@ -119,6 +119,7 @@ class PreferencesDialog(BaseDialog):
         self.txMacroValue = self.ui.get_object("txMacroValue")
         self.rbOpenToday = self.ui.get_object("rbOpenToday")
         self.rbOpenIndex = self.ui.get_object("rbOpenIndex")
+        self.rbOpenLast = self.ui.get_object("rbOpenLast")
         self.rbOpenOther = self.ui.get_object("rbOpenOther")
         self.txOpenPageName = self.ui.get_object("txOpenPageName")
 
@@ -221,6 +222,8 @@ class PreferencesDialog(BaseDialog):
             self.rbOpenIndex.set_active(True)
         elif sp == self.parent.STARTUP_PAGE_OTHER:
             self.rbOpenOther.set_active(True)
+        elif sp == self.parent.STARTUP_PAGE_LAST:
+            self.rbOpenLast.set_active(True)
         else:
             self.rbOpenToday.set_active(True)
         self.on_rbStartup()
@@ -260,6 +263,8 @@ class PreferencesDialog(BaseDialog):
         sp = self.parent.STARTUP_PAGE_TODAY
         if self.rbOpenIndex.get_active():
             sp = self.parent.STARTUP_PAGE_INDEX
+        if self.rbOpenLast.get_active():
+            sp = self.parent.STARTUP_PAGE_LAST
         elif self.rbOpenOther.get_active():
             sp = self.parent.STARTUP_PAGE_OTHER
         self.opt.set_int("startup_page", sp)

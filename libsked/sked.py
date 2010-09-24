@@ -111,6 +111,7 @@ class SkedApp(interface.BaseDialog):
     STARTUP_PAGE_TODAY = 0
     STARTUP_PAGE_INDEX = 1
     STARTUP_PAGE_OTHER = 2
+    STARTUP_PAGE_LAST = 3
     
     DEF_PREFS = {
         "window_x"  : 0,
@@ -183,6 +184,8 @@ class SkedApp(interface.BaseDialog):
             sp = self.opt.get_int("startup_page")
             if sp == SkedApp.STARTUP_PAGE_INDEX:
                 pagename = INDEX_PAGE
+            elif sp == SkedApp.STARTUP_PAGE_LAST:
+                pagename = self.history.get_first()
             elif sp == SkedApp.STARTUP_PAGE_OTHER:
                 op = self.opt.get_str("startup_other").strip()
                 if len(op) > 0:

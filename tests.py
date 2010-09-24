@@ -858,6 +858,29 @@ class BackForwardTestCase(BaseSkedTestCase):
         self.assertEquals(bf.forward(), "Page 10")
         self.assertEquals(bf.forward(), "Page 11")
 
+    def test_get_current(self):
+        bf = history.BackForwardManager(10)
+        self.assertEquals(bf.get_current(), None)
+        bf.go("Page 1")
+        self.assertEquals(bf.get_current(), "Page 1")
+        bf.go("Page 2")
+        self.assertEquals(bf.get_current(), "Page 2")
+        bf.back()
+        self.assertEquals(bf.get_current(), "Page 1")
+
+class BackForwardPersistenceTestCase(BaseDBAccessTestCase):
+
+    def test_basic_persistence(self):
+        bf = history.BackForwardManager(10, self.db, "test_bf")
+        bf.go("Page 1")
+        bf.go("Page 2")
+        bf.go("Page 3")
+        bf.go("Page 4")
+        bf.save()
+        bf2 = history.BackForwardManager(10, self.db, "test_bf")
+        self.assertEquals(bf2.back(), "Page 3")
+        self.assertEquals(bf2.back(), "Page 2")
+        self.assertEquals(bf2.back(), "Page 1")
 
 if __name__ == '__main__':
     unittest.main()

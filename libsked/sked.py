@@ -159,7 +159,8 @@ class SkedApp(interface.BaseDialog):
         self.db = db
         self.pm = PageManager(db)
         self.opt = OptionManager(self.db, SkedApp.DEF_PREFS)
-        self.bfm = BackForwardManager(self.opt.get_int("max_history"))
+        self.bfm = BackForwardManager(self.opt.get_int("max_history"),
+            self.db, "back_fwd_state")
         self.urm = UndoRedoManager(self.opt.get_int("undo_levels"))
         self.macros = MacroManager.new_from_string(self.opt.get_str("macros"))
         self.last_undo_cnt = 0
@@ -190,10 +191,15 @@ class SkedApp(interface.BaseDialog):
                 op = self.opt.get_str("startup_other").strip()
                 if len(op) > 0:
                     pagename = op
+        cur_page_on_bf = self.bfm.get_current()
         if pagename != None:
             self.hl_change_page(pagename)
         else:
             self.on_cmd_date_change()
+        if self.curpage.name == cur_page_on_bf:
+             # Hack. Reload the data discarding any change introduced in
+             # the bfm by the last page changes.
+             self.bfm.load()
         self._update_back_forward()
         self._update_undo_redo()
         self.window.show()
@@ -273,6 +279,7 @@ class SkedApp(interface.BaseDialog):
         self.save_window_geometry()
         self.history.save()
         self.opt.save()
+        self.bfm.save()
         self.window.destroy()
         gtk.main_quit()
 

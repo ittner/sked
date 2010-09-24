@@ -100,10 +100,17 @@ class HistoryManager(object):
 
 class BackForwardManager(object):
     
-    def __init__(self, max_items):
+    def __init__(self, max_items, db=None, keyname=None):
         self.max_items = max_items
-        self._hst = [ ]
-        self._pos = -1
+        if db != None:
+            if keyname == None:
+                raise ValueError("No database key was given")
+            self._db = db
+            self._keyname = keyname
+            self.load()
+        else:
+            self._hst = [ ]
+            self._pos = -1
 
     def go(self, pagename):
         if len(self._hst) == 0:
@@ -134,3 +141,16 @@ class BackForwardManager(object):
         
     def can_forward(self):
         return self._pos < len(self._hst) - 1
+
+    def get_current(self):
+        if self._pos > -1 and self._pos < len(self._hst):
+            return self._hst[self._pos]
+        return None
+
+    def load(self):
+        pair = self._db.get_key(self._keyname, (-1, []))
+        self._pos = pair[0]
+        self._hst = pair[1]
+
+    def save(self):
+        self._db.set_key(self._keyname, (self._pos, self._hst))

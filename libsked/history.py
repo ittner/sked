@@ -113,6 +113,10 @@ class BackForwardManager(object):
             self._pos = -1
 
     def go(self, pagename):
+        current = self.get_current()
+        if (current != None and
+        Page.normalize_name(current) == Page.normalize_name(pagename)):
+            return
         if len(self._hst) == 0:
             self._hst.append(pagename)
             self._pos = 0

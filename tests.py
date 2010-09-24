@@ -868,6 +868,17 @@ class BackForwardTestCase(BaseSkedTestCase):
         bf.back()
         self.assertEquals(bf.get_current(), "Page 1")
 
+    def test_go_current(self):
+        bf = history.BackForwardManager(10)
+        bf.go("Page 1")
+        bf.go("Page 2")
+        bf.go("Page 3")
+        self.assertEquals(bf.back(), "Page 2")
+        # "Going to the current place" shall not change the position
+        bf.go("Page 2")
+        bf.go("PAge 2")
+        self.assertEquals(bf.forward(), "Page 3")
+
 class BackForwardPersistenceTestCase(BaseDBAccessTestCase):
 
     def test_basic_persistence(self):

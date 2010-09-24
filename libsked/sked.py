@@ -431,6 +431,8 @@ class SkedApp(interface.BaseDialog):
             end_iter = self.txBuffer.get_iter_at_offset(end_pos)
             self.txBuffer.select_range(end_iter, start_iter)
             self.txNote.scroll_to_iter(start_iter, 0.0)
+        else:
+            self.set_status("'" + search_term + "' not found")
 
     def on_cmd_lsearch_prev(self, widget = None, data = None):
         # TextIter.backward_search() would be perfect for this, but currently
@@ -447,6 +449,8 @@ class SkedApp(interface.BaseDialog):
             end_iter = self.txBuffer.get_iter_at_offset(end_pos)
             self.txBuffer.select_range(end_iter, start_iter)
             self.txNote.scroll_to_iter(start_iter, 0.0)
+        else:
+            self.set_status("'" + search_term + "' not found")
 
     def on_cmd_lsearch_show(self, widget = None, data = None):
         self.bxLocalSearch.set_property("visible", True)

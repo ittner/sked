@@ -580,12 +580,6 @@ class RenamePageDialog(BaseDialog):
                 self.history.save()
                 return None
         return None
-        
-    def get_page_name(self):
-        return self.page_name
-        
-    def get_create_redirect(self):
-        return create_redirect
 
 
 def confirm_yes_no(parent_window, msg):

@@ -556,7 +556,7 @@
                   <object class="GtkComboBoxEntry" id="cbPageName">
                     <property name="visible">True</property>
                     <property name="border_width">1</property>
-                    <signal name="editing_done" handler="on_cmd_goto"/>
+                    <signal name="key_release_event" handler="on_goto_keyrelease"/>
                   </object>
                 </child>
               </object>

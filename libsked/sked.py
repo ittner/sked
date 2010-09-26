@@ -566,6 +566,12 @@ class SkedApp(interface.BaseDialog):
         self.hl_change_page(self.txPageName.get_text().decode("utf-8"))
         self.txNote.grab_focus()
         
+    def on_goto_keyrelease(self, widget = None, event = None, data = None):
+        if event != None and event.keyval == gtk.keysyms.Return:
+            self.on_cmd_goto()
+            return True
+        return False
+
     def on_cmd_header1(self, widget = None, data = None):
         self.insert_formatting("=== ", " ===")
 

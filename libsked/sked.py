@@ -431,6 +431,7 @@ class SkedApp(interface.BaseDialog):
             end_iter = self.txBuffer.get_iter_at_offset(end_pos)
             self.txBuffer.select_range(end_iter, start_iter)
             self.txNote.scroll_to_iter(start_iter, 0.0)
+            self.set_status("")
         else:
             self.set_status("'" + search_term + "' not found")
 
@@ -449,6 +450,7 @@ class SkedApp(interface.BaseDialog):
             end_iter = self.txBuffer.get_iter_at_offset(end_pos)
             self.txBuffer.select_range(end_iter, start_iter)
             self.txNote.scroll_to_iter(start_iter, 0.0)
+            self.set_status("")
         else:
             self.set_status("'" + search_term + "' not found")
 
@@ -459,6 +461,7 @@ class SkedApp(interface.BaseDialog):
     def on_cmd_lsearch_hide(self, widget = None, data = None):
         self.bxLocalSearch.set_property("visible", False)
         self.txNote.grab_focus()
+        self.set_status("")
         
     def on_lsearch_keypress(self, widget = None, event = None, data = None):
         if widget == self.txLocalSearch and event.type == gdk.KEY_PRESS \

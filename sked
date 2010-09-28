@@ -23,6 +23,7 @@ import sys
 from libsked import sked
 
 if __name__ == '__main__':
+    # Note: sys.argv was already modified by PyGTK!
     if len(sys.argv) > 1:
         sked.main(sys.argv[1])
     else:

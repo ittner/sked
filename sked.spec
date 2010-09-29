@@ -4,19 +4,21 @@
 # Copyright 2010 Alexandre Erwin Ittner <alexandre@ittner.com.br>
 # Distributed under the GNU GPL version 2 or later.
 
-Summary: The wikish scheduler
 Name: sked
+Summary: The wikish scheduler
 Version: 0.4
 Release: 1
-Source0: %{name}-%{version}.tar.gz
+Url: http://wikisked.sourceforge.net/
 License: GPLv2+
+Vendor: Alexandre Erwin Ittner <alexandre@ittner.com.br>
 Group: Productivity/Office/Organizers
+
+Source0: %{name}-%{version}.tar.gz
 Autoreqprov: on
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Prefix: %{_prefix}
+
 BuildArch: noarch
-Vendor: Alexandre Erwin Ittner <alexandre@ittner.com.br>
-Url: http://wikisked.sourceforge.net/
 Requires: python-levenshtein, python-dbus
 BuildRequires: python
 
@@ -32,10 +34,13 @@ think of it as the result of the merge of a calendar with a desktop wiki.
 python setup.py build
 
 %install
-python setup.py install --no-compile --prefix=/usr/ --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
+rm -rf $RPM_BUILD_ROOT
+python setup.py install --prefix=%{_prefix} --root=$RPM_BUILD_ROOT
 
 %clean
+python setup.py clean
 rm -rf $RPM_BUILD_ROOT
 
-%files -f INSTALLED_FILES
+%files
 %defattr(-,root,root)
+%{_prefix}/*

@@ -5,13 +5,13 @@
 # Distributed under the GNU GPL version 2 or later.
 
 Name: sked
-Summary: The wikish scheduler
+Summary: A wiki-based personal organizer, calendar, schedule application
 Version: 0.4
 Release: 1
 Url: http://wikisked.sourceforge.net/
 License: GPLv2+
 Vendor: Alexandre Erwin Ittner <alexandre@ittner.com.br>
-Group: Productivity/Office/Organizers
+Group: Office
 
 Source0: %{name}-%{version}.tar.gz
 Autoreqprov: on
@@ -34,7 +34,6 @@ think of it as the result of the merge of a calendar with a desktop wiki.
 python setup.py build
 
 %install
-rm -rf $RPM_BUILD_ROOT
 python setup.py install --prefix=%{_prefix} --root=$RPM_BUILD_ROOT
 
 %clean
@@ -42,5 +41,17 @@ python setup.py clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%defattr(-,root,root)
-%{_prefix}/*
+%defattr(-,root,root,-)
+%doc README COPYING
+%{_prefix}/bin/sked
+%{_prefix}/lib/python*/site-packages/libsked/
+%{_prefix}/lib/python*/site-packages/sked*.egg-info
+%{_prefix}/share/applications/sked.desktop
+%{_prefix}/share/man/man1/*
+%{_prefix}/share/pixmaps/*
+
+%changelog
+* Thu Sep 30 2010 Alexandre Erwin Ittner <alexandre at ittner.com.br> 0.4-1
+- New RPM
+
+

@@ -51,9 +51,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_prefix}/share/pixmaps/*
 
 %changelog
-* Thu Sep 30 2010 Alexandre Erwin Ittner <alexandre at ittner.com.br> 0.4-1
-- New RPM
-
 * Thu Oct 01 2010 Alexandre Erwin Ittner <alexandre at ittner.com.br> 0.5-1
 - Update package to version 0.5.
+
+* Thu Sep 30 2010 Alexandre Erwin Ittner <alexandre at ittner.com.br> 0.4-1
+- New RPM
 

@@ -33,7 +33,7 @@ the $HOME directory.
 
 
   * Sked now have keyboard macros for frequently used text fragments. These
-    macros are simple word expansions called by pressing Ctrl+Enter with the
+    macros are simple word expansions called by pressing Ctrl+Space with the
     cursor placed just after a macro. The replacement strings may have some
     format tokens for automatic insertion of common data.
   * It is now possible to hide the sidepanel.

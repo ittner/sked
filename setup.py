@@ -51,7 +51,7 @@ class SkedBuilder(build.build):
 
 setup(name="sked",
     version=libsked.VERSION,
-    description="The wikish scheduler",
+    description="A wiki-based personal organizer, calendar and schedule",
     author="Alexandre Erwin Ittner",
     author_email="alexandre@ittner.com.br",
     url="http://wikisked.sourceforge.net/",
@@ -64,7 +64,8 @@ think of it as the result of the merge of a calendar with a desktop wiki.
 Sked is designed to optimize your workflow and everything is tailored to speed
 up editing operations: links and styles are unobtrusively inferred from the
 syntax, entries are automatically saved after a few seconds, almost all
-commands have keyboard shortcuts, and the last entries are kept in a history.
+commands have keyboard shortcuts, it is possible to create keyboard macros for
+frequently used text fragments, and the last entries are kept in a history.
 Also, the wiki code is *not* hidden from the editing interface -- this makes
 editing easier, avoids the create/view/change cycle, and allows you to copy
 and paste text among other applications without loss of information. An

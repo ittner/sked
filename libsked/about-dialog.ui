@@ -9,7 +9,7 @@
     <property name="program_name">Sked</property>
     <property name="version">0.3</property>
     <property name="copyright" translatable="yes">(c) 2006-10 Alexandre Erwin Ittner</property>
-    <property name="comments" translatable="yes">The wikischeduler
+    <property name="comments" translatable="yes">A personal organizer, calendar, schedule and braindump application.
 </property>
     <property name="website">http://wikisked.sourceforge.net/</property>
     <property name="website_label" translatable="yes">http://wikisked.sourceforge.net/</property>

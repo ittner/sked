@@ -6,7 +6,7 @@
 
 Name: sked
 Summary: A wiki-based personal organizer, calendar, schedule application
-Version: 0.4
+Version: 0.5
 Release: 1
 Url: http://wikisked.sourceforge.net/
 License: GPLv2+
@@ -54,4 +54,6 @@ rm -rf $RPM_BUILD_ROOT
 * Thu Sep 30 2010 Alexandre Erwin Ittner <alexandre at ittner.com.br> 0.4-1
 - New RPM
 
+* Thu Oct 01 2010 Alexandre Erwin Ittner <alexandre at ittner.com.br> 0.5-1
+- Update package to version 0.5.
 

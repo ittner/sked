@@ -66,6 +66,27 @@ class PageTestCase(BaseSkedTestCase):
         self.assertEquals(p.normalized_name, u"atenção! isto é um teste",
             "Failed to normalize unicode name")
 
+    def test_is_date_name(self):
+        self.assertEquals(pages.Page.is_date_name("03/02/1983"), True)
+        self.assertEquals(pages.Page.is_date_name("3/2/1983"), True)
+        self.assertEquals(pages.Page.is_date_name("3/02/1983"), True)
+        self.assertEquals(pages.Page.is_date_name("1983-02-03"), True)
+        self.assertEquals(pages.Page.is_date_name("1983-2-3"), True)
+        self.assertEquals(pages.Page.is_date_name("1983-2-03"), True)
+        self.assertEquals(pages.Page.is_date_name("Some name"), False)
+        self.assertEquals(pages.Page.is_date_name(u"Aleatório"), False)
+
+    def test_name_date_parsing(self):
+        self.assertEquals(pages.Page.parse_date_name("03/02/1983"),
+            (u"1983-02-03", 1983, 02, 03), "Failed to parse date name 1")
+        self.assertEquals(pages.Page.parse_date_name("1983-02-03"),
+            (u"1983-02-03", 1983, 02, 03), "Failed to parse date name 2")
+        self.assertEquals(pages.Page.parse_date_name("1983-2-3"),
+            (u"1983-02-03", 1983, 02, 03), "Failed to parse date name 3")
+        self.assertEquals(pages.Page.parse_date_name("3/2/1983"),
+            (u"1983-02-03", 1983, 02, 03), "Failed to parse date name 4")
+        self.assertEquals(pages.Page.parse_date_name("nil"),
+            ("nil", None, None, None), "Failed to parse date name 5")
 
 
 class DatabaseLowLevelTestCase(BaseSkedTestCase):

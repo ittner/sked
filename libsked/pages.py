@@ -209,20 +209,35 @@ class Page(object):
     def normalize_name(name):
         name = name.strip().lower()
         # force dates to the YYYY-MM-DD format.
-        match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{1,4})", name)
+        (name, y, m, d) = Page.parse_date_name(name)
+        return name.encode("utf-8")
+
+    @staticmethod
+    def is_date_name(name):
+        """ Return True if the given name is a date. """
+        name = name.strip()
+        return re.search("^[0-9]+[/-][0-9]+[/-][0-9]+", name) != None
+
+    @staticmethod
+    def parse_date_name(name):
+        """ If the given name is a date, return it in the format YYYY-MM-DD,
+        followed by the year, month, and day (as integers). Otherwise,
+        return a tuple with the unchanged name followed by tree 'None's, eg:
+        (u"Some page", None, None, None). """
+        match = re.search("([0-9]+)/([0-9]+)/([0-9]+)", name)
         if match != None:
             d = int(match.group(1))
             m = int(match.group(2))
             y = int(match.group(3))
-            name = u"%04d-%02d-%02d" % (y, m, d)
+            return u"%04d-%02d-%02d" % (y, m, d), y, m, d
         else:
-            match = re.search("([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})", name)
+            match = re.search("([0-9]+)-([0-9]+)-([0-9]+)", name)
             if match != None:
                 y = int(match.group(1))
                 m = int(match.group(2))
                 d = int(match.group(3))
-                name = u"%04d-%02d-%02d" % (y, m, d)
-        return name.encode("utf-8")
+                return u"%04d-%02d-%02d" % (y, m, d), y, m, d
+        return name, None, None, None
 
     def _set_name(self, name):
         self._name = name

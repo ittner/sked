@@ -630,10 +630,7 @@ class SkedApp(interface.BaseDialog):
         prev_page = self.history.get_item(1)
         if prev_page:
             token_dict['p'] = prev_page
-            if re.search("([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})", prev_page):
-                token_dict['P'] = prev_page
-            else:
-                token_dict['P'] = "[[" + prev_page + "]]"
+            token_dict['P'] = self.add_link_brackets_if_needed(prev_page)
         token_dict['c'] = self.clipboard.wait_for_text
         # Get text from the cursor to the start of line
         end = self.txBuffer.get_iter_at_mark(self.txBuffer.get_insert())
@@ -1097,46 +1094,28 @@ class SkedApp(interface.BaseDialog):
 
     def change_page_link(self, pagename):
         self.reset_timers()
-        pagename = self.reformat_page_name(pagename)
-        if self.curpage != None and not self.pm.exists(pagename):
-            if re.search("([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})",
-                self.curpage.name):
-                hdr = self.curpage.name
-            else:
-                hdr = "[[" + self.curpage.name + "]]"
-            newpage = Page(pagename, hdr + "\n=== " + pagename + " ===\n")
+        (fixedname, y, m, d) = Page.parse_date_name(pagename)
+        if self.curpage != None and not self.pm.exists(fixedname):
+            newpage = Page(fixedname,
+                self.add_link_brackets_if_needed(self.curpage.name) +
+                "\n=== " + fixedname + " ===\n")
             newpage.cursor_pos = len(newpage.text)
             self.pm.save(newpage)
-        self.hl_change_page(pagename)
+        self.hl_change_page(fixedname)
     
     def reformat_page_name(self, pagename):
         pagename = pagename.strip()
-        match = re.search("([0-9]{1,2})/([0-9]{1,2})/([0-9]{1,4})", pagename)
-        if match != None:
-            d = int(match.group(1))
-            m = int(match.group(2))
-            y = int(match.group(3))
-            return u"%04d-%02d-%02d" % (y, m, d)
-        match = re.search("([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})", pagename)
-        if match != None:
-            y = int(match.group(1))
-            m = int(match.group(2))
-            d = int(match.group(3))
-            return u"%04d-%02d-%02d" % (y, m, d)
-        return pagename
+        (n, y, m, d) = Page.parse_date_name(pagename)
+        return n
 
     def mark_page_on_calendar(self):
         if self.curpage != None:
-            pagename = self.curpage.normalized_name
-            match = re.search("([0-9]{4})-([01][0-9])-([0-3][0-9])", pagename)
+            (n, y, m, d) = Page.parse_date_name(self.curpage.name)
             self.calendar.handler_block(self.date_change_sigid)
-            if match == None:
+            if y == None:
                 self.calendar.select_day(0)
             else:
                 try:
-                    d = int(match.group(3))
-                    m = int(match.group(2))
-                    y = int(match.group(1))
                     # Throws an ValueError for bad dates.
                     datetime.datetime(y, m, d)
                     self.calendar.select_month(m-1, y)
@@ -1159,6 +1138,14 @@ class SkedApp(interface.BaseDialog):
             pagename = "%04d-%02d-%02d" % (year, month + 1, day)
             if self.pm.exists(pagename):
                 self.calendar.mark_day(day)
+
+    def add_link_brackets_if_needed(self, name):
+        """ Return the given name enclosed in link brackets unless it is
+        a recognized date format. """
+        if Page.is_date_name(name):
+            return name
+        else:
+            return "[[" + name + "]]"
 
 
 class SkedXmlDataHandler(object):

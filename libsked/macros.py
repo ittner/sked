@@ -68,7 +68,7 @@ class MacroManager(object):
             yield k, self._macros[k]
 
     @staticmethod
-    def _evaluate(format_string, token_dict=None):
+    def evaluate(format_string, token_dict=None):
         r""" Interpret a macro string. Two kind of tokens are suported: the
         ones provided by 'strftime' and a libc-like backslash notation.
         Three backslash tokens are hardcoded ('\\', '\n', and '\t') and all
@@ -119,6 +119,6 @@ class MacroManager(object):
                 if ndx > -1:
                     macro = self._macros[k]
                     return text_line[0:ndx] + \
-                        MacroManager._evaluate(macro, token_dict)
+                        MacroManager.evaluate(macro, token_dict)
         return None
 

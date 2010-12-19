@@ -687,6 +687,7 @@ class SkedApp(interface.BaseDialog):
         dlg = interface.RenamePageDialog(self)
         newpagename = dlg.run()
         if newpagename != None:
+            (newpagename, y, m, d) = Page.parse_date_name(newpagename)
             newpage = self.pm.load(newpagename)
             if newpage != None and \
             newpage.normalized_name == self.curpage.normalized_name:

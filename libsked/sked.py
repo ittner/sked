@@ -699,11 +699,12 @@ class SkedApp(interface.BaseDialog):
             self.hl_change_page(newpagename)
             self.pm.delete(oldpagename)
             if dlg.create_redirect:
-                token_dict = dict()
-                token_dict['a'] = newpagename
-                token_dict['A'] = self.add_link_brackets_if_needed(newpagename)
-                token_dict['p'] = oldpagename
-                token_dict['P'] = self.add_link_brackets_if_needed(oldpagename)
+                token_dict = { 
+                    'a' : newpagename,
+                    'A' : self.add_link_brackets_if_needed(newpagename),
+                    'p' : oldpagename,
+                    'P' : self.add_link_brackets_if_needed(oldpagename)
+                }
                 redirpage = Page(oldpagename, MacroManager.evaluate(
                     self.opt.get_str("redirect_page_template"), token_dict))
                 redirpage.cursor_pos = len(newpage.text)
@@ -1108,12 +1109,13 @@ class SkedApp(interface.BaseDialog):
         self.reset_timers()
         (fixedname, y, m, d) = Page.parse_date_name(pagename)
         if self.curpage != None and not self.pm.exists(fixedname):
-            token_dict = dict()
-            token_dict['a'] = fixedname
-            token_dict['A'] = self.add_link_brackets_if_needed(fixedname)
-            prev_page = self.history.get_item(0)
-            token_dict['p'] = prev_page
-            token_dict['P'] = self.add_link_brackets_if_needed(prev_page)
+            prev_page = self.history.get_item(0) or ""
+            token_dict = { 
+                'a' : fixedname,
+                'A' : self.add_link_brackets_if_needed(fixedname),
+                'p' : prev_page,
+                'P' : self.add_link_brackets_if_needed(prev_page)
+            }
             newpage = Page(fixedname, MacroManager.evaluate(
                 self.opt.get_str("new_page_template"), token_dict))
             newpage.cursor_pos = len(newpage.text)

@@ -113,6 +113,9 @@ class SkedApp(interface.BaseDialog):
     STARTUP_PAGE_OTHER = 2
     STARTUP_PAGE_LAST = 3
     
+    DEFAULT_NEW_PAGE_TEMPLATE = u"\\P\n=== \\a ===\n"
+    DEFAULT_REDIRECT_PAGE_TEMPLATE = u"Renamed to \\A\n"
+
     DEF_PREFS = {
         "window_x"  : 0,
         "window_y"  : 0,
@@ -152,7 +155,9 @@ class SkedApp(interface.BaseDialog):
         "macros"        : '{ "d":"%d/%m/%Y", "b":"Back to \\\\P", "f":"%F" }',
         "last_directory": utils.get_home_dir(),
         "startup_page"  : STARTUP_PAGE_TODAY,
-        "startup_other" : INDEX_PAGE
+        "startup_other" : INDEX_PAGE,
+        "new_page_template" : DEFAULT_NEW_PAGE_TEMPLATE,
+        "redirect_page_template" : DEFAULT_REDIRECT_PAGE_TEMPLATE
     }
 
     def __init__(self, db, extra_title = None):
@@ -694,8 +699,15 @@ class SkedApp(interface.BaseDialog):
             self.hl_change_page(newpagename)
             self.pm.delete(oldpagename)
             if dlg.create_redirect:
-                self.pm.save(Page(oldpagename,
-                    "Renamed to [[" + newpagename + "]]\n"))
+                token_dict = dict()
+                token_dict['a'] = newpagename
+                token_dict['A'] = self.add_link_brackets_if_needed(newpagename)
+                token_dict['p'] = oldpagename
+                token_dict['P'] = self.add_link_brackets_if_needed(oldpagename)
+                redirpage = Page(oldpagename, MacroManager.evaluate(
+                    self.opt.get_str("redirect_page_template"), token_dict))
+                redirpage.cursor_pos = len(newpage.text)
+                self.pm.save(redirpage)
 
     def on_cmd_search_menu(self, widget = None, event = None):
         self.mnSearchOptions.popup(None, None, None, 0, 0)
@@ -1096,9 +1108,14 @@ class SkedApp(interface.BaseDialog):
         self.reset_timers()
         (fixedname, y, m, d) = Page.parse_date_name(pagename)
         if self.curpage != None and not self.pm.exists(fixedname):
-            newpage = Page(fixedname,
-                self.add_link_brackets_if_needed(self.curpage.name) +
-                "\n=== " + fixedname + " ===\n")
+            token_dict = dict()
+            token_dict['a'] = fixedname
+            token_dict['A'] = self.add_link_brackets_if_needed(fixedname)
+            prev_page = self.history.get_item(0)
+            token_dict['p'] = prev_page
+            token_dict['P'] = self.add_link_brackets_if_needed(prev_page)
+            newpage = Page(fixedname, MacroManager.evaluate(
+                self.opt.get_str("new_page_template"), token_dict))
             newpage.cursor_pos = len(newpage.text)
             self.pm.save(newpage)
         self.hl_change_page(fixedname)

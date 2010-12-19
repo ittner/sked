@@ -140,6 +140,9 @@ class PreferencesDialog(BaseDialog):
         self.clMacroValue.add_attribute(self.rdrMacroValue, "text", 1)
         self.clMacroValue.set_property("sizing", gtk.TREE_VIEW_COLUMN_AUTOSIZE)
 
+        self.txNewPageTemplate = self.ui.get_object("txNewPageTemplate")
+        self.txRedirectPageTemplate = self.ui.get_object("txRedirectPageTemplate")
+
         self.ui.connect_signals(self)
         
     def on_cmd_ok(self, widget = None, data = None):
@@ -178,6 +181,12 @@ class PreferencesDialog(BaseDialog):
         if iter:
             self.txMacroName.set_text(model.get_value(iter, 0))
             self.txMacroValue.set_text(model.get_value(iter, 1))
+
+    def on_cmd_restore_default_templates(self, widget = None, data = None):
+        self.txNewPageTemplate.get_buffer().set_text(
+            self.parent.DEFAULT_NEW_PAGE_TEMPLATE)
+        self.txRedirectPageTemplate.get_buffer().set_text(
+            self.parent.DEFAULT_REDIRECT_PAGE_TEMPLATE)
 
     def on_rbStartup(self, widget = None, data = None):
         self.txOpenPageName.set_property("sensitive",
@@ -231,6 +240,11 @@ class PreferencesDialog(BaseDialog):
         for name, value in self.macros.iterate():
             self.temp_macros.add(name, value)
         self._update_macros_list_model()
+
+        self.txNewPageTemplate.get_buffer().set_text(
+            self.opt.get_str("new_page_template"))
+        self.txRedirectPageTemplate.get_buffer().set_text(
+            self.opt.get_str("redirect_page_template"))
         
     def _save_widget_values(self):
         self.opt.set_int("format_time", self.spFormatTime.get_value_as_int())
@@ -274,6 +288,16 @@ class PreferencesDialog(BaseDialog):
         for name, value in self.temp_macros.iterate():
             self.macros.add(name, value)
         self.opt.set_str("macros", self.macros.dump_string())
+
+        buf = self.txNewPageTemplate.get_buffer()
+        start, end = buf.get_bounds()
+        self.opt.set_str("new_page_template",
+            buf.get_text(start, end).decode("utf-8"))
+
+        buf = self.txRedirectPageTemplate.get_buffer()
+        start, end = buf.get_bounds()
+        self.opt.set_str("redirect_page_template",
+            buf.get_text(start, end).decode("utf-8"))
 
 
 class BasePasswordDialog(BaseDialog):

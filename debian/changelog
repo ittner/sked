@@ -1,3 +1,9 @@
+sked (0.6-1) karmic; urgency=low
+
+  * New version.
+
+ -- Alexandre Erwin Ittner <alexandre@ittner.com.br>  Wed, 06 Apr 2011 22:32:04 -0300
+
 sked (0.5-1) karmic; urgency=low
 
   * Update package to version 0.5.

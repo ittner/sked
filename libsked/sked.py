@@ -511,6 +511,11 @@ class SkedApp(interface.BaseDialog):
         #self.tgHistory.set_active(False)
         self.txGlobalSearch.grab_focus()
 
+    def on_cmd_toggle_sidebar(self, widget = None, data = None):
+        self.opt.set_bool("show_sidebar", not
+            self.opt.get_bool("show_sidebar"))
+        self._update_sidebar()
+
     def _gsearch_add_page_and_update(self, page):
         self.gsearch_model.append([ page.name ])
         # TODO: Handle UI update here.

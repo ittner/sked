@@ -182,6 +182,14 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkMenuItem" id="mnToggleSidebar">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Togg_le sidebar</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_cmd_toggle_sidebar"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkSeparatorMenuItem" id="separador2">
                         <property name="visible">True</property>
                       </object>

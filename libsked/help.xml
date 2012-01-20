@@ -85,13 +85,13 @@ All entries are stored in a compressed and encrypted Berkeley DB4 database in yo
 
 == Usage ==
 
-Once installed, Sked adds a menu entry to the "Applications/Office" in your desktop environment in any contemporary general purpose Linux distro. If you have installed Sked manually, you must also create some desktop entry. It also happens on Windows — since there is no automatic installation in Windows, you must create a shortcut somewhere.
+Once installed, Sked adds a menu entry to the "Applications/Office" in your desktop environment in any contemporary general purpose Linux distro. If you have installed Sked manually, you must also create some desktop entry. This also happens on Windows — since there is no automatic installation in Windows, you must create a shortcut somewhere.
 
 When called for the first time, Sked asks a password to encrypt the database. You may leave it blank if you do not want to protect it; It is possible to change this later. There is no way to access your data without this password, so, chose it wisely.
 
-Sked uses a single database per user account per system, i.e., there is no "Open" or "Close" commands in the interface. You must consider this if you use several accounts or if several people share one account on the same computer (this last behavior is more common on Windows). Since centralizing the information in a single place frees you of wondering in which database your entries are saved, there is no much sense in not doing this. The database file is physically stored in the path dictated by "XDG_DATA_HOME", according to the FreeDesktop Base Directory Specification — which translates to "~/.local/share/sked/" unless you have changed it.
+Sked also frees you of wondering where a given entry was saved by using a single database per user account per system, i.e., there is no "Open" or "Close" commands in the interface. You must consider this if you use several accounts or if several people share one account on the same computer (this last behavior is more common on Windows). The database file is physically stored in the path dictated by "XDG_DATA_HOME", according to the FreeDesktop Base Directory Specification — which usually translates to "~/.local/share/sked/" unless you have changed it.
 
-Despite the centralized approach to the "default" database, it is possible to select an alternative database file through the command line (eg. "sked /some/other/database/file.db"). This is mainly intended to allow testing, maintenance, and experimentation without risking your real data. You may, of course, keep several "real" databases and select one of them with this method, but it just happens that Sked was not designed to work this way and keeping several databases is not much different than keeping a lot of text files, one of the  problems that Sked was created to solve.
+Despite the centralized approach for the "default" database, it is possible to select an alternative database file through the command line (eg. "sked /some/other/database/file.db"). This is mainly intended to allow tests, maintenance, and experimentation without risking your real data. You may, of course, keep several production databases and select one of them with this method, but it just happens that Sked was not designed to work this way and keeping several databases is not much different than keeping a lot of text files, one of the problems Sked was created to solve.
 
 
 
@@ -99,7 +99,7 @@ Despite the centralized approach to the "default" database, it is possible to se
 
 Everything in Sked is tailored for speed and agility — it means automating whatever is possible and avoiding non-productive operations. When opened, Sked jumps to the page of the day (unless another one was selected in the preferences), which usually contains your daily appointments and links to other pages. The "Index" page is intended to store your non-daily links, like any desktop wiki, and can also be accessed through the "Home" button, the menus or keyboard shortcut (Alt+Home).
 
-It is possible to change pages through the calendar (which creates and jumps through pages with standardized names in the format YYYY-MM-DD), the menu "Go", the history, the "Page Name" text field, or through links in the current page. Following a link to a new page automatically creates that page with a standard header and a backlink to the current one. References to the most recently visited pages are kept in the history and it is possible to use the Back/Forward commands as in a web browser.
+It is possible to change pages through the calendar (which creates and jumps through pages with standardized names in the format YYYY-MM-DD), the menu "Go", the history, the "Page Name" text field, or through links in the current page. Following a link to a new page automatically creates that page with a standard header and a backlink to the current one (the format may be customized, see "New and renamed page templates" bellow). References to the most recently visited pages are kept in the history and it is possible to use the Back/Forward commands as in a web browser.
 
 All edits are saved automatically when you leave the page and after a few seconds of inactivity (for the exact values, see "File/Preferences"). Sked does not format the text until you stop typing for a while, which prevents possibly awful changes in the text appearance during the typing — but it is a configurable behavior, you may adjust or remove the delay in the preferences.
 
@@ -173,6 +173,27 @@ Date tokens format the current date and time according to the "strftime" syntax.
 Note that '%n' and '%t' are equivalent to '\n' and '\t' — many applications already use one of these syntaxes, so, it makes some sense to support both.
 
 These tokens can, or course, be mixed together. For example, it is possible to define a macro "Source: \c - Retrieved: %F" to automatically paste URLs with the access date in your notes. These tokens allows the creation of very practical (despite initially not obvious) time-saving automations.
+
+
+= New and renamed page templates =
+
+Sked also allows you to customize the default text of a new page (created through a click to a non-existing page) and the text of the redirect pages created by te rename command when the option "Create a redirect page" is selected. These templates can be changed in the tab "Templates" in the preferences dialog.
+
+These templates accept the same date tokens available to the keyboard macros and the following backlash tokens:
+
+|||
+    \a  The name of the new page;
+    \A  The name of the new page formatted as a link if necessary,
+         e.g. [[Some page]] or 2010-02-03;
+    \p  The name of the old page (for rename only);
+    \P  The same as \p, but automatically formatted as a link if necessary
+        (for rename only);
+    \c  The contents of the clipboard (only if text);
+    \n  A newline character;
+    \t  A tab character;
+    \\  A literal '\' character.
+|||
+
 
 
 See also: [[Sked Wiki Language]], [[Sked Database Security]] and [[Sked License]].

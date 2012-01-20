@@ -349,8 +349,8 @@ macros and the following backlash tokens:
     \A  The name of the new page formatted as a link if necessary,
          e.g. [[Some page]] or 2010-02-03;
     \p  The name of the old page (for rename only);
-    \P  The same as \p, but automatically formatted as a link if necessary
-        (for rename only);
+    \P  The same as \p, but automatically formatted as a link if
+        necessary (for rename only);
     \c  The contents of the clipboard (only if text);
     \n  A newline character;
     \t  A tab character;

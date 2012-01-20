@@ -30,7 +30,7 @@
                 <property name="row_spacing">4</property>
                 <child>
                   <object class="GtkCheckButton" id="cbShowEdit">
-                    <property name="label" translatable="yes">Show _edit buttons on toolbar</property>
+                    <property name="label" translatable="yes">Show _edit buttons in toolbar</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
@@ -65,7 +65,7 @@
                   <object class="GtkLabel" id="label21">
                     <property name="visible">True</property>
                     <property name="xalign">0</property>
-                    <property name="label" translatable="yes">_Number pages on history</property>
+                    <property name="label" translatable="yes">_Number pages in history</property>
                     <property name="use_underline">True</property>
                     <property name="mnemonic_widget">spHistorySize</property>
                   </object>

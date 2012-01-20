@@ -60,12 +60,12 @@ def make_key(pwd):
     To use a secure, salted, S2K algorithm like PBKDF2, we need to store the
     salt somewhere outside the database, adding a undesired complexity layer
     to the application. So we resort to a less secure, non-salted, algorithm.
-    It is better than nothing...
+    It is better than nothing.
 
     Our algorithm hashes the concatenation of the ASCII representation of an
     integer 'i' (without leading zeros) and the password (encoded in UTF-8),
     repeating the process 4242 times, with 'i' ranging from 0 to 4241 (closed
-    interval).We use the SHA-256 hash function to get a 256 bits long key
+    interval). We use the SHA-256 hash function to get a 256 bits long key
     encoded as a lowercase hex string with any leading zeros. This new
     password is also a valid ASCII string, so it may be passed to the standard
     DB4 utilities, if needed for some maintenance work (an utility to get the
@@ -243,8 +243,8 @@ class EncryptedDatabase(object):
         # Since Python lacks any locked memory or other kind of memory we
         # can control, we try to help the VM to forget the password ASAP.
         # We don't keep any reference to the plain-text password (at least,
-        # not in 'our' side of the VM) and hope that it will be soon GC'ed.
-        # The salt thing is not that good, but it may show some value if
+        # not in 'our' side of the VM) and hope that it will be soon freed.
+        # The salt thing is not that good, but it may show some worth if
         # we are unlucky enough to get the password written to the swap.
         self._pwd_salt = None   # Resets the salt.
         self._pwd_hash = self._make_pwd_hash(pwd)

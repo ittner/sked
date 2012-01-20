@@ -655,6 +655,7 @@
                         <property name="can_focus">True</property>
                         <property name="headers_visible">False</property>
                         <signal name="row_activated" handler="on_cmd_history_go"/>
+                        <signal name="key_press_event" handler="on_history_keypress"/>
                       </object>
                     </child>
                   </object>

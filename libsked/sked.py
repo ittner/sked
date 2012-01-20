@@ -594,6 +594,22 @@ class SkedApp(interface.BaseDialog):
     def on_cmd_history_go(self, widget = None, path = None, column = None):
         return self.on_cmd_listbox_go(widget, path, column)
 
+    def on_history_keypress(self, widget = None, event = None, data = None):
+        if widget == self.lsHistory and event.type == gdk.KEY_PRESS \
+        and event.keyval == gtk.keysyms.Delete:
+            self.on_cmd_history_del(widget, event)
+            return True
+        return False
+
+    def on_cmd_history_del(self, widget = None, path = None, column = None):
+        selection = widget.get_selection()
+        model, iter = selection.get_selected()
+        if iter != None:
+            page = model.get_value(iter, 0)
+            self.history.delete(page)
+            if model.remove(iter):
+                selection.select_iter(iter)
+
     def on_cmd_listbox_go(self, widget = None, path = None, column = None):
         # Should be used for global search too.
         model, iter = widget.get_selection().get_selected()

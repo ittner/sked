@@ -799,6 +799,13 @@ class HistoryTestCase(BaseDBAccessTestCase):
         h2 = history.HistoryManager(self.db, "test1")
         self.assertEquals(h2.get_items(), [u"Atenção", "Item2", "Item1"])
 
+    def test_delete(self):
+        h = history.HistoryManager(None, None, 20)
+        h.add("1")
+        h.add("2")
+        h.add("3")
+        h.delete("2")
+        self.assertEquals(h.get_items(), ["3", "1"])
 
 
 class BackForwardTestCase(BaseSkedTestCase):

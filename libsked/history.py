@@ -69,6 +69,13 @@ class HistoryManager(object):
         self._trim()
         self._refresh_model()
 
+    def delete(self, item):
+        uitem = item.upper()
+        for tmp in self._items:
+            if tmp.upper() == uitem:
+                self._items.remove(tmp)
+                break
+
     def set_model(self, model):
         """If a ListStore model is given, the HistoryHandler will synchronize
         it automatically. This model MUST be a ListStore with only one string.

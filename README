@@ -34,6 +34,8 @@ the $HOME directory.
   * The default content of new pages and the redirect pages created by
     the rename command are now customizable.
   * It is now possible to hide the sidebar.
+  * A command to delete an entry from the history was added. Just press
+    the key "Delete" with the give entry selected in the side panel.
 
 = News in version 0.5 =
 

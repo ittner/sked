@@ -807,6 +807,22 @@ class HistoryTestCase(BaseDBAccessTestCase):
         h.delete("2")
         self.assertEquals(h.get_items(), ["3", "1"])
 
+    def test_delete_case_insensitive(self):
+        h = history.HistoryManager(None, None, 20)
+        h.add("a")
+        h.add("b")
+        h.add("c")
+        h.delete("B")
+        self.assertEquals(h.get_items(), ["c", "a"])
+
+    def test_delete_case_insensitive_unicode(self):
+        h = history.HistoryManager(None, None, 20)
+        h.add(u"¹²³ç€að")
+        h.add(u"ãéÍöAA")
+        h.add(u"óúĺá")
+        h.delete("ÃÉíÖaA")
+        self.assertEquals(h.get_items(), [u"óúĺá", u"¹²³ç€að"])
+
 
 class BackForwardTestCase(BaseSkedTestCase):
     

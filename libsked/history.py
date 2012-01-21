@@ -60,17 +60,17 @@ class HistoryManager(object):
     
     def add(self, item):
         if self._unique:
-            uitem = item.upper()
+            uitem = unicode(item).upper()
             for tmp in self._items:
                 if tmp.upper() == uitem:
                     self._items.remove(tmp)
                     break
-        self._items.insert(0, item)
+        self._items.insert(0, unicode(item))
         self._trim()
         self._refresh_model()
 
     def delete(self, item):
-        uitem = item.upper()
+        uitem = unicode(item).upper()
         for tmp in self._items:
             if tmp.upper() == uitem:
                 self._items.remove(tmp)

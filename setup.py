@@ -57,7 +57,7 @@ setup(name="sked",
     url="http://wikisked.sourceforge.net/",
     license="GNU GPL version 2 or later",
     long_description="""
-Sked is a personal organizer, calendar, schedule and braindump application
+Sked is a personal organizer, calendar, schedule, and braindump application
 with a wiki-like syntax for text formatting and organization. It is easier
 think of it as the result of the merge of a calendar with a desktop wiki.
 

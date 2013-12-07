@@ -371,7 +371,7 @@ data.
 
 
 
-= Database security: Backups =
+= Database safety: Backups =
 
 Every piece of data saved in your computer MUST have a backup, and your Sked
 database is no exception. It is possible to backup your database by copying

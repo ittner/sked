@@ -35,8 +35,8 @@ Everything stills being *text*.
 *Welcome!* This is the 'Index' page of your newly created database. Before start editing, you may want to read the [[Sked Help]].
 
 </entry>
- <entry name="Sked database security">Back to [[Sked Help]]
-=== Sked database security ===
+ <entry name="Sked database safety and security">Back to [[Sked Help]]
+=== Sked database safety and security ===
 
 == Encryption ==
 
@@ -70,7 +70,7 @@ See also the section "Importing and exporting data" in [[Sked Help]].
 
 Sked — The wikish scheduler - http://wikisked.sourceforge.net/
 
-See also: [[Sked Wiki Language]], [[Sked Database Security]] and [[Sked License]].
+See also: [[Sked Wiki Language]], [[Sked Database Safety and Security]] and [[Sked License]].
 
 
 == About ==
@@ -196,7 +196,7 @@ These templates accept the same date tokens available to the keyboard macros and
 
 
 
-See also: [[Sked Wiki Language]], [[Sked Database Security]] and [[Sked License]].
+See also: [[Sked Wiki Language]], [[Sked Database Safety and Security]] and [[Sked License]].
 </entry>
  <entry name="Sked License">Back to [[Sked Help]]
 === Sked License ===
